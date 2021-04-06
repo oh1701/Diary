@@ -77,6 +77,8 @@ class MainActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch { // Room DB는 mainthread에서 못가져온다.
             val a = db.RoomDao().getAll().size - 1
 
+            Log.d("사이즈", a.toString())
+
             if(a == 0){
                 var room: Diaryroom = db.RoomDao().getAll()[0]
                 var id: Int = room.id
@@ -86,7 +88,7 @@ class MainActivity : AppCompatActivity() {
 
                 diarylist.add(list(id, date, title, content))
             }
-            else {
+            else if(a >= 1){
                 for (i in a downTo 0) { // 역순으로 설정하여 최신 데이터가 상단으로 올라오게 만든다.
                     var room: Diaryroom = db.RoomDao().getAll()[i]
                     var id: Int = room.id

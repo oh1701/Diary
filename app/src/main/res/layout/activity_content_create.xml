@@ -16,29 +16,86 @@
 
     </data>
 
-<androidx.constraintlayout.widget.ConstraintLayout
+<LinearLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Content_create">
+    tools:context=".Content_create"
+    android:orientation="vertical"
+    android:weightSum="15">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/const_lay"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="0dp"
+            android:layout_height="0dp"
 
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintHeight_percent="0.9"
-        app:layout_constraintWidth_percent="0.9">
+        app:layout_constraintHeight_percent="0.95"
+        app:layout_constraintWidth_percent="0.93">
+
+            <ImageButton
+                android:id="@+id/back_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+
+                android:src="@drawable/ic_baseline_cancel_24"
+                android:background="@android:color/transparent"/>
+
+            <TextView
+                android:id="@+id/content_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="03월 12일, 2021"
+                android:textSize="16sp"
+                android:textStyle="bold"
+
+                android:fontFamily="serif"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+
+                android:layout_marginLeft="5dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginTop="10dp" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="13">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/const_lay"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintWidth_percent="0.93">
+
 
         <EditText
-            android:id="@+id/content_date"
+            android:id="@+id/content_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
 
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/content_title"
+            app:layout_constraintBottom_toTopOf="@id/content_view"
             app:layout_constraintLeft_toLeftOf="parent"
             android:text="@={creatediary.edi}"
             android:textColor="#8A8787"
@@ -47,19 +104,20 @@
 
             android:background="@android:color/transparent"
             android:textSize="16sp"
+
             android:fontFamily="serif"
-            android:layout_marginLeft="15dp"
+            android:layout_marginLeft="10dp"
             android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
             android:layout_marginRight="10dp"/>
         <!-- 기본 폰트는 serif로 설정하기.-->
         <!--@ 는 단방향, @= 는 양방향. databinding-->
+
         <View
             android:id="@+id/content_view"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@color/black"
-            app:layout_constraintTop_toBottomOf="@id/content_date"
+            app:layout_constraintTop_toBottomOf="@id/content_title"
             app:layout_constraintBottom_toTopOf="@id/content_scroll"
             android:layout_margin="10dp"/>
 
@@ -71,7 +129,8 @@
             app:layout_constraintBottom_toTopOf="@id/content_view2"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp">
 
@@ -101,17 +160,109 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <Button
-        android:id="@+id/btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/const_lay"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-        android:onClick="@{() -> creatediary.onclick()}"/>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHeight_percent="0.95"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintWidth_percent="0.93"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp">
+
+            <ImageButton
+                android:id="@+id/success"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+
+                android:onClick="@{() -> creatediary.onclick()}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+
+                app:layout_constraintTop_toTopOf="parent"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_baseline_check_circle_24"/>
+
+            <ImageButton
+                android:id="@+id/font_change"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_baseline_text_fields_24"
+                android:background="@android:color/transparent"
+
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+            <ImageButton
+                android:id="@+id/camera"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_baseline_camera_alt_24"
+                android:background="@android:color/transparent"
+                app:layout_constraintLeft_toRightOf="@id/font_change"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+
+                android:layout_marginLeft="20dp"/>
 
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+
+            <ImageButton
+                android:id="@+id/picture"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_baseline_image_24"
+                android:background="@android:color/transparent"
+                app:layout_constraintLeft_toRightOf="@id/camera"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+
+                android:layout_marginLeft="20dp"/>
+
+            <ImageButton
+                android:id="@+id/notouch"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_baseline_pan_tool_24"
+                android:background="@android:color/transparent"
+                app:layout_constraintLeft_toRightOf="@id/picture"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+
+                android:layout_marginLeft="20dp"/>
+
+            <ImageButton
+                android:id="@+id/tag"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_baseline_tag_24"
+                android:background="@android:color/transparent"
+                app:layout_constraintLeft_toRightOf="@id/notouch"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+
+                android:layout_marginLeft="20dp"/>
+
+
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</LinearLayout>
 
 </layout>
