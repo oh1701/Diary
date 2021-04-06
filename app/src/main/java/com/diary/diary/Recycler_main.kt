@@ -13,7 +13,7 @@ class Recycler_main(val diary_list:ArrayList<list>) :  RecyclerView.Adapter<Recy
     }
 
     override fun onBindViewHolder(holder: Recycler_main.ViewHolder, position: Int) {
-        holder.date.text = diary_list[position].date
+        holder.title.text = diary_list[position].title
         holder.content.text = diary_list[position].content
     }
 
@@ -22,9 +22,9 @@ class Recycler_main(val diary_list:ArrayList<list>) :  RecyclerView.Adapter<Recy
     }
 
     class ViewHolder(itemview: View) :RecyclerView.ViewHolder(itemview){
-        val date = itemview.findViewById<TextView>(R.id.recycler_date)
+        val title = itemview.findViewById<TextView>(R.id.recycler_title)
         val content = itemview.findViewById<TextView>(R.id.recycler_text)
     }
 }
 
-class list(val date:String, val content:String)
+class list(val id:Int, val date:Long, val title:String, val content:String)

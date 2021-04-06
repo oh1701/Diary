@@ -1,14 +1,21 @@
 package com.diary.diary
 
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
+import android.widget.Button
+import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.room.*
 import com.diary.diary.databinding.ActivityMainBinding
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import java.util.jar.Manifest
 
 @Entity
 data class Diaryroom(
@@ -23,17 +30,23 @@ interface DiaryDao{
     @Query("SELECT * FROM Diaryroom")
     fun getAll():List<Diaryroom>
 
+    @Query("SELECT id FROM Diaryroom")
+    fun getid():Int
+
     @Query("SELECT date FROM Diaryroom")
     fun getdate():Long
 
     @Query("SELECT title FROM Diaryroom")
     fun gettitle():String
 
+    @Query("SELECT content FROM Diaryroom")
+    fun getcontent():String
+
     @Insert
     fun insertDao(vararg diaryroom: Diaryroom)
 
-    @Delete
-    fun DeleteDao(vararg diaryroom: Diaryroom)
+    @Query("DELETE FROM Diaryroom")
+    fun DeleteDao()
 }
 
 @Database(entities = [Diaryroom::class], version = 1)
@@ -51,21 +64,90 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        var lis:ArrayList<list> = arrayListOf(list("2021년 04월 04일","오늘은 아무것도 안했다.\n 심심하다"))
-
-        binding.mainRecylerview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        binding.mainRecylerview.setHasFixedSize(true)
-        binding.mainRecylerview.adapter = Recycler_main(lis)
+        val context = this
+        var diarylist:ArrayList<list> = arrayListOf()
 
         var db = Room.databaseBuilder(
                 applicationContext, RoomdiaryDB::class.java
-        , "RoomDB_Main"
+                , "RoomDB"
         )
                 .build()
 
-        CoroutineScope(Dispatchers.IO).launch{
-            db.RoomDao().insertDao(Diaryroom(0, 20210404, "제목입니다.","내용입니다"))
-            Log.d("TAG", "${db.RoomDao().getAll()}")
+                //db.RoomDao().DeleteDao()
+        CoroutineScope(Dispatchers.IO).launch { // Room DB는 mainthread에서 못가져온다.
+            val a = db.RoomDao().getAll().size - 1
+
+            if(a == 0){
+                var room: Diaryroom = db.RoomDao().getAll()[0]
+                var id: Int = room.id
+                var date: Long = room.date
+                var title: String = room.title
+                var content: String = room.content
+
+                diarylist.add(list(id, date, title, content))
+            }
+            else {
+                for (i in a downTo 0) { // 역순으로 설정하여 최신 데이터가 상단으로 올라오게 만든다.
+                    var room: Diaryroom = db.RoomDao().getAll()[i]
+                    var id: Int = room.id
+                    var date: Long = room.date
+                    var title: String = room.title
+                    var content: String = room.content
+
+                    diarylist.add(list(id, date, title, content))
+                }
+            }
+            Log.d("TAG", "안임")
+            Log.d("TAG룸", "${db.RoomDao().getAll()}")
         }
+
+        Log.d("TAG", "밖임")
+        binding.mainRecylerview.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+        binding.mainRecylerview.setHasFixedSize(true)
+        binding.mainRecylerview.adapter = Recycler_main(diarylist)
+
+        binding.allDiary.setOnClickListener {
+            var intent = Intent(context, Content_create::class.java)
+            startActivity(intent)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+
+        }
+        else{
+            makeRequest()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+
+        when(requestCode){ // requestpermissions을 통해 arrayof는 grantresults로, requestcode는 그대로 가져와진다.
+            0 -> {
+                if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED || grantResults[1] != PackageManager.PERMISSION_GRANTED) { // grantResult가 비어있을시 혹은 0번째 확인(읽고 쓰기)가 거절인지, 1번째 확인(카메라) 가 거절인지 확인.
+                    Toast.makeText(this, "권한 거부됨.", Toast.LENGTH_SHORT).show()
+                } else {
+                }
+            }
+        }
+        return
+    }
+
+    private fun makeRequest(){
+        ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.CAMERA), 0)
+    }
+
+    private fun camerapicture(){
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also{
+        }
+    }
+
+    private fun getAllphoto(){ // 사진 가져오기 기능
+
     }
 }
