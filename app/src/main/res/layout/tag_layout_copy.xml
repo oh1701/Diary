@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.flexbox.FlexboxLayout
+    android:id="@+id/tag_flexboxlayout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+
+    app:flexWrap="wrap"
+    app:alignItems="stretch"
+    app:alignContent="stretch"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+<LinearLayout
+    android:id="@+id/copy_layout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    app:layout_constraintRight_toRightOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintLeft_toLeftOf="parent"
+
+    android:background="@drawable/tag_oval"
+    android:paddingTop="3dp"
+    android:paddingBottom="3dp"
+    android:paddingRight="5dp"
+    android:paddingLeft="5dp"
+    android:layout_margin="5dp">
+
+    <TextView
+        android:id="@+id/tag_tag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+
+        android:gravity="center_vertical"
+        android:text="# "
+        android:textColor="#DD0C0C"
+
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tag_content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:fontFamily="serif"
+
+        android:gravity="center_vertical"
+        android:text=""
+        android:textSize="14sp"
+        android:textStyle="bold"
+
+        android:textColor="#615D5D"
+
+        android:visibility="gone"/>
+
+    <!-- 평상시에는 tag_edit과 함께 사라져있다가 tag_edit에 데이터 추가시 추가.-->
+
+    <EditText
+        android:id="@+id/tag_edit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:background="@android:color/transparent"
+
+        android:fontFamily="serif"
+        android:gravity="center_vertical"
+
+        android:textColorHint="#858585"
+        android:hint="태그"
+
+        android:textColor="#3E3D3D"
+        android:textSize="14sp"
+        android:textStyle="bold"/>
+</LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+<!--태그 기능 레이아웃-->
+<!--태그 기능 터치시 레이아웃 추가 입력값 없으면 삭제, 있으면 추가.-->
+<!--FlexboxLayout의 wrap기능을 활용하여 넓이 가득찰 시 자동으로 뷰그룹이 다음 칸으로 넘어감-->
+
+</com.google.android.flexbox.FlexboxLayout>

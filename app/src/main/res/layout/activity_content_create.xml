@@ -17,10 +17,12 @@
     </data>
 
 <LinearLayout
+    android:id="@+id/layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".Content_create"
     android:orientation="vertical"
+    android:background="#EDEBEB"
     android:weightSum="15">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -68,7 +70,6 @@
                 android:layout_marginLeft="5dp"
                 android:layout_marginBottom="10dp"
                 android:layout_marginTop="10dp" />
-
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -134,6 +135,10 @@
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp">
 
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
             <EditText
                 android:id="@+id/content_text"
                 android:textSize="16sp"
@@ -141,11 +146,31 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
 
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+
+
                 android:hint="내용을 입력해주세요."
 
                 android:background="@android:color/transparent"
                 android:fontFamily="serif"
                 />
+
+                <com.google.android.flexbox.FlexboxLayout
+                    android:id="@+id/tag_parent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    app:flexWrap="wrap"
+                    app:alignItems="stretch"
+                    app:alignContent="stretch"
+
+                    app:layout_constraintTop_toBottomOf="@id/content_text"
+                    app:layout_constraintLeft_toLeftOf="parent"/>
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
         </ScrollView>
 
@@ -182,7 +207,7 @@
 
             <ImageButton
                 android:id="@+id/success"
-                android:layout_width="wrap_content"
+                android:layout_width="40dp"
                 android:layout_height="match_parent"
 
                 android:onClick="@{() -> creatediary.onclick()}"
@@ -190,15 +215,18 @@
                 app:layout_constraintRight_toRightOf="parent"
 
                 app:layout_constraintTop_toTopOf="parent"
-                android:background="@android:color/transparent"
+
+                android:background="@drawable/btn_select"
+
                 android:src="@drawable/ic_baseline_check_circle_24"/>
 
             <ImageButton
                 android:id="@+id/font_change"
-                android:layout_width="wrap_content"
+                android:layout_width="40dp"
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_baseline_text_fields_24"
-                android:background="@android:color/transparent"
+
+                android:background="@drawable/btn_select"
 
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -206,56 +234,63 @@
 
             <ImageButton
                 android:id="@+id/camera"
-                android:layout_width="wrap_content"
+                android:layout_width="40dp"
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_baseline_camera_alt_24"
-                android:background="@android:color/transparent"
+
+                android:background="@drawable/btn_select"
+
                 app:layout_constraintLeft_toRightOf="@id/font_change"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
 
-                android:layout_marginLeft="20dp"/>
+                android:layout_marginLeft="10dp"/>
 
 
 
             <ImageButton
                 android:id="@+id/picture"
-                android:layout_width="wrap_content"
+                android:layout_width="40dp"
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_baseline_image_24"
-                android:background="@android:color/transparent"
+
+                android:background="@drawable/btn_select"
+
                 app:layout_constraintLeft_toRightOf="@id/camera"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
 
-                android:layout_marginLeft="20dp"/>
+                android:layout_marginLeft="10dp"/>
 
             <ImageButton
                 android:id="@+id/notouch"
-                android:layout_width="wrap_content"
+                android:layout_width="40dp"
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_baseline_pan_tool_24"
-                android:background="@android:color/transparent"
+
+                android:background="@drawable/btn_select"
+
                 app:layout_constraintLeft_toRightOf="@id/picture"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
 
-                android:layout_marginLeft="20dp"/>
+                android:layout_marginLeft="10dp"/>
+
+
 
             <ImageButton
                 android:id="@+id/tag"
-                android:layout_width="wrap_content"
+                android:layout_width="40dp"
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_baseline_tag_24"
-                android:background="@android:color/transparent"
+
+                android:background="@drawable/btn_select"
+
                 app:layout_constraintLeft_toRightOf="@id/notouch"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
 
-                android:layout_marginLeft="20dp"/>
-
-
-
+                android:layout_marginLeft="10dp"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

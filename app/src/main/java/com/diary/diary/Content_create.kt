@@ -1,28 +1,27 @@
 package com.diary.diary
 
-import android.content.ClipData
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
-import android.icu.text.CaseMap
-import android.icu.text.DateFormat
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.util.rangeTo
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.room.Room
 import com.diary.diary.databinding.ActivityContentCreateBinding
+import com.google.android.flexbox.FlexboxLayout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -57,6 +56,9 @@ class Content_create : AppCompatActivity() { // intent 통해서 전해진 데�
         val now = LocalDateTime.now().format(dateformat).toLong()
         var titletext = ""
         var contenttext = ""
+        lateinit var tag_layout:FlexboxLayout
+        lateinit var toplayout:LinearLayout
+        var tagfirst = 0
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,6 +72,8 @@ class Content_create : AppCompatActivity() { // intent 통해서 전해진 데�
                     "RoomDB"
             )
                     .build()
+        tag_layout = binding.tagParent
+        toplayout = binding.layout
 
         
         // 함수 불러올 공간
@@ -100,7 +104,7 @@ class Content_create : AppCompatActivity() { // intent 통해서 전해진 데�
                 var intent = Intent(this, MainActivity::class.java)
                 startActivity(intent)
             } else {
-                Toast.makeText(this, "값이 없다.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "제목을 입력해주세요.", Toast.LENGTH_SHORT).show()
             }
 
         })
@@ -140,7 +144,23 @@ class Content_create : AppCompatActivity() { // intent 통해서 전해진 데�
         }
 
         binding.tag.setOnClickListener {
-            //여기에 분류탭 설정할 수 있게 만들기.
+
+            var tagcontent = findViewById<TextView>(R.id.tag_content)
+            var tagedit = findViewById<EditText>(R.id.tag_edit)
+
+            var inflater = this.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+            inflater.inflate(R.layout.tag_layout_copy, binding.tagParent, true) //아무래도 리사이클러뷰와 Flexlayout 같이 사용해야할듯.
+
+
+            if(tagedit != null) {
+                if (tagedit.text.isNotEmpty()) {// 빈값이 아니면 텍스트에 저장시킴
+                    Toast.makeText(this, "된다", Toast.LENGTH_SHORT).show()
+                    Log.d("TAG", tagedit?.text?.length.toString())
+                } else { //빈값이면 view 삭제.
+                    Toast.makeText(this, "아니된다", Toast.LENGTH_SHORT).show()
+                    Log.d("TAG", tagedit.text.length.toString())
+                }
+            }
         }
 
         binding.backBtn.setOnClickListener { //X버튼 누를시
