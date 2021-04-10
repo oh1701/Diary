@@ -1,10 +1,18 @@
 package com.diary.diary
 
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Typeface
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
+import android.provider.Settings
 import android.util.Log
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +22,9 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.view.marginTop
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -21,11 +32,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
+import com.bumptech.glide.Glide
 import com.diary.diary.databinding.ActivityContentCreateBinding
 import com.google.android.flexbox.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.lang.Exception
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -94,6 +107,39 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
         clickListener()
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if(requestCode == 2294){ // 내가 설정한 리퀘스트 코드. 2294가 맞으면
+            if(resultCode == RESULT_OK){ // 리졸트 코드가 맞으면(호출이 되면)
+                val dataUri = data?.data
+                var imageview = ImageView(this)
+                Glide.with(this).load(dataUri).into(imageview)
+
+                val editText = EditText(this).apply {
+                    this.setBackgroundResource(android.R.color.transparent)
+                    this.typeface = Typeface.SERIF
+                    this.textSize = 16F
+                }
+
+
+
+                try{
+                    var bitmap: Bitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, dataUri)
+                    imageview.setImageBitmap(bitmap)
+                    binding.imageEditLayout.addView(imageview) // imageEditLayout 은 constraint 의 자식인 Linearlayout
+                    binding.imageEditLayout.addView(editText)
+                }
+                catch(e:Exception){
+                    Toast.makeText(this, "오류 $e", Toast.LENGTH_SHORT).show()
+                }
+            }
+            else{
+
+            }
+        }
+    }
+
     private fun observemodel(){
         viewModel.getEdi().observe(this, {
             titletext = it
@@ -123,9 +169,76 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
         })
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        when(requestCode){ // requestpermissions을 통해 arrayof는 grantresults로, requestcode는 그대로 가져와진다.
+            0 -> {
+                if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED || grantResults[1] != PackageManager.PERMISSION_GRANTED || grantResults[2] != PackageManager.PERMISSION_GRANTED) { // grantResult가 비어있을시 혹은 0번째 확인(읽고 쓰기)가 거절인지, 1번째 확인(카메라) 가 거절인지 확인.
+                    val permission_view:View = LayoutInflater.from(this).inflate(R.layout.activity_permission_intent, null)// 커스텀 다이얼로그 생성하기. 권한은 저장공간, 카메라
+
+                    var dialog = Dialog(this)
+
+                    var permission_positive_btn = permission_view.findViewById<Button>(R.id.warning_positive)
+                    var permission_negative_btn = permission_view.findViewById<Button>(R.id.warning_negative)
+
+                    permission_positive_btn.setOnClickListener { //설정버튼 누를시 이동
+                        var intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + packageName)) //어플 정보를 가진 설정창으로 이동.
+                        startActivity(intent)
+                    }
+
+                    permission_negative_btn.setOnClickListener {
+                        finish()
+                    }
+
+                    dialog.setContentView(permission_view)
+                    dialog.show()
+
+                }
+                else{
+
+                }
+
+            }
+        }
+        return
+    }
+
+    private fun makeRequest(){
+        ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.CAMERA), 0)
+    }
+
     private fun clickListener(){
         var notouch_change = 1
         var toast: Toast? = null
+
+        binding.camera.setOnClickListener {
+            if ((ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)&&
+                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
+
+            }
+            else{
+                makeRequest()
+            }
+        }
+
+
+        binding.picture.setOnClickListener { //갤러리에서 사진 가져오기 기능
+
+            if((ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)&&
+                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                //모든 퍼미션 허용시
+                val intent = Intent()
+                intent.type = "image/*"
+                intent.action = Intent.ACTION_GET_CONTENT
+
+                startActivityForResult(Intent.createChooser(intent, "사진을 가져오는 중.."),2294)
+            }
+            else{ //퍼미션 하나라도 허용이 안되어있을 시.
+                makeRequest()
+            }
+        }
+
 
         binding.notouch.setOnClickListener { //터치 활성화 이벤트
             notouch_change *= -1
@@ -156,7 +269,7 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
             toast!!.show()
         }
 
-        binding.tag.setOnClickListener {
+        binding.tag.setOnClickListener { //태그 생성 버튼
             tag_changed *= -1 // 태그 체인지드가 1일경우 tag넣는 공간 사라지게 만들기.
             recy.adapter?.notifyDataSetChanged() // 여기서 선언 안하면 리사이클러뷰 상태에서 remove 했을 때, 새로운 태그 생성시 자리가 남게됨 (글자 입력하면 사라지지만 가독성을 위해 만들자.)
 

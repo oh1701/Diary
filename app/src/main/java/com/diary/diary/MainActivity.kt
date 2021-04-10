@@ -112,19 +112,20 @@ class MainActivity : AppCompatActivity() {
             var intent = Intent(context, Content_create::class.java)
             startActivity(intent)
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
 
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
 
         }
         else{
             makeRequest()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -133,7 +134,8 @@ class MainActivity : AppCompatActivity() {
             0 -> {
                 if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED || grantResults[1] != PackageManager.PERMISSION_GRANTED) { // grantResult가 비어있을시 혹은 0번째 확인(읽고 쓰기)가 거절인지, 1번째 확인(카메라) 가 거절인지 확인.
                     Toast.makeText(this, "권한 거부됨.", Toast.LENGTH_SHORT).show()
-                } else {
+                }
+                else {
                 }
             }
         }
@@ -142,14 +144,5 @@ class MainActivity : AppCompatActivity() {
 
     private fun makeRequest(){
         ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.CAMERA), 0)
-    }
-
-    private fun camerapicture(){
-        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also{
-        }
-    }
-
-    private fun getAllphoto(){ // 사진 가져오기 기능
-
     }
 }

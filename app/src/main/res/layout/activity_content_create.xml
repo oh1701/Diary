@@ -70,6 +70,27 @@
                     android:layout_marginLeft="5dp"
                     android:layout_marginBottom="10dp"
                     android:layout_marginTop="10dp" />
+
+
+
+                <Button
+                    android:id="@+id/success"
+                    android:layout_width="40dp"
+                    android:layout_height="match_parent"
+
+                    android:onClick="@{() -> creatediary.onclick()}"
+                    android:text="저장"
+                    android:textColor="#443CB3"
+                    android:fontFamily="serif"
+
+
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+
+                    android:background="@drawable/btn_select"
+
+                    android:src="@drawable/ic_baseline_check_circle_24"/>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -99,7 +120,9 @@
                     app:layout_constraintBottom_toTopOf="@id/content_view"
                     app:layout_constraintLeft_toLeftOf="parent"
                     android:text="@={creatediary.edi}"
-                    android:textColor="#8A8787"
+
+                    android:inputType="text"
+                    android:maxLines="1"
 
                     android:hint="제목을 입력해주세요."
 
@@ -143,19 +166,29 @@
                             android:id="@+id/content_text"
                             android:textSize="16sp"
                             android:text="@={creatediary.content}"
-                            android:layout_width="match_parent"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
 
                             app:layout_constraintTop_toTopOf="parent"
                             app:layout_constraintRight_toRightOf="parent"
                             app:layout_constraintLeft_toLeftOf="parent"
 
-
                             android:hint="내용을 입력해주세요."
 
                             android:background="@android:color/transparent"
-                            android:fontFamily="serif"
+                            android:typeface="serif"
+                            android:layout_marginBottom="10dp"
                             />
+
+                        <LinearLayout
+                            android:id="@+id/image_edit_layout"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/content_text"
+                            android:orientation="vertical">
+
+                        </LinearLayout>
 
                         <com.google.android.flexbox.FlexboxLayout
                             android:id="@+id/tag_parent"
@@ -167,7 +200,7 @@
                             app:alignContent="stretch"
                             app:flexDirection="row"
 
-                            app:layout_constraintTop_toBottomOf="@id/content_text"
+                            app:layout_constraintTop_toBottomOf="@id/image_edit_layout"
                             app:layout_constraintLeft_toLeftOf="parent"
                             android:layout_marginTop="5dp">
 
@@ -212,21 +245,6 @@
                 app:layout_constraintWidth_percent="0.93"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp">
-
-                <ImageButton
-                    android:id="@+id/success"
-                    android:layout_width="40dp"
-                    android:layout_height="match_parent"
-
-                    android:onClick="@{() -> creatediary.onclick()}"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintRight_toRightOf="parent"
-
-                    app:layout_constraintTop_toTopOf="parent"
-
-                    android:background="@drawable/btn_select"
-
-                    android:src="@drawable/ic_baseline_check_circle_24"/>
 
                 <LinearLayout
                     android:id="@+id/bottom_linear"
@@ -358,7 +376,7 @@
                             android:gravity="center_vertical"
 
                             android:maxLines="1"
-                            android:maxWidth="180dp"
+                            android:maxWidth="220dp"
                             android:hint="태그 입력"
                             android:inputType="text"
 
@@ -384,11 +402,9 @@
                     app:layout_constraintBottom_toBottomOf="parent"
 
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintRight_toLeftOf="@id/success"/>
+                    app:layout_constraintRight_toRightOf="parent"/>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
-
-
         </androidx.constraintlayout.widget.ConstraintLayout>
 
 
