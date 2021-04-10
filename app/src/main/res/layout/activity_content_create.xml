@@ -16,288 +16,382 @@
 
     </data>
 
-<LinearLayout
-    android:id="@+id/layout"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".Content_create"
-    android:orientation="vertical"
-    android:background="#EDEBEB"
-    android:weightSum="15">
-
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
+        android:id="@+id/layout"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_height="match_parent"
+        tools:context=".Content_create"
+        android:orientation="vertical"
+        android:background="#EDEBEB"
+        android:weightSum="15">
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintHeight_percent="0.95"
-        app:layout_constraintWidth_percent="0.93">
-
-            <ImageButton
-                android:id="@+id/back_btn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-
-                android:src="@drawable/ic_baseline_cancel_24"
-                android:background="@android:color/transparent"/>
-
-            <TextView
-                android:id="@+id/content_date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="03월 12일, 2021"
-                android:textSize="16sp"
-                android:textStyle="bold"
-
-                android:fontFamily="serif"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-
-                android:layout_marginLeft="5dp"
-                android:layout_marginBottom="10dp"
-                android:layout_marginTop="10dp" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="13">
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/const_lay"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintWidth_percent="0.93">
-
-
-        <EditText
-            android:id="@+id/content_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-
-            app:layout_constraintTop_toBottomOf="@id/content_title"
-            app:layout_constraintBottom_toTopOf="@id/content_view"
-            app:layout_constraintLeft_toLeftOf="parent"
-            android:text="@={creatediary.edi}"
-            android:textColor="#8A8787"
-
-            android:hint="제목을 입력해주세요."
-
-            android:background="@android:color/transparent"
-            android:textSize="16sp"
-
-            android:fontFamily="serif"
-            android:layout_marginLeft="10dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginRight="10dp"/>
-        <!-- 기본 폰트는 serif로 설정하기.-->
-        <!--@ 는 단방향, @= 는 양방향. databinding-->
-
-        <View
-            android:id="@+id/content_view"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/black"
-            app:layout_constraintTop_toBottomOf="@id/content_title"
-            app:layout_constraintBottom_toTopOf="@id/content_scroll"
-            android:layout_margin="10dp"/>
-
-        <ScrollView
-            android:id="@+id/content_scroll"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            app:layout_constraintTop_toBottomOf="@id/content_view"
-            app:layout_constraintBottom_toTopOf="@id/content_view2"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp">
+            android:layout_weight="1">
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-            <EditText
-                android:id="@+id/content_text"
-                android:textSize="16sp"
-                android:text="@={creatediary.content}"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
 
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintHeight_percent="0.95"
+                app:layout_constraintWidth_percent="0.93">
 
-
-                android:hint="내용을 입력해주세요."
-
-                android:background="@android:color/transparent"
-                android:fontFamily="serif"
-                />
-
-                <com.google.android.flexbox.FlexboxLayout
-                    android:id="@+id/tag_parent"
+                <ImageButton
+                    android:id="@+id/back_btn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
 
-                    app:flexWrap="wrap"
-                    app:alignItems="stretch"
-                    app:alignContent="stretch"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
 
-                    app:layout_constraintTop_toBottomOf="@id/content_text"
-                    app:layout_constraintLeft_toLeftOf="parent"/>
+                    android:src="@drawable/ic_baseline_cancel_24"
+                    android:background="@android:color/transparent"/>
 
+                <TextView
+                    android:id="@+id/content_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="03월 12일, 2021"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+
+                    android:fontFamily="serif"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginTop="10dp" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="13">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/const_lay"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintWidth_percent="0.93">
+
+
+                <EditText
+                    android:id="@+id/content_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    app:layout_constraintTop_toBottomOf="@id/content_title"
+                    app:layout_constraintBottom_toTopOf="@id/content_view"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    android:text="@={creatediary.edi}"
+                    android:textColor="#8A8787"
+
+                    android:hint="제목을 입력해주세요."
+
+                    android:background="@android:color/transparent"
+                    android:textSize="16sp"
+
+                    android:fontFamily="serif"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginRight="10dp"/>
+                <!-- 기본 폰트는 serif로 설정하기.-->
+                <!--@ 는 단방향, @= 는 양방향. databinding-->
+
+                <View
+                    android:id="@+id/content_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/black"
+                    app:layout_constraintTop_toBottomOf="@id/content_title"
+                    app:layout_constraintBottom_toTopOf="@id/content_scroll"
+                    android:layout_margin="10dp"/>
+
+                <ScrollView
+                    android:id="@+id/content_scroll"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    app:layout_constraintTop_toBottomOf="@id/content_view"
+                    app:layout_constraintBottom_toTopOf="@id/content_view2"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp">
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <EditText
+                            android:id="@+id/content_text"
+                            android:textSize="16sp"
+                            android:text="@={creatediary.content}"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintRight_toRightOf="parent"
+                            app:layout_constraintLeft_toLeftOf="parent"
+
+
+                            android:hint="내용을 입력해주세요."
+
+                            android:background="@android:color/transparent"
+                            android:fontFamily="serif"
+                            />
+
+                        <com.google.android.flexbox.FlexboxLayout
+                            android:id="@+id/tag_parent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+
+                            app:flexWrap="wrap"
+                            app:alignItems="stretch"
+                            app:alignContent="stretch"
+                            app:flexDirection="row"
+
+                            app:layout_constraintTop_toBottomOf="@id/content_text"
+                            app:layout_constraintLeft_toLeftOf="parent"
+                            android:layout_marginTop="5dp">
+
+                                <androidx.recyclerview.widget.RecyclerView
+                                    android:id="@+id/Flex_recycler"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"/>
+
+                        </com.google.android.flexbox.FlexboxLayout>
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                </ScrollView>
+
+                <View
+                    android:id="@+id/content_view2"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/black"
+                    app:layout_constraintTop_toBottomOf="@id/content_scroll"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:layout_margin="10dp"/>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-        </ScrollView>
-
-        <View
-            android:id="@+id/content_view2"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/black"
-            app:layout_constraintTop_toBottomOf="@id/content_scroll"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_margin="10dp"/>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:layout_weight="1">
 
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintHeight_percent="0.95"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintWidth_percent="0.93"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp">
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="0dp"
+                android:layout_height="0dp"
 
-            <ImageButton
-                android:id="@+id/success"
-                android:layout_width="40dp"
-                android:layout_height="match_parent"
-
-                android:onClick="@{() -> creatediary.onclick()}"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-
-                app:layout_constraintTop_toTopOf="parent"
-
-                android:background="@drawable/btn_select"
-
-                android:src="@drawable/ic_baseline_check_circle_24"/>
-
-            <ImageButton
-                android:id="@+id/font_change"
-                android:layout_width="40dp"
-                android:layout_height="match_parent"
-                android:src="@drawable/ic_baseline_text_fields_24"
-
-                android:background="@drawable/btn_select"
-
+                app:layout_constraintHeight_percent="0.95"
                 app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent" />
+                app:layout_constraintWidth_percent="0.93"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp">
 
-            <ImageButton
-                android:id="@+id/camera"
-                android:layout_width="40dp"
-                android:layout_height="match_parent"
-                android:src="@drawable/ic_baseline_camera_alt_24"
+                <ImageButton
+                    android:id="@+id/success"
+                    android:layout_width="40dp"
+                    android:layout_height="match_parent"
 
-                android:background="@drawable/btn_select"
+                    android:onClick="@{() -> creatediary.onclick()}"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
 
-                app:layout_constraintLeft_toRightOf="@id/font_change"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
 
-                android:layout_marginLeft="10dp"/>
+                    android:background="@drawable/btn_select"
 
+                    android:src="@drawable/ic_baseline_check_circle_24"/>
 
+                <LinearLayout
+                    android:id="@+id/bottom_linear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
 
-            <ImageButton
-                android:id="@+id/picture"
-                android:layout_width="40dp"
-                android:layout_height="match_parent"
-                android:src="@drawable/ic_baseline_image_24"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
 
-                android:background="@drawable/btn_select"
+                    <ImageButton
+                        android:id="@+id/font_change"
+                        android:layout_width="40dp"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/btn_select"
 
-                app:layout_constraintLeft_toRightOf="@id/camera"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
+                        android:src="@drawable/ic_baseline_text_fields_24"
 
-                android:layout_marginLeft="10dp"/>
-
-            <ImageButton
-                android:id="@+id/notouch"
-                android:layout_width="40dp"
-                android:layout_height="match_parent"
-                android:src="@drawable/ic_baseline_pan_tool_24"
-
-                android:background="@drawable/btn_select"
-
-                app:layout_constraintLeft_toRightOf="@id/picture"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-
-                android:layout_marginLeft="10dp"/>
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
 
+                    <ImageButton
+                        android:id="@+id/camera"
+                        android:layout_width="40dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="8dp"
 
-            <ImageButton
-                android:id="@+id/tag"
-                android:layout_width="40dp"
-                android:layout_height="match_parent"
-                android:src="@drawable/ic_baseline_tag_24"
+                        android:background="@drawable/btn_select"
 
-                android:background="@drawable/btn_select"
+                        android:src="@drawable/ic_baseline_camera_alt_24"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toRightOf="@id/font_change"
 
-                app:layout_constraintLeft_toRightOf="@id/notouch"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
-                android:layout_marginLeft="10dp"/>
+
+                    <ImageButton
+                        android:id="@+id/picture"
+                        android:layout_width="40dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="8dp"
+
+                        android:background="@drawable/btn_select"
+
+                        android:src="@drawable/ic_baseline_image_24"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toRightOf="@id/camera"
+
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <ImageButton
+                        android:id="@+id/notouch"
+                        android:layout_width="40dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="8dp"
+
+                        android:background="@drawable/btn_select"
+
+                        android:src="@drawable/ic_baseline_pan_tool_24"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toRightOf="@id/picture"
+
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/insert_linear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toRightOf="@id/bottom_linear"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <ImageButton
+                        android:id="@+id/tag"
+                        android:layout_width="40dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="8dp"
+
+                        android:background="@drawable/btn_select"
+
+                        android:src="@drawable/ic_baseline_tag_24" />
+
+
+                    <LinearLayout
+                        android:id="@+id/tagline"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/tag_oval"
+
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="5dp"
+                        android:paddingRight="5dp"
+                        android:layout_marginLeft="15dp"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+
+                            android:layout_marginBottom="5dp"
+                            android:gravity="center_vertical"
+
+                            android:text="# "
+                            android:textColor="#DD0C0C"
+
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+
+                        <EditText
+                            android:id="@+id/etn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:background="@android:color/transparent"
+
+                            android:fontFamily="serif"
+                            android:gravity="center_vertical"
+
+                            android:maxLines="1"
+                            android:maxWidth="180dp"
+                            android:hint="태그 입력"
+                            android:inputType="text"
+
+                            android:textColor="#3E3D3D"
+
+                            android:textColorHint="#858585"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/trash"
+                    android:layout_width="40dp"
+                    android:layout_height="match_parent"
+
+                    android:layout_marginLeft="8dp"
+
+                    android:background="@drawable/btn_select"
+
+                    android:src="@drawable/ic_baseline_restore_from_trash_24"
+                    app:layout_constraintBottom_toBottomOf="parent"
+
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintRight_toLeftOf="@id/success"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-</LinearLayout>
+    </LinearLayout>
 
 </layout>

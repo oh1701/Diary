@@ -8,18 +8,21 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
 import com.diary.diary.databinding.ActivityContentCreateBinding
-import com.google.android.flexbox.FlexboxLayout
+import com.google.android.flexbox.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -45,7 +48,10 @@ class Roommodel:ViewModel(){
     }
 }
 
-class Content_create : AppCompatActivity() { // intent 통해서 전해진 데이터값으로 태그를 받는다. 태그값에 따라 room에 넣어지는 값도 달리하기.
+lateinit var recy:RecyclerView
+lateinit var tag_array:ArrayList<tagline>
+
+class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통해서 전해진 데이터값으로 태그를 받는다. 태그값에 따라 room에 넣어지는 값도 달리하기.
 
     lateinit var binding:ActivityContentCreateBinding
 
@@ -58,7 +64,8 @@ class Content_create : AppCompatActivity() { // intent 통해서 전해진 데�
         var contenttext = ""
         lateinit var tag_layout:FlexboxLayout
         lateinit var toplayout:LinearLayout
-        var tagfirst = 0
+        var tag_changed = 1
+        var trash_changed = 1
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,15 +74,21 @@ class Content_create : AppCompatActivity() { // intent 통해서 전해진 데�
         binding.lifecycleOwner = this
         viewModel = ViewModelProvider(this).get(Roommodel::class.java)
         binding.creatediary = viewModel
-            db = Room.databaseBuilder(
-                    applicationContext, RoomdiaryDB::class.java,
-                    "RoomDB"
-            )
-                    .build()
+        db = Room.databaseBuilder(
+                applicationContext, RoomdiaryDB::class.java,
+                "RoomDB"
+        )
+                .build()
         tag_layout = binding.tagParent
         toplayout = binding.layout
 
-        
+        tag_array = arrayListOf()
+        binding.FlexRecycler.layoutManager = FlexboxLayoutManager(this, FlexDirection.ROW, FlexWrap.WRAP) //가로정렬, 꽉차면 다음칸으로 넘어가게 만듬.
+        binding.FlexRecycler.setHasFixedSize(true)
+        binding.FlexRecycler.adapter = Recycler_tag(tag_array)
+
+        recy = binding.FlexRecycler
+
         // 함수 불러올 공간
         observemodel()
         clickListener()
@@ -113,7 +126,7 @@ class Content_create : AppCompatActivity() { // intent 통해서 전해진 데�
     private fun clickListener(){
         var notouch_change = 1
         var toast: Toast? = null
-        
+
         binding.notouch.setOnClickListener { //터치 활성화 이벤트
             notouch_change *= -1
             if(notouch_change == -1) {
@@ -123,7 +136,7 @@ class Content_create : AppCompatActivity() { // intent 통해서 전해진 데�
                 if(toast == null) {
                     toast = Toast.makeText(this, "터치 비활성화", Toast.LENGTH_SHORT)
                 }
-                else{
+                else{ // 토스트 삭제 후 재생성.
                     toast!!.cancel()
                     toast = Toast.makeText(this, "터치 비활성화", Toast.LENGTH_SHORT)
                 }
@@ -135,7 +148,7 @@ class Content_create : AppCompatActivity() { // intent 통해서 전해진 데�
                 if(toast == null) {
                     toast = Toast.makeText(this, "터치 활성화", Toast.LENGTH_SHORT)
                 }
-                else{
+                else{ // 토스트 삭제 후 재생성.
                     toast!!.cancel()
                     toast = Toast.makeText(this, "터치 활성화", Toast.LENGTH_SHORT)
                 }
@@ -144,23 +157,110 @@ class Content_create : AppCompatActivity() { // intent 통해서 전해진 데�
         }
 
         binding.tag.setOnClickListener {
+            tag_changed *= -1 // 태그 체인지드가 1일경우 tag넣는 공간 사라지게 만들기.
+            recy.adapter?.notifyDataSetChanged() // 여기서 선언 안하면 리사이클러뷰 상태에서 remove 했을 때, 새로운 태그 생성시 자리가 남게됨 (글자 입력하면 사라지지만 가독성을 위해 만들자.)
 
-            var tagcontent = findViewById<TextView>(R.id.tag_content)
-            var tagedit = findViewById<EditText>(R.id.tag_edit)
+            if(tag_changed == 1){ // 태그 버튼이 꺼짐
+                binding.tagline.visibility = View.GONE
+                binding.tag.setBackgroundResource(R.drawable.btn_select)
+                binding.trash.setBackgroundResource(R.drawable.btn_select)
 
-            var inflater = this.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-            inflater.inflate(R.layout.tag_layout_copy, binding.tagParent, true) //아무래도 리사이클러뷰와 Flexlayout 같이 사용해야할듯.
+                if (binding.etn.text.isNotEmpty()) { //값이 있으면 add, 없으면 add안함.
+                    tag_array.add(tagline("# ", binding.etn.text.toString())) // 태그, 작성한 입력값을 받은 텍스트값을 매개변수로 한다.
+                    binding.FlexRecycler.adapter?.notifyDataSetChanged() // 추가된 데이터 새로고침하여 변경
+                }
+
+                binding.bottomLinear.visibility = View.VISIBLE
+                binding.tagline.visibility = View.GONE
+                binding.trash.visibility = View.GONE // 태그, 쓰레기통 버튼 꺼짐. 및 나머지 리니어 visible
+            }
+            else { // 태그 버튼이 켜짐
+                binding.tagline.visibility = View.VISIBLE
+                binding.trash.visibility = View.VISIBLE
+                binding.bottomLinear.visibility = View.GONE // 태그, 쓰레기통 버튼 켜짐. 및 나머지 리니어 GONE
+
+                binding.tag.setBackgroundResource(R.drawable.btn_on)
+
+                binding.etn.setOnEditorActionListener { textView, action, event ->
+                    var handled = false
+                    if (action == EditorInfo.IME_ACTION_DONE) { //inputtype text의 완료버튼 선택 시 이벤트.
+                        val inputmethodservice = this.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                        inputmethodservice.hideSoftInputFromWindow(binding.etn.windowToken, 0)
+                        inputmethodservice
+
+                        if (binding.etn.text.isNotEmpty()) { //값이 있으면 add, 없으면 add안함.
+                            tag_array.add(tagline("# ", binding.etn.text.toString())) // 태그, 작성한 입력값을 받은 텍스트값을 매개변수로 한다.
+                            binding.FlexRecycler.adapter?.notifyDataSetChanged() // 추가된 데이터 새로고침하여 변경
+
+                            tag_changed = 1
+                            binding.tagline.visibility = View.GONE
+                            binding.trash.visibility = View.GONE
+                            binding.bottomLinear.visibility = View.VISIBLE // 태그, 쓰레기통 버튼 꺼짐. 및 나머지 리니어 VISIBLE
+
+                            binding.tag.setBackgroundResource(R.drawable.btn_select)
+
+                            binding.etn.text = null // null 값으로 설정
+                        }
+                        else{
+                            binding.bottomLinear.visibility = View.VISIBLE
+                            binding.tagline.visibility = View.GONE
+                            binding.trash.visibility = View.GONE // 태그, 쓰레기통 버튼 꺼짐. 및 나머지 리니어 visible
+                        }
+                        handled = true
 
 
-            if(tagedit != null) {
-                if (tagedit.text.isNotEmpty()) {// 빈값이 아니면 텍스트에 저장시킴
-                    Toast.makeText(this, "된다", Toast.LENGTH_SHORT).show()
-                    Log.d("TAG", tagedit?.text?.length.toString())
-                } else { //빈값이면 view 삭제.
-                    Toast.makeText(this, "아니된다", Toast.LENGTH_SHORT).show()
-                    Log.d("TAG", tagedit.text.length.toString())
+                        trash_changed = 1 // 쓰레기통버튼 off
+                        if(trash_changed == 1){
+                            trash_checkd("꺼짐")
+                            binding.trash.setBackgroundResource(R.drawable.btn_select)
+                        }
+                        else{
+                            trash_checkd("켜짐")
+                            binding.trash.setBackgroundResource(R.drawable.btn_on)
+                        }
+                    }
+                    handled
                 }
             }
+
+            trash_changed = 1 // 쓰레기통버튼 off
+            if(trash_changed == 1){
+                trash_checkd("꺼짐")
+                binding.trash.setBackgroundResource(R.drawable.btn_select)
+            }
+            else{
+                trash_checkd("켜짐")
+                binding.trash.setBackgroundResource(R.drawable.btn_on)
+            }
+            binding.etn.text = null // null 값으로 설정
+        }
+
+        binding.trash.setOnClickListener {
+            trash_changed *= -1
+
+            if(trash_changed == 1){
+                trash_checkd("꺼짐")
+                binding.trash.setBackgroundResource(R.drawable.btn_select)
+            }
+            else{
+                trash_checkd("켜짐")
+                binding.trash.setBackgroundResource(R.drawable.btn_on)
+            }
+
+        }
+
+        binding.fontChange.setOnClickListener {
+            /*tag_array.removeAt(0)
+            binding.FlexRecycler.adapter?.notifyItemRemoved(0)
+            binding.FlexRecycler.adapter?.notifyItemRangeChanged(0, tag_array.size)// 추가된 데이터 새로고침하여 변경
+
+            binding.tagTe.text = "" // 빈값으로 설정
+            binding.etn.text = null // 빈값으로 설정*/
+
+            /*var anima = AnimationUtils.loadAnimation(this, R.anim.remove_animation)
+
+            binding.fontChange.startAnimation(anima)*/
+
         }
 
         binding.backBtn.setOnClickListener { //X버튼 누를시
@@ -189,3 +289,4 @@ class Content_create : AppCompatActivity() { // intent 통해서 전해진 데�
         }
     }
 }
+
