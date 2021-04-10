@@ -5,40 +5,38 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Point
 import android.graphics.Typeface
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Log
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
+import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.marginTop
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
 import com.bumptech.glide.Glide
 import com.diary.diary.databinding.ActivityContentCreateBinding
-import com.google.android.flexbox.*
+import com.google.android.flexbox.FlexDirection
+import com.google.android.flexbox.FlexWrap
+import com.google.android.flexbox.FlexboxLayout
+import com.google.android.flexbox.FlexboxLayoutManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.lang.Exception
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -79,6 +77,7 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
         lateinit var toplayout:LinearLayout
         var tag_changed = 1
         var trash_changed = 1
+        var image_array:ArrayList<ImageView> = arrayListOf()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,15 +87,19 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
         viewModel = ViewModelProvider(this).get(Roommodel::class.java)
         binding.creatediary = viewModel
         db = Room.databaseBuilder(
-                applicationContext, RoomdiaryDB::class.java,
-                "RoomDB"
+            applicationContext, RoomdiaryDB::class.java,
+            "RoomDB"
         )
                 .build()
         tag_layout = binding.tagParent
         toplayout = binding.layout
 
         tag_array = arrayListOf()
-        binding.FlexRecycler.layoutManager = FlexboxLayoutManager(this, FlexDirection.ROW, FlexWrap.WRAP) //가로정렬, 꽉차면 다음칸으로 넘어가게 만듬.
+        binding.FlexRecycler.layoutManager = FlexboxLayoutManager(
+            this,
+            FlexDirection.ROW,
+            FlexWrap.WRAP
+        ) //가로정렬, 꽉차면 다음칸으로 넘어가게 만듬.
         binding.FlexRecycler.setHasFixedSize(true)
         binding.FlexRecycler.adapter = Recycler_tag(tag_array)
 
@@ -118,19 +121,26 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
 
                 val editText = EditText(this).apply {
                     this.setBackgroundResource(android.R.color.transparent)
-                    this.typeface = Typeface.SERIF
-                    this.textSize = 16F
+                    this.typeface = Typeface.SERIF //타입페이스는 serif
+                    this.textSize = 16F //사이즈는 16
+                    this.gravity = left
                 }
 
 
 
                 try{
-                    var bitmap: Bitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, dataUri)
+                    var bitmap: Bitmap = MediaStore.Images.Media.getBitmap(
+                        this.contentResolver,
+                        dataUri
+                    )
                     imageview.setImageBitmap(bitmap)
+                    
+                    image_array.add(imageview)
                     binding.imageEditLayout.addView(imageview) // imageEditLayout 은 constraint 의 자식인 Linearlayout
                     binding.imageEditLayout.addView(editText)
+                    Log.d("바뀌나", "${image_array[image_array.size - 1]}")
                 }
-                catch(e:Exception){
+                catch (e: Exception){
                     Toast.makeText(this, "오류 $e", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -138,6 +148,68 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
 
             }
         }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        when(requestCode){ // requestpermissions을 통해 arrayof는 grantresults로, requestcode는 그대로 가져와진다.
+            0 -> {
+                if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED || grantResults[1] != PackageManager.PERMISSION_GRANTED || grantResults[2] != PackageManager.PERMISSION_GRANTED) { // grantResult가 비어있을시 혹은 0번째 확인(읽고 쓰기)가 거절인지, 1번째 확인(카메라) 가 거절인지 확인.
+                    val permission_view: View = LayoutInflater.from(this).inflate(
+                        R.layout.activity_permission_intent,
+                        null
+                    )// 커스텀 다이얼로그 생성하기. 권한은 저장공간, 카메라
+
+                    var dialog = Dialog(this)
+
+                    var permission_positive_btn =
+                        permission_view.findViewById<Button>(R.id.warning_positive)
+                    var permission_negative_btn =
+                        permission_view.findViewById<Button>(R.id.warning_negative)
+
+                    permission_positive_btn.setOnClickListener { //설정버튼 누를시 이동
+                        var intent = Intent(
+                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse(
+                                "package:" + packageName
+                            )
+                        ) //어플 정보를 가진 설정창으로 이동.
+                        startActivity(intent)
+                        dialog.dismiss()
+                    }
+
+                    permission_negative_btn.setOnClickListener {
+                        dialog.dismiss()
+                    }
+
+                    dialog.setContentView(permission_view)
+
+                    val display = windowManager.defaultDisplay
+                    val size = Point()
+
+                    display.getSize(size)
+
+                    val window = dialog.window
+
+                    val x = (size.x * 0.7f).toInt() //디바이스 사이즈 width 구하기. 70% 비율
+                    val y = (size.y * 0.4f).toInt() // 디바이스 사이즈 height 구하기. 40%비율
+
+
+                    var lp = WindowManager.LayoutParams()
+                    lp.copyFrom(dialog.window!!.attributes)
+                    lp.width = x //레이아웃 params 에 width, height 넣어주기.
+                    lp.height = y
+                    dialog.show()
+                    dialog.window!!.attributes = lp // 다이얼로그 표출 넓이 넣어주기.
+                } else {
+
+                }
+
+            }
+        }
+        return
     }
 
     private fun observemodel(){
@@ -157,7 +229,10 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
 
                 CoroutineScope(Dispatchers.IO).launch {
                     db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext))
-                    Log.d("TAG날짜", "${db.RoomDao().getAll()}")  //비동기처리로 Room에 데이터 처리. 만약 now가 똑같을 시 id가 작은것이 아래 리사이클러뷰 출력하게 만들기.
+                    Log.d(
+                        "TAG날짜",
+                        "${db.RoomDao().getAll()}"
+                    )  //비동기처리로 Room에 데이터 처리. 만약 now가 똑같을 시 id가 작은것이 아래 리사이클러뷰 출력하게 만들기.
                 }
 
                 var intent = Intent(this, MainActivity::class.java)
@@ -168,42 +243,15 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
 
         })
     }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        when(requestCode){ // requestpermissions을 통해 arrayof는 grantresults로, requestcode는 그대로 가져와진다.
-            0 -> {
-                if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED || grantResults[1] != PackageManager.PERMISSION_GRANTED || grantResults[2] != PackageManager.PERMISSION_GRANTED) { // grantResult가 비어있을시 혹은 0번째 확인(읽고 쓰기)가 거절인지, 1번째 확인(카메라) 가 거절인지 확인.
-                    val permission_view:View = LayoutInflater.from(this).inflate(R.layout.activity_permission_intent, null)// 커스텀 다이얼로그 생성하기. 권한은 저장공간, 카메라
-
-                    var dialog = Dialog(this)
-
-                    var permission_positive_btn = permission_view.findViewById<Button>(R.id.warning_positive)
-                    var permission_negative_btn = permission_view.findViewById<Button>(R.id.warning_negative)
-
-                    permission_positive_btn.setOnClickListener { //설정버튼 누를시 이동
-                        var intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + packageName)) //어플 정보를 가진 설정창으로 이동.
-                        startActivity(intent)
-                    }
-
-                    permission_negative_btn.setOnClickListener {
-                        finish()
-                    }
-
-                    dialog.setContentView(permission_view)
-                    dialog.show()
-
-                }
-                else{
-
-                }
-
-            }
-        }
-        return
-    }
-
+    
     private fun makeRequest(){
-        ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.CAMERA), 0)
+        ActivityCompat.requestPermissions(
+            this, arrayOf(
+                android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                android.Manifest.permission.CAMERA
+            ), 0
+        )
     }
 
     private fun clickListener(){
@@ -212,8 +260,14 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
 
         binding.camera.setOnClickListener {
             if ((ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)&&
-                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
+                    ContextCompat.checkSelfPermission(
+                        this,
+                        android.Manifest.permission.READ_EXTERNAL_STORAGE
+                    ) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(
+                        this,
+                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    ) == PackageManager.PERMISSION_GRANTED){
 
             }
             else{
@@ -225,14 +279,20 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
         binding.picture.setOnClickListener { //갤러리에서 사진 가져오기 기능
 
             if((ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)&&
-                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                    ContextCompat.checkSelfPermission(
+                        this,
+                        android.Manifest.permission.READ_EXTERNAL_STORAGE
+                    ) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(
+                        this,
+                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    ) == PackageManager.PERMISSION_GRANTED) {
                 //모든 퍼미션 허용시
                 val intent = Intent()
                 intent.type = "image/*"
                 intent.action = Intent.ACTION_GET_CONTENT
 
-                startActivityForResult(Intent.createChooser(intent, "사진을 가져오는 중.."),2294)
+                startActivityForResult(Intent.createChooser(intent, "사진을 가져오는 중.."), 2294)
             }
             else{ //퍼미션 하나라도 허용이 안되어있을 시.
                 makeRequest()
@@ -389,7 +449,7 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
                             startActivity(Intent(this, MainActivity::class.java))
                             Log.d("TAG", "확인")
                         }
-                        .setNegativeButton("취소"){dialog, which ->
+                        .setNegativeButton("취소"){ dialog, which ->
                             finish()
                         }
                         .show()
@@ -402,4 +462,10 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
         }
     }
 }
-
+/*
+* 이미지뷰 삭제. edittext 삭제도 똑같이 하면 될듯.
+            binding.imageEditLayout.removeView(image_array[image_array.size - 1]) // 삭제된다. 나중에 사용자가 삭제하고 싶은 이미지뷰 삭제방법 강구해보자.
+           
+            image_array.removeAt(image_array.size - 1) // 이거 안하면 array에 남아있어서 1번밖에 되질 않는다.
+            * 사진 삭제 시 내용도 삭제. 내용 edittext에 사진 아래의 edittext내용 추가해준다. a.text = a.text + b.text
+* */
