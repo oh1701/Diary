@@ -3,20 +3,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.diary.diary">
 
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission
-        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.CAMERA" /> <!-- 카메라 기능 권한-->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- 파일 읽기 권한-->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" /> <!-- 파일 쓰기 권한-->
 
+    <uses-feature android:name="android.hardware.camera" android:required="true"/> <!-- 카메라 기능 사용-->
+
+    <!-- requestLegacyExternalStorage = 안드로이드 10 이상 촬영 후 강제종료 방지-->
     <application
+        android:requestLegacyExternalStorage="true"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-        <activity android:name="com.diary.permission.permission_intent"></activity>
+        <activity android:name="com.diary.permission.permission_intent"> </activity>
         <activity
             android:name=".Content_create"
             android:windowSoftInputMode="adjustResize"></activity>
@@ -27,6 +30,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <provider
+            android:authorities="com.diary.diary.fileprovider"
+            android:name="androidx.core.content.FileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"/>
+
+        </provider>
+        <!--photoURI에서 사용함. 카메라 제한 풀어주는것-->
     </application>
 
 </manifest>

@@ -38,7 +38,7 @@
         android:gravity="center"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        android:text="정상적인 기능 사용을 위해 설정에서 권한을 활성화 시켜주세요." />
+        android:text="정상적인 기능 사용을 위해 설정에서 카메라 및 저장정보 권한을 활성화 시켜주세요." />
 
 
     <Button

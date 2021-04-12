@@ -1,15 +1,19 @@
 package com.diary.diary
 
 import android.app.ActionBar
+import android.app.Activity
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.graphics.Point
 import android.graphics.Typeface
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Log
@@ -21,6 +25,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -36,8 +41,15 @@ import com.google.android.flexbox.FlexboxLayoutManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
+import kotlin.collections.ArrayList
 
 // 현재 문제. 버튼 gravity 오른쪽으로 안가짐.
 // 폰트에서 색깔은 colorpicker 사용
@@ -74,15 +86,19 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
         lateinit var db:RoomdiaryDB
 
         val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd")
-        val now = LocalDateTime.now().format(dateformat).toLong()
+        val now = LocalDateTime.now().format(dateformat).toLong() //현재 시간.
 
-        var titletext = ""
-        var contenttext = ""
+        var titletext = "" //제목
+        var contenttext = "" // 내용
 
 
-        var tag_changed = 1
-        var trash_changed = 1
-        var image_array:ArrayList<ImageView> = arrayListOf()
+        var tag_changed = 1 // 버튼 클릭 이벤트 감지
+        var trash_changed = 1 // 버튼 클릭 이벤트 감지
+        var image_array:ArrayList<ImageView> = arrayListOf() //이미지 저장용 리스트
+
+        var CAMERA_REQUEST = 1000 // 사진 리퀘스트 코드
+        var PICTURE_REQUEST = 2000 // 갤러리 리퀘스트 코드
+        lateinit var PHOTO_PATH:String //사진 경로
 
         var frame_layout_id = 0
         var linear_layout_id = 0
@@ -124,56 +140,128 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) { // 사진, 갤러리 설정하기.
         super.onActivityResult(requestCode, resultCode, data)
 
+        when(requestCode) {
+        PICTURE_REQUEST -> { // 내가 설정한 리퀘스트 코드. PICTURE_REQUEST 맞으면 (갤러리에서 가져오는 기능
+                if (resultCode == RESULT_OK) { // 리졸트 코드가 맞으면(호출이 되면)
+                    frame_layout_id++
+                    linear_layout_id++
+                    image_id++
+                    image_remove_id++
+                    edit_id++
 
-        if(requestCode == 2294){ // 내가 설정한 리퀘스트 코드. 2294가 맞으면
-            if(resultCode == RESULT_OK){ // 리졸트 코드가 맞으면(호출이 되면)
-                frame_layout_id++
-                linear_layout_id++
-                image_id++
-                image_remove_id++
-                edit_id++
+                    val create_frame = FrameLayout(this)
+                    val frame_params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                    create_frame.layoutParams = frame_params
+                    create_frame.id = frame_layout_id
 
-                val create_frame = FrameLayout(this)
-                val frame_params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                create_frame.layoutParams = frame_params
-                create_frame.id = frame_layout_id
+                    val dataUri = data?.data
+                    var imageview = ImageView(this).apply {
+                        this.id = image_id
+                        this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                    }
+                    Glide.with(this).load(dataUri).into(imageview)
 
-                val dataUri = data?.data
-                var imageview = ImageView(this).apply{
-                    this.id = image_id
-                    this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                    var remove_btn = Button(this).apply {
+                        this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        this.gravity = Gravity.RIGHT
+                    }
+
+
+                    val create_linear = LinearLayout(this)
+                    val linear_params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                    create_linear.layoutParams = linear_params
+                    create_linear.id = linear_layout_id
+
+                    val editText = EditText(this).apply {
+                        this.setBackgroundResource(android.R.color.transparent)
+                        this.typeface = Typeface.SERIF //타입페이스는 serif
+                        this.textSize = 16F //사이즈는 16
+                        this.gravity = left
+                        this.id = edit_id
+                        this.hint = "내용을 추가하세요."
+                        this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                    }
+
+                    try {
+                        var bitmap: Bitmap = MediaStore.Images.Media.getBitmap(
+                                this.contentResolver,
+                                dataUri
+                        )
+                        imageview.setImageBitmap(bitmap)
+
+                        image_array.add(imageview)
+
+                        create_frame.addView(imageview)
+                        create_frame.addView(remove_btn)
+                        create_linear.addView(editText)
+                        binding.imageEditLayout.addView(create_frame) // imageEditLayout 은 constraint 의 자식인 Linearlayout
+                        binding.imageEditLayout.addView(create_linear)
+
+                        Log.d("바뀌나", "${image_array[image_array.size - 1]}")
+                    } catch (e: Exception) {
+                        Toast.makeText(this, "오류 $e", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+
                 }
-                Glide.with(this).load(dataUri).into(imageview)
+            }
 
-                var remove_btn = Button(this).apply{
-                    this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                    this.gravity = Gravity.RIGHT
-                }
+            CAMERA_REQUEST -> { // 내가 설정한 리퀘스트 코드. CAMERA_REQUEST 맞으면 카메라 사진 기능
+                if(resultCode == RESULT_OK) {//이미지 성공적으로 가져왔을시
+                    frame_layout_id++
+                    linear_layout_id++
+                    image_id++
+                    image_remove_id++
+                    edit_id++
+
+                    val bitmap:Bitmap
+                    val file = File(PHOTO_PATH)
+
+                    val create_frame = FrameLayout(this)
+                    val frame_params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                    create_frame.layoutParams = frame_params
+                    create_frame.id = frame_layout_id
+
+                    val dataUri = data?.data
+                    var imageview = ImageView(this).apply {
+                        this.id = image_id
+                        this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                    }
+                    Glide.with(this).load(dataUri).into(imageview)
+
+                    var remove_btn = Button(this).apply {
+                        this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        this.gravity = Gravity.RIGHT
+                    }
 
 
-                val create_linear = LinearLayout(this)
-                val linear_params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                create_linear.layoutParams = linear_params
-                create_linear.id = linear_layout_id
+                    val create_linear = LinearLayout(this)
+                    val linear_params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                    create_linear.layoutParams = linear_params
+                    create_linear.id = linear_layout_id
 
-                val editText = EditText(this).apply {
-                    this.setBackgroundResource(android.R.color.transparent)
-                    this.typeface = Typeface.SERIF //타입페이스는 serif
-                    this.textSize = 16F //사이즈는 16
-                    this.gravity = left
-                    this.id = edit_id
-                    this.hint = "내용을 추가하세요."
-                    this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                }
+                    val editText = EditText(this).apply {
+                        this.setBackgroundResource(android.R.color.transparent)
+                        this.typeface = Typeface.SERIF //타입페이스는 serif
+                        this.textSize = 16F //사이즈는 16
+                        this.gravity = left
+                        this.id = edit_id
+                        this.hint = "내용을 추가하세요."
+                        this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                    }
 
-                try{
-                    var bitmap: Bitmap = MediaStore.Images.Media.getBitmap(
-                        this.contentResolver,
-                        dataUri
-                    )
-                    imageview.setImageBitmap(bitmap)
-                    
-                    image_array.add(imageview)
+                    if(Build.VERSION.SDK_INT < 28){ //안드로이드 9.0(pie) 미만일경우
+                        bitmap = MediaStore.Images.Media.getBitmap(contentResolver, Uri.fromFile(file))
+                        imageview.setImageBitmap(bitmap)
+                    }
+                    else{ //9.0보다 높을 경우
+                        val decode = ImageDecoder.createSource(
+                                this.contentResolver,
+                                Uri.fromFile(file)
+                        )
+                        bitmap = ImageDecoder.decodeBitmap(decode)
+                        imageview.setImageBitmap(bitmap)
+                    }
 
                     create_frame.addView(imageview)
                     create_frame.addView(remove_btn)
@@ -181,16 +269,26 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
                     binding.imageEditLayout.addView(create_frame) // imageEditLayout 은 constraint 의 자식인 Linearlayout
                     binding.imageEditLayout.addView(create_linear)
 
-                    Log.d("바뀌나", "${image_array[image_array.size - 1]}")
+                    savePhoto(bitmap)
                 }
-                catch (e: Exception){
-                    Toast.makeText(this, "오류 $e", Toast.LENGTH_SHORT).show()
-                }
-            }
-            else{
+
 
             }
         }
+    }
+
+    private fun savePhoto(bitmap: Bitmap) {
+        val folderPath = Environment.getExternalStorageDirectory().absolutePath + "/Pictures/"
+        val time:String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+        val fileName = "${time}.jpeg"
+        val folder = File(folderPath)
+        if(!folder.isDirectory){
+            folder.mkdirs() // make directory 줄임말로 해당 경로에 폴더 자동으로 새로 만들어줌.
+        }
+
+        val out = FileOutputStream(folderPath + fileName)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out) //JPEG 형태로 퀄리티 원본으로 저장.
+        Toast.makeText(this, "사진이 저장되었습니다.", Toast.LENGTH_SHORT).show()
     }
 
     override fun onRequestPermissionsResult(
@@ -284,7 +382,7 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
     }
     
     private fun makeRequest(){
-        ActivityCompat.requestPermissions(
+        ActivityCompat.requestPermissions( //리퀘스트 퍼미션에 가져가기.
             this, arrayOf(
                 android.Manifest.permission.READ_EXTERNAL_STORAGE,
                 android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -293,21 +391,44 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
         )
     }
 
+    private fun cameraIntent(){
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also{
+            takePictureIntent -> takePictureIntent.resolveActivity(packageManager)?.also{
+                val photofile: File? = try{
+                    createImage()
+                }catch (ex: IOException){
+                    null
+                }
+                photofile?.also{
+                    val photoURI:Uri = FileProvider.getUriForFile(
+                            this,
+                            "com.diary.diary.fileprovider",
+                            it
+                    )
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                    startActivityForResult(takePictureIntent, CAMERA_REQUEST) //tagpictureIntent를 한 상태로, REQUEST코드 가져감.
+                }
+        }
+        }
+    }
+
+    private fun createImage():File{
+        val time:String = SimpleDateFormat("yyyyMMdd__HHmmss").format(Date()) //파일 구분 위해 날짜설정.
+        val storageDir:File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile("JPEG_${time}_", ".jpg", storageDir).apply{
+            PHOTO_PATH = absolutePath //PHOTO_PATH에 사진 경로를 붙여넣는다
+        }
+    }
+
     private fun clickListener(){
         var notouch_change = 1
         var toast: Toast? = null
 
         binding.camera.setOnClickListener {
             if ((ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)&&
-                    ContextCompat.checkSelfPermission(
-                        this,
-                        android.Manifest.permission.READ_EXTERNAL_STORAGE
-                    ) == PackageManager.PERMISSION_GRANTED &&
-                    ContextCompat.checkSelfPermission(
-                        this,
-                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-                    ) == PackageManager.PERMISSION_GRANTED){
-
+                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
+                    cameraIntent()
             }
             else{
                 makeRequest()
@@ -331,7 +452,7 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
                 intent.type = "image/*"
                 intent.action = Intent.ACTION_GET_CONTENT
 
-                startActivityForResult(Intent.createChooser(intent, "사진을 가져오는 중.."), 2294)
+                startActivityForResult(Intent.createChooser(intent, "사진을 가져오는 중.."), PICTURE_REQUEST)
             }
             else{ //퍼미션 하나라도 허용이 안되어있을 시.
                 makeRequest()
@@ -400,18 +521,19 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
                             tag_array.add(tagline("# ", binding.etn.text.toString())) // 태그, 작성한 입력값을 받은 텍스트값을 매개변수로 한다.
                             binding.FlexRecycler.adapter?.notifyDataSetChanged() // 추가된 데이터 새로고침하여 변경
 
-                            tag_changed = 1
                             binding.tagline.visibility = View.GONE
                             binding.bottomLinear.visibility = View.VISIBLE // 태그, 쓰레기통 버튼 꺼짐. 및 나머지 리니어 VISIBLE
 
                             binding.tag.setBackgroundResource(R.drawable.btn_select)
-
                             binding.etn.text = null // null 값으로 설정
                         }
                         else{
                             binding.bottomLinear.visibility = View.VISIBLE
                             binding.tagline.visibility = View.GONE// 태그 및 나머지 리니어 visible
+                            binding.tag.setBackgroundResource(R.drawable.btn_select)
                         }
+
+                        tag_changed = 1
                         handled = true
                     }
                     handled
