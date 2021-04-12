@@ -184,8 +184,8 @@
                             android:id="@+id/image_edit_layout"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintTop_toBottomOf="@id/content_text"
+                            app:layout_constraintLeft_toLeftOf="parent"
                             android:orientation="vertical">
 
                         </LinearLayout>
@@ -208,7 +208,6 @@
                                     android:id="@+id/Flex_recycler"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"/>
-
                         </com.google.android.flexbox.FlexboxLayout>
 
                     </androidx.constraintlayout.widget.ConstraintLayout>

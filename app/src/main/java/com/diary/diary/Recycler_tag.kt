@@ -19,17 +19,27 @@ class Recycler_tag(val tagline:ArrayList<tagline>): RecyclerView.Adapter<Recycle
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Recycler_tag.ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.tag_layout_copy, parent, false)
         context = parent.context
+
         return ViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: Recycler_tag.ViewHolder, position: Int) {
+        if(trash_get() == 2) {
+            holder.cancel.visibility = View.VISIBLE
+        }
+        else{
+            holder.cancel.visibility = View.GONE
+        }
+
         holder.tag_tag.text = tagline[position].tag_tag
         holder.tag_content.text = tagline[position].tag_content
-        holder.layout.setOnClickListener{ //쓰레기통 버튼 눌러져있는 상태로 레이아웃 터치 시 해당 레이아웃 삭제.
+        holder.cancel.setOnClickListener { //visibility를 mvvm패턴으로 확인한다.
             if(trash_get() == 2) {
                 recycler_remove(position)
             }
         }
+
+        Log.d("화악인", position.toString())
 
         //태그 버튼 누르면 나타나는 휴지통 버튼. 태그 상태에서 휴지통 버튼 눌렀을 때, 삭제하고 싶은 태그버튼 누르면 삭제.
         /*holder.btn.setOnClickListener {
@@ -45,9 +55,8 @@ class Recycler_tag(val tagline:ArrayList<tagline>): RecyclerView.Adapter<Recycle
     class ViewHolder(itemview: View):RecyclerView.ViewHolder(itemview){
         var tag_tag = itemview.findViewById<TextView>(R.id.tag_tag)
         var tag_content = itemview.findViewById<TextView>(R.id.tag_content)
-        var trash = itemview.findViewById<ImageButton>(R.id.trash)
+        var layout = itemview.findViewById<FrameLayout>(R.id.copy_layout)
         var cancel = itemview.findViewById<ImageButton>(R.id.remove_btn)
-        var layout = itemview.findViewById<LinearLayout>(R.id.copy_layout)
         //var btn = itemview.findViewById<Button>(R.id.btn)
     }
 }

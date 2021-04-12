@@ -10,19 +10,17 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <FrameLayout
+        android:id="@+id/copy_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 
         <LinearLayout
-            android:id="@+id/copy_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
+
+            android:gravity="center"
 
             android:background="@drawable/tag_oval"
             android:paddingTop="3dp"
@@ -73,35 +71,7 @@
 
             <!-- 평상시에는 tag_edit과 함께 사라져있다가 tag_edit에 데이터 추가시 추가.-->
 
-            <EditText
-                android:id="@+id/tag_edit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp"
-                android:background="@android:color/transparent"
-
-                android:fontFamily="serif"
-                android:gravity="center_vertical"
-
-                android:textColorHint="#858585"
-                android:hint="태그"
-
-                android:inputType="text"
-
-                android:textColor="#3E3D3D"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:visibility="gone"
-
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintLeft_toRightOf="@id/tag_tag"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"/>
-
         </LinearLayout>
-
 
         <ImageButton
             android:id="@+id/remove_btn"
@@ -111,9 +81,10 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             android:src="@drawable/cancel"
+            android:layout_gravity="right|top"
             android:visibility="gone"/>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </FrameLayout>
 
     <!--태그 기능 레이아웃-->
     <!--태그 기능 터치시 레이아웃 추가 입력값 없으면 삭제, 있으면 추가.-->

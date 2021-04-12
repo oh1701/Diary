@@ -1,5 +1,6 @@
 package com.diary.diary
 
+import android.app.ActionBar
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
@@ -12,9 +13,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.WindowManager
+import android.view.*
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
@@ -39,6 +38,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+
+// 현재 문제. 버튼 gravity 오른쪽으로 안가짐.
+// 폰트에서 색깔은 colorpicker 사용
+
 
 class Roommodel:ViewModel(){
     private val edittitle = MutableLiveData<String>()
@@ -69,16 +72,25 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
     companion object{
         lateinit var viewModel:Roommodel
         lateinit var db:RoomdiaryDB
+
         val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd")
         val now = LocalDateTime.now().format(dateformat).toLong()
+
         var titletext = ""
         var contenttext = ""
-        lateinit var tag_layout:FlexboxLayout
-        lateinit var toplayout:LinearLayout
+
+
         var tag_changed = 1
         var trash_changed = 1
         var image_array:ArrayList<ImageView> = arrayListOf()
+
+        var frame_layout_id = 0
+        var linear_layout_id = 0
+        var image_id = 0
+        var image_remove_id = 0
+        var edit_id = 0
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,13 +98,12 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
         binding.lifecycleOwner = this
         viewModel = ViewModelProvider(this).get(Roommodel::class.java)
         binding.creatediary = viewModel
+
         db = Room.databaseBuilder(
             applicationContext, RoomdiaryDB::class.java,
             "RoomDB"
         )
                 .build()
-        tag_layout = binding.tagParent
-        toplayout = binding.layout
 
         tag_array = arrayListOf()
         binding.FlexRecycler.layoutManager = FlexboxLayoutManager(
@@ -110,23 +121,50 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
         clickListener()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) { // 사진, 갤러리 설정하기.
         super.onActivityResult(requestCode, resultCode, data)
+
 
         if(requestCode == 2294){ // 내가 설정한 리퀘스트 코드. 2294가 맞으면
             if(resultCode == RESULT_OK){ // 리졸트 코드가 맞으면(호출이 되면)
+                frame_layout_id++
+                linear_layout_id++
+                image_id++
+                image_remove_id++
+                edit_id++
+
+                val create_frame = FrameLayout(this)
+                val frame_params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                create_frame.layoutParams = frame_params
+                create_frame.id = frame_layout_id
+
                 val dataUri = data?.data
-                var imageview = ImageView(this)
+                var imageview = ImageView(this).apply{
+                    this.id = image_id
+                    this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                }
                 Glide.with(this).load(dataUri).into(imageview)
+
+                var remove_btn = Button(this).apply{
+                    this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                    this.gravity = Gravity.RIGHT
+                }
+
+
+                val create_linear = LinearLayout(this)
+                val linear_params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                create_linear.layoutParams = linear_params
+                create_linear.id = linear_layout_id
 
                 val editText = EditText(this).apply {
                     this.setBackgroundResource(android.R.color.transparent)
                     this.typeface = Typeface.SERIF //타입페이스는 serif
                     this.textSize = 16F //사이즈는 16
                     this.gravity = left
+                    this.id = edit_id
+                    this.hint = "내용을 추가하세요."
+                    this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
                 }
-
-
 
                 try{
                     var bitmap: Bitmap = MediaStore.Images.Media.getBitmap(
@@ -136,8 +174,13 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
                     imageview.setImageBitmap(bitmap)
                     
                     image_array.add(imageview)
-                    binding.imageEditLayout.addView(imageview) // imageEditLayout 은 constraint 의 자식인 Linearlayout
-                    binding.imageEditLayout.addView(editText)
+
+                    create_frame.addView(imageview)
+                    create_frame.addView(remove_btn)
+                    create_linear.addView(editText)
+                    binding.imageEditLayout.addView(create_frame) // imageEditLayout 은 constraint 의 자식인 Linearlayout
+                    binding.imageEditLayout.addView(create_linear)
+
                     Log.d("바뀌나", "${image_array[image_array.size - 1]}")
                 }
                 catch (e: Exception){
@@ -186,12 +229,7 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
 
                     dialog.setContentView(permission_view)
 
-                    val display = windowManager.defaultDisplay
                     val size = Point()
-
-                    display.getSize(size)
-
-                    val window = dialog.window
 
                     val x = (size.x * 0.7f).toInt() //디바이스 사이즈 width 구하기. 70% 비율
                     val y = (size.y * 0.4f).toInt() // 디바이스 사이즈 height 구하기. 40%비율
@@ -203,6 +241,7 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
                     lp.height = y
                     dialog.show()
                     dialog.window!!.attributes = lp // 다이얼로그 표출 넓이 넣어주기.
+
                 } else {
 
                 }
@@ -331,12 +370,10 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
 
         binding.tag.setOnClickListener { //태그 생성 버튼
             tag_changed *= -1 // 태그 체인지드가 1일경우 tag넣는 공간 사라지게 만들기.
-            recy.adapter?.notifyDataSetChanged() // 여기서 선언 안하면 리사이클러뷰 상태에서 remove 했을 때, 새로운 태그 생성시 자리가 남게됨 (글자 입력하면 사라지지만 가독성을 위해 만들자.)
 
             if(tag_changed == 1){ // 태그 버튼이 꺼짐
                 binding.tagline.visibility = View.GONE
                 binding.tag.setBackgroundResource(R.drawable.btn_select)
-                binding.trash.setBackgroundResource(R.drawable.btn_select)
 
                 if (binding.etn.text.isNotEmpty()) { //값이 있으면 add, 없으면 add안함.
                     tag_array.add(tagline("# ", binding.etn.text.toString())) // 태그, 작성한 입력값을 받은 텍스트값을 매개변수로 한다.
@@ -345,11 +382,9 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
 
                 binding.bottomLinear.visibility = View.VISIBLE
                 binding.tagline.visibility = View.GONE
-                binding.trash.visibility = View.GONE // 태그, 쓰레기통 버튼 꺼짐. 및 나머지 리니어 visible
             }
             else { // 태그 버튼이 켜짐
                 binding.tagline.visibility = View.VISIBLE
-                binding.trash.visibility = View.VISIBLE
                 binding.bottomLinear.visibility = View.GONE // 태그, 쓰레기통 버튼 켜짐. 및 나머지 리니어 GONE
 
                 binding.tag.setBackgroundResource(R.drawable.btn_on)
@@ -367,7 +402,6 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
 
                             tag_changed = 1
                             binding.tagline.visibility = View.GONE
-                            binding.trash.visibility = View.GONE
                             binding.bottomLinear.visibility = View.VISIBLE // 태그, 쓰레기통 버튼 꺼짐. 및 나머지 리니어 VISIBLE
 
                             binding.tag.setBackgroundResource(R.drawable.btn_select)
@@ -376,40 +410,19 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
                         }
                         else{
                             binding.bottomLinear.visibility = View.VISIBLE
-                            binding.tagline.visibility = View.GONE
-                            binding.trash.visibility = View.GONE // 태그, 쓰레기통 버튼 꺼짐. 및 나머지 리니어 visible
+                            binding.tagline.visibility = View.GONE// 태그 및 나머지 리니어 visible
                         }
                         handled = true
-
-
-                        trash_changed = 1 // 쓰레기통버튼 off
-                        if(trash_changed == 1){
-                            trash_checkd("꺼짐")
-                            binding.trash.setBackgroundResource(R.drawable.btn_select)
-                        }
-                        else{
-                            trash_checkd("켜짐")
-                            binding.trash.setBackgroundResource(R.drawable.btn_on)
-                        }
                     }
                     handled
                 }
-            }
-
-            trash_changed = 1 // 쓰레기통버튼 off
-            if(trash_changed == 1){
-                trash_checkd("꺼짐")
-                binding.trash.setBackgroundResource(R.drawable.btn_select)
-            }
-            else{
-                trash_checkd("켜짐")
-                binding.trash.setBackgroundResource(R.drawable.btn_on)
             }
             binding.etn.text = null // null 값으로 설정
         }
 
         binding.trash.setOnClickListener {
             trash_changed *= -1
+            recy.adapter?.notifyDataSetChanged() // 쓰레기통 버튼 클릭시 remove 버튼 VISIBLE 상태로 만들기 위함. (업데이트)
 
             if(trash_changed == 1){
                 trash_checkd("꺼짐")
@@ -423,16 +436,9 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
         }
 
         binding.fontChange.setOnClickListener {
-            /*tag_array.removeAt(0)
-            binding.FlexRecycler.adapter?.notifyItemRemoved(0)
-            binding.FlexRecycler.adapter?.notifyItemRangeChanged(0, tag_array.size)// 추가된 데이터 새로고침하여 변경
-
-            binding.tagTe.text = "" // 빈값으로 설정
-            binding.etn.text = null // 빈값으로 설정*/
-
-            /*var anima = AnimationUtils.loadAnimation(this, R.anim.remove_animation)
-
-            binding.fontChange.startAnimation(anima)*/
+            //폰트, 장문, 장단, 글자크기, 글씨색(colorpicker 로 사용자가 원하는 색상 결정하게 만들어주기.)
+            //전체가 아닌, 사용자의 커서가 위치한 곳부터 바뀌는 것이면 좋음.
+            //폰트 조금 더 늘리자.
 
         }
 
@@ -468,4 +474,6 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
            
             image_array.removeAt(image_array.size - 1) // 이거 안하면 array에 남아있어서 1번밖에 되질 않는다.
             * 사진 삭제 시 내용도 삭제. 내용 edittext에 사진 아래의 edittext내용 추가해준다. a.text = a.text + b.text
+            *
+            * setid로 버튼과 이미지, 에딧텍스트에 id를 int형으로 추가한것을 준다음 버튼 누를시 for문을 통해 int와 setid 비교 후 삭제. 근데 버튼을 어케 추가하지.
 * */
