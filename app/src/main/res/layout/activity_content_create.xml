@@ -61,7 +61,7 @@
                     android:textSize="16sp"
                     android:textStyle="bold"
 
-                    android:fontFamily="serif"
+                    android:typeface="serif"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toLeftOf="parent"
@@ -176,7 +176,7 @@
                             android:hint="내용을 입력해주세요."
 
                             android:background="@android:color/transparent"
-                            android:typeface="serif"
+                            android:fontFamily="serif"
                             android:layout_marginBottom="10dp"
                             />
 
@@ -208,6 +208,7 @@
                                     android:id="@+id/Flex_recycler"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"/>
+
                         </com.google.android.flexbox.FlexboxLayout>
 
                     </androidx.constraintlayout.widget.ConstraintLayout>

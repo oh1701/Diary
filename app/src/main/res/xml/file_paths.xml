@@ -3,4 +3,5 @@
 <external-path
     name="my_images"
     path="Android/data/com.diary.diary/files/Pictures"/>
+    <!-- 사진 저장 경로-->
 </paths>

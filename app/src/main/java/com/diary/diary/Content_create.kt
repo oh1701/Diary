@@ -16,6 +16,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.provider.Settings
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.*
 import android.view.inputmethod.EditorInfo
@@ -26,6 +27,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.view.marginBottom
+import androidx.core.view.marginTop
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -53,6 +56,8 @@ import kotlin.collections.ArrayList
 
 // 현재 문제. 버튼 gravity 오른쪽으로 안가짐.
 // 폰트에서 색깔은 colorpicker 사용
+// id 지정식으로 하면 오류가 생길수도? (아직 모름)
+// 현재 이미지뷰에 카메라 사진이 안들어간다.
 
 
 class Roommodel:ViewModel(){
@@ -94,17 +99,20 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
 
         var tag_changed = 1 // 버튼 클릭 이벤트 감지
         var trash_changed = 1 // 버튼 클릭 이벤트 감지
-        var image_array:ArrayList<ImageView> = arrayListOf() //이미지 저장용 리스트
+
+        var image_array:ArrayList<ImageView?> = arrayListOf() //이미지 저장용 리스트
+        var button_array:ArrayList<ImageButton?> = arrayListOf()
+        var Edit_array:ArrayList<EditText?> = arrayListOf()
+        var frame_array:ArrayList<FrameLayout?> = arrayListOf()
+        var linear_array:ArrayList<LinearLayout?> = arrayListOf()
 
         var CAMERA_REQUEST = 1000 // 사진 리퀘스트 코드
         var PICTURE_REQUEST = 2000 // 갤러리 리퀘스트 코드
         lateinit var PHOTO_PATH:String //사진 경로
 
-        var frame_layout_id = 0
-        var linear_layout_id = 0
-        var image_id = 0
-        var image_remove_id = 0
-        var edit_id = 0
+        var remove_btn_id = -1
+
+        lateinit var metrics:DisplayMetrics // 디바이스 화면 크기 알아내는 변수
     }
 
 
@@ -131,6 +139,7 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
         binding.FlexRecycler.adapter = Recycler_tag(tag_array)
 
         recy = binding.FlexRecycler
+        metrics = resources.displayMetrics
 
         // 함수 불러올 공간
         observemodel()
@@ -143,53 +152,64 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
         when(requestCode) {
         PICTURE_REQUEST -> { // 내가 설정한 리퀘스트 코드. PICTURE_REQUEST 맞으면 (갤러리에서 가져오는 기능
                 if (resultCode == RESULT_OK) { // 리졸트 코드가 맞으면(호출이 되면)
-                    frame_layout_id++
-                    linear_layout_id++
-                    image_id++
-                    image_remove_id++
-                    edit_id++
+                    remove_btn_id++
 
-                    val create_frame = FrameLayout(this)
-                    val frame_params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                    create_frame.layoutParams = frame_params
-                    create_frame.id = frame_layout_id
+                    val create_frame = FrameLayout(this).apply {
+                        val frame_params = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+                        frame_params.topMargin = 10
+                        frame_params.bottomMargin = 10
+                        this.layoutParams = frame_params
+                    }
 
                     val dataUri = data?.data
-                    var imageview = ImageView(this).apply {
-                        this.id = image_id
-                        this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                    val imageview = ImageView(this).apply {
+                        var params = FrameLayout.LayoutParams(metrics.widthPixels * 5/10,  FrameLayout.LayoutParams.WRAP_CONTENT) //x 값은 디바이스 크기의 %, y는 x와 어울리는 크기만큼.
+                        params.gravity = Gravity.LEFT
+                        this.layoutParams = params// this.layoutParams = ViewGroup.LayoutParams(x, y) 이거로 된다.
                     }
                     Glide.with(this).load(dataUri).into(imageview)
 
-                    var remove_btn = Button(this).apply {
-                        this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                        this.gravity = Gravity.RIGHT
+                    val remove_btn = ImageButton(this).apply {
+                        var params = FrameLayout.LayoutParams(metrics.widthPixels * 1/10, FrameLayout.LayoutParams.WRAP_CONTENT)
+                        params.gravity = Gravity.RIGHT
+                        this.layoutParams = params//Xml의 <layout_gravity>는  java에서 LayoutParams.setGravity(), Xml의 <gravity>는 java에서 View.setGravity()
+                        this.setImageResource(R.drawable.cancelsvg)
+                        this.setBackgroundResource(android.R.color.transparent)
+                        this.id = remove_btn_id //이 id값을 통해서 removebtn 클릭시 저장되어 있는 id값으로 arraylist 삭제함.
+
+                        this.setOnClickListener {
+                            binding.imageEditLayout.removeView(frame_array[this.id])
+                            binding.imageEditLayout.removeView(linear_array[this.id])
+                        }
                     }
 
 
                     val create_linear = LinearLayout(this)
                     val linear_params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
                     create_linear.layoutParams = linear_params
-                    create_linear.id = linear_layout_id
 
                     val editText = EditText(this).apply {
                         this.setBackgroundResource(android.R.color.transparent)
                         this.typeface = Typeface.SERIF //타입페이스는 serif
                         this.textSize = 16F //사이즈는 16
                         this.gravity = left
-                        this.id = edit_id
+
                         this.hint = "내용을 추가하세요."
-                        this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        this.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                     }
 
                     try {
-                        var bitmap: Bitmap = MediaStore.Images.Media.getBitmap(
+                        val bitmap: Bitmap = MediaStore.Images.Media.getBitmap( //사진 비트맵 형식으로 가져옴.
                                 this.contentResolver,
                                 dataUri
                         )
                         imageview.setImageBitmap(bitmap)
 
-                        image_array.add(imageview)
+                            image_array.add(imageview)
+                            button_array.add(remove_btn)
+                            Edit_array.add(editText)
+                            frame_array.add(create_frame)
+                            linear_array.add(create_linear)
 
                         create_frame.addView(imageview)
                         create_frame.addView(remove_btn)
@@ -201,51 +221,53 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
                     } catch (e: Exception) {
                         Toast.makeText(this, "오류 $e", Toast.LENGTH_SHORT).show()
                     }
-                } else {
-
                 }
             }
 
             CAMERA_REQUEST -> { // 내가 설정한 리퀘스트 코드. CAMERA_REQUEST 맞으면 카메라 사진 기능
                 if(resultCode == RESULT_OK) {//이미지 성공적으로 가져왔을시
-                    frame_layout_id++
-                    linear_layout_id++
-                    image_id++
-                    image_remove_id++
-                    edit_id++
+                    remove_btn_id++
 
                     val bitmap:Bitmap
                     val file = File(PHOTO_PATH)
 
-                    val create_frame = FrameLayout(this)
-                    val frame_params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                    create_frame.layoutParams = frame_params
-                    create_frame.id = frame_layout_id
+                    val create_frame = FrameLayout(this).apply{
+                        val frame_params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        this.layoutParams = frame_params
 
-                    val dataUri = data?.data
-                    var imageview = ImageView(this).apply {
-                        this.id = image_id
-                        this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                    }
-                    Glide.with(this).load(dataUri).into(imageview)
-
-                    var remove_btn = Button(this).apply {
-                        this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                        this.gravity = Gravity.RIGHT
                     }
 
+                    val imageview = ImageView(this).apply {
+
+                        var params = FrameLayout.LayoutParams(metrics.widthPixels * 5/10,  FrameLayout.LayoutParams.WRAP_CONTENT) //x 값은 디바이스 크기의 %, y는 x와 어울리는 크기만큼.
+                        params.gravity = Gravity.LEFT
+                        this.layoutParams = params// this.layoutParams = ViewGroup.LayoutParams(x, y) 이거로 된다.
+                    }
+                    Glide.with(this).load(Uri.fromFile(file)).into(imageview) //uri는 file 가져온 것으로 함. 사용이유는 갤럭시에서 가끔 사진 회전된 상태로 나타남을 방지하기 위해.
+
+                    val remove_btn = ImageButton(this).apply {
+                        var params = FrameLayout.LayoutParams(metrics.widthPixels * 1/10, FrameLayout.LayoutParams.WRAP_CONTENT)
+                        params.gravity = Gravity.RIGHT
+                        this.layoutParams = params//Xml의 <layout_gravity>는  java에서 LayoutParams.setGravity(), Xml의 <gravity>는 java에서 View.setGravity()
+                        this.setImageResource(R.drawable.cancelsvg)
+                        this.setBackgroundResource(android.R.color.transparent)
+                        this.id = remove_btn_id //이 id값을 통해서 removebtn 클릭시 저장되어 있는 id값으로 arraylist 삭제함.
+
+                        this.setOnClickListener { // 버튼을 클릭하면 포지션에 맞는 layout들을 삭제시킴.
+                            binding.imageEditLayout.removeView(frame_array[this.id])
+                            binding.imageEditLayout.removeView(linear_array[this.id])
+                        }
+                    }
 
                     val create_linear = LinearLayout(this)
                     val linear_params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
                     create_linear.layoutParams = linear_params
-                    create_linear.id = linear_layout_id
 
                     val editText = EditText(this).apply {
                         this.setBackgroundResource(android.R.color.transparent)
                         this.typeface = Typeface.SERIF //타입페이스는 serif
                         this.textSize = 16F //사이즈는 16
                         this.gravity = left
-                        this.id = edit_id
                         this.hint = "내용을 추가하세요."
                         this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
                     }
@@ -263,6 +285,12 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
                         imageview.setImageBitmap(bitmap)
                     }
 
+                    image_array.add(imageview)
+                    button_array.add(remove_btn)
+                    Edit_array.add(editText)
+                    frame_array.add(create_frame)
+                    linear_array.add(create_linear)
+
                     create_frame.addView(imageview)
                     create_frame.addView(remove_btn)
                     create_linear.addView(editText)
@@ -278,15 +306,15 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
     }
 
     private fun savePhoto(bitmap: Bitmap) {
-        val folderPath = Environment.getExternalStorageDirectory().absolutePath + "/Pictures/"
+        val folderPath = Environment.getExternalStorageDirectory().absolutePath + "/Pictures/" //저장공간 경로 설정.
         val time:String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
         val fileName = "${time}.jpeg"
         val folder = File(folderPath)
-        if(!folder.isDirectory){
+        if(!folder.isDirectory){ // 디렉토리 폴더가 없을시.
             folder.mkdirs() // make directory 줄임말로 해당 경로에 폴더 자동으로 새로 만들어줌.
         }
 
-        val out = FileOutputStream(folderPath + fileName)
+        val out = FileOutputStream(folderPath + fileName) //출력 형태는 경로 + 이름
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out) //JPEG 형태로 퀄리티 원본으로 저장.
         Toast.makeText(this, "사진이 저장되었습니다.", Toast.LENGTH_SHORT).show()
     }
@@ -304,15 +332,15 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
                         null
                     )// 커스텀 다이얼로그 생성하기. 권한은 저장공간, 카메라
 
-                    var dialog = Dialog(this)
+                    val dialog = Dialog(this)
 
-                    var permission_positive_btn =
+                    val permission_positive_btn =
                         permission_view.findViewById<Button>(R.id.warning_positive)
-                    var permission_negative_btn =
+                    val permission_negative_btn =
                         permission_view.findViewById<Button>(R.id.warning_negative)
 
                     permission_positive_btn.setOnClickListener { //설정버튼 누를시 이동
-                        var intent = Intent(
+                        val intent = Intent(
                             Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse(
                                 "package:" + packageName
                             )

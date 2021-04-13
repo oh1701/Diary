@@ -80,7 +80,7 @@
 
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            android:src="@drawable/cancel"
+            android:src="@drawable/cancelsvg"
             android:layout_gravity="right|top"
             android:visibility="gone"/>
 
