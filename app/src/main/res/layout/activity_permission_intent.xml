@@ -6,9 +6,7 @@
 
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        tools:context="com.diary.permission.permission_intent">
- <!--  280, 350 -->
+        xmlns:tools="http://schemas.android.com/tools">
 
     <ImageView
         android:id="@+id/warning_image"

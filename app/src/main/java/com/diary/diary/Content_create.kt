@@ -54,10 +54,9 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.ArrayList
 
-// 현재 문제. 버튼 gravity 오른쪽으로 안가짐.
+// 현재 문제? 잘모르겠음 이건. 레이아웃 마진 설정하는것. 추가해도 되고 안해도 된다.
 // 폰트에서 색깔은 colorpicker 사용
-// id 지정식으로 하면 오류가 생길수도? (아직 모름)
-// 현재 이미지뷰에 카메라 사진이 안들어간다.
+// 만약 폰트 지정시, 팝업창에서 미리 보기가 가능하게 하기.
 
 
 class Roommodel:ViewModel(){
