@@ -1,23 +1,20 @@
-package com.diary.diary
+package com.diary.recycler
 
 import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodManager
 import android.widget.*
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.flexbox.FlexboxLayout
+import com.diary.diary.Inter_recycler_remove
+import com.diary.diary.R
 
-class Recycler_tag(val tagline:ArrayList<tagline>): RecyclerView.Adapter<Recycler_tag.ViewHolder>(), Inter_recycler_remove{
+class Recycler_tag(val tagline:ArrayList<tagline>): RecyclerView.Adapter<Recycler_tag.ViewHolder>(), Inter_recycler_remove {
     lateinit var context:Context
     var change = 1
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Recycler_tag.ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.tag_layout_copy, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.Recycler_tag_layout, parent, false)
         context = parent.context
 
         return ViewHolder(view)

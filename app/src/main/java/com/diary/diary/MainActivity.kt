@@ -14,6 +14,8 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.room.*
 import com.diary.diary.databinding.ActivityMainBinding
+import com.diary.recycler.Recycler_main
+import com.diary.recycler.list
 import kotlinx.coroutines.*
 import java.util.jar.Manifest
 

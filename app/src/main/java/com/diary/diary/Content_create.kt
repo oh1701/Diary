@@ -38,6 +38,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
 import com.bumptech.glide.Glide
 import com.diary.diary.databinding.ActivityContentCreateBinding
+import com.diary.recycler.Recycler_tag
+import com.diary.recycler.tagline
 import com.github.dhaval2404.colorpicker.ColorPickerDialog
 import com.github.dhaval2404.colorpicker.ColorPickerView
 import com.github.dhaval2404.colorpicker.model.ColorShape

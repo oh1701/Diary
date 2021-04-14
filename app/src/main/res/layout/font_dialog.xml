@@ -258,7 +258,7 @@
                     android:background="@android:color/transparent"
 
                     android:scaleType="fitXY"
-                    android:src="@drawable/letter_spacing"
+                    android:src="@drawable/ic_baseline_text_fields_24_black"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"/>
@@ -285,6 +285,10 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"/>
             </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
         </LinearLayout>
     </ScrollView>
     <!--여기에 폰트 지정. 버튼형식으로-->
