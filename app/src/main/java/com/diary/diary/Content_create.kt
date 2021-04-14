@@ -6,16 +6,16 @@ import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.ImageDecoder
-import android.graphics.Point
-import android.graphics.Typeface
+import android.graphics.*
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.provider.Settings
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.*
@@ -27,6 +27,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.marginBottom
 import androidx.core.view.marginTop
 import androidx.databinding.DataBindingUtil
@@ -37,6 +38,9 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
 import com.bumptech.glide.Glide
 import com.diary.diary.databinding.ActivityContentCreateBinding
+import com.github.dhaval2404.colorpicker.ColorPickerDialog
+import com.github.dhaval2404.colorpicker.ColorPickerView
+import com.github.dhaval2404.colorpicker.model.ColorShape
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayout
@@ -47,6 +51,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.lang.reflect.Type
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
@@ -57,7 +62,9 @@ import kotlin.collections.ArrayList
 // 현재 문제? 잘모르겠음 이건. 레이아웃 마진 설정하는것. 추가해도 되고 안해도 된다.
 // 폰트에서 색깔은 colorpicker 사용
 // 만약 폰트 지정시, 팝업창에서 미리 보기가 가능하게 하기.
-
+// 뷰모델에 onclick 이벤트들 연결시키고 클릭시 각자의 함수 실행시키는 거로 가독성 증가 및 유지보수 쉽게시키기.
+// @자동 저장, @내 폰트, @모든 사진 삭제 << 와 같은 단축키 설정. observe 통해서 edit들을 확인하고, 만약 저 글자들이 포함되는 순간, 이벤트 발생. 이후 글자 삭제.
+// 레이아웃 삭제시 editarray에서 본 edit으로 붙여넣기.
 
 class Roommodel:ViewModel(){
     private val edittitle = MutableLiveData<String>()
@@ -84,32 +91,33 @@ lateinit var tag_array:ArrayList<tagline>
 class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통해서 전해진 데이터값으로 태그를 받는다. 태그값에 따라 room에 넣어지는 값도 달리하기.
 
     lateinit var binding:ActivityContentCreateBinding
+    
+    var image_array:ArrayList<ImageView?> = arrayListOf() //이미지 저장용 리스트
+    var button_array:ArrayList<ImageButton?> = arrayListOf()
+    var Edit_array:ArrayList<EditText?> = arrayListOf()
+    var frame_array:ArrayList<FrameLayout?> = arrayListOf()
+    var linear_array:ArrayList<LinearLayout?> = arrayListOf()
 
+    var color_array = arrayOfNulls<String>(6) //색상 저장용
+
+    var tag_changed = 1 // 버튼 클릭 이벤트 감지
+    var trash_changed = 1 // 버튼 클릭 이벤트 감지
+
+    var remove_btn_id = -1
+
+    val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd")
+    val now = LocalDateTime.now().format(dateformat).toLong() //현재 시간.
+
+    var titletext = "" //제목
+    var contenttext = "" // 내용
     companion object{
+        var color_btn_array = arrayOfNulls<Button>(6) // 버튼 저장용
         lateinit var viewModel:Roommodel
         lateinit var db:RoomdiaryDB
-
-        val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd")
-        val now = LocalDateTime.now().format(dateformat).toLong() //현재 시간.
-
-        var titletext = "" //제목
-        var contenttext = "" // 내용
-
-
-        var tag_changed = 1 // 버튼 클릭 이벤트 감지
-        var trash_changed = 1 // 버튼 클릭 이벤트 감지
-
-        var image_array:ArrayList<ImageView?> = arrayListOf() //이미지 저장용 리스트
-        var button_array:ArrayList<ImageButton?> = arrayListOf()
-        var Edit_array:ArrayList<EditText?> = arrayListOf()
-        var frame_array:ArrayList<FrameLayout?> = arrayListOf()
-        var linear_array:ArrayList<LinearLayout?> = arrayListOf()
-
+        
         var CAMERA_REQUEST = 1000 // 사진 리퀘스트 코드
         var PICTURE_REQUEST = 2000 // 갤러리 리퀘스트 코드
         lateinit var PHOTO_PATH:String //사진 경로
-
-        var remove_btn_id = -1
 
         lateinit var metrics:DisplayMetrics // 디바이스 화면 크기 알아내는 변수
     }
@@ -175,6 +183,7 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
                         this.setImageResource(R.drawable.cancelsvg)
                         this.setBackgroundResource(android.R.color.transparent)
                         this.id = remove_btn_id //이 id값을 통해서 removebtn 클릭시 저장되어 있는 id값으로 arraylist 삭제함.
+                        this.visibility = View.GONE
 
                         this.setOnClickListener {
                             binding.imageEditLayout.removeView(frame_array[this.id])
@@ -251,6 +260,7 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
                         this.setImageResource(R.drawable.cancelsvg)
                         this.setBackgroundResource(android.R.color.transparent)
                         this.id = remove_btn_id //이 id값을 통해서 removebtn 클릭시 저장되어 있는 id값으로 arraylist 삭제함.
+                        this.visibility = View.GONE
 
                         this.setOnClickListener { // 버튼을 클릭하면 포지션에 맞는 layout들을 삭제시킴.
                             binding.imageEditLayout.removeView(frame_array[this.id])
@@ -404,8 +414,8 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
             } else {
                 Toast.makeText(this, "제목을 입력해주세요.", Toast.LENGTH_SHORT).show()
             }
-
         })
+        
     }
     
     private fun makeRequest(){
@@ -576,19 +586,122 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
             if(trash_changed == 1){
                 trash_checkd("꺼짐")
                 binding.trash.setBackgroundResource(R.drawable.btn_select)
+                if(button_array.size >= 1){
+                    for(i in 0 until button_array.size){
+                        button_array[i]?.visibility = View.GONE
+                    }
+                }
             }
             else{
                 trash_checkd("켜짐")
                 binding.trash.setBackgroundResource(R.drawable.btn_on)
+                if(button_array.size >= 1){
+                    for(i in 0 until button_array.size){
+                        button_array[i]?.visibility = View.VISIBLE
+                    }
+                }
             }
-
         }
 
         binding.fontChange.setOnClickListener {
-            //폰트, 장문, 장단, 글자크기, 글씨색(colorpicker 로 사용자가 원하는 색상 결정하게 만들어주기.)
+            //폰트, 장문, 장단, 글자크기
             //전체가 아닌, 사용자의 커서가 위치한 곳부터 바뀌는 것이면 좋음.
-            //폰트 조금 더 늘리자.
+            var color:String? = null
+            val fontview = LayoutInflater.from(this).inflate(R.layout.font_dialog, null)
 
+            var btn1 = fontview.findViewById<Button>(R.id.color_btn1)
+            var btn2 = fontview.findViewById<Button>(R.id.color_btn2)
+            var btn3 = fontview.findViewById<Button>(R.id.color_btn3)
+            var btn4 = fontview.findViewById<Button>(R.id.color_btn4)
+            var btn5 = fontview.findViewById<Button>(R.id.color_btn5)
+            var btn6 = fontview.findViewById<Button>(R.id.color_btn6)
+
+            color_btn_array[0] = btn1
+            color_btn_array[1] = btn2
+            color_btn_array[2] = btn3
+            color_btn_array[3] = btn4
+            color_btn_array[4] = btn5
+            color_btn_array[5] = btn6
+
+            for(i in 0 .. 5){
+                if(color_array[i] != null)
+                    color_btn_array[i]?.setBackgroundColor(Color.parseColor(color_array[i])) //다시 불러왔을때 버튼에 재저장.
+            }
+
+            val colorpicker = fontview.findViewById<ColorPickerView>(R.id.colorview)
+            val preview = fontview.findViewById<EditText>(R.id.preview_edit)
+
+            var btn = fontview.findViewById<Button>(R.id.line_btn)
+
+            preview.addTextChangedListener(object : TextWatcher{
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                }
+
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    Log.d("카운트", preview.lineCount.toString())
+                    if(preview.lineCount == 3){// Edittext 입력 2줄제한
+                        var str = preview.text.toString()
+                        preview.setText(str.substring(0, str.length - 1))
+                        preview.clearFocus()
+                    }
+                }
+
+                override fun afterTextChanged(s: Editable?) {
+                }
+            })
+
+            val font_dialog = Dialog(this).apply{
+                setContentView(fontview)
+                window!!.setBackgroundDrawable(ColorDrawable(Color.argb(255, 245, 245, 245)))
+            }
+
+            font_dialog.window!!.attributes.apply {
+                width = metrics.widthPixels * 9 / 10
+                height = metrics.heightPixels * 8 / 10
+            }
+
+            colorpicker.setColorListener { i, s ->
+               preview.setTextColor(Color.parseColor(s))
+                preview.setHintTextColor(Color.parseColor(s))
+                color = s
+                Log.d("TAG", s.toString()) //s 는 #000000 이런 값이므로 버튼에 1개씩 넣기.
+            }
+
+            btn.setOnClickListener {
+                for(i in 0 .. 5){
+                    if(color_array[i] == null) {
+                        color_array[i] = color
+                        color_btn_array[i]?.setBackgroundColor(Color.parseColor(color_array[i]))
+                        Log.d("TAG", "실행 11")
+                        break
+                    }
+                    else if(color_array[5] == null){ //마지막인 5 번째가 안채워져 있으면 넘어감.
+                        continue
+                    }
+                    else{
+                        if(i == 5) {
+                            for (e in i downTo 1) {
+                                color_array[e] = color_array[e - 1]
+                                color_btn_array[e]?.setBackgroundColor(Color.parseColor(color_array[e - 1]))
+                                Log.d("TAG", "실행 $e")
+                            }
+                            color_array[0] = color
+                            color_btn_array[0]?.setBackgroundColor(Color.parseColor(color_array[0]))
+                        }
+                    }
+                }
+            }
+
+            for(i in 0 .. 5) {
+                color_btn_array[i]?.setOnClickListener {
+                    if(color_array[i] != null) { //사용자가 이전에 지정한 색깔이 존재하면 실행. 없을시 실행 안함.
+                        preview.setTextColor(Color.parseColor(color_array[i]))
+                        preview.setHintTextColor(Color.parseColor(color_array[i]))
+                    }
+                }
+            }
+
+            font_dialog.show()
         }
 
         binding.backBtn.setOnClickListener { //X버튼 누를시
