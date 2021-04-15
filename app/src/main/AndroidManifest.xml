@@ -19,10 +19,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Diary_project">
+
         <activity
             android:name=".Content_create"
             android:windowSoftInputMode="adjustResize"
             android:screenOrientation="portrait"/>
+
         <activity android:name=".MainActivity"
             android:screenOrientation="portrait">
             <intent-filter>

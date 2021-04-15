@@ -18,6 +18,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.DisplayMetrics
 import android.util.Log
+import android.util.TypedValue
 import android.view.*
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
@@ -34,11 +35,14 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
 import com.bumptech.glide.Glide
 import com.diary.diary.databinding.ActivityContentCreateBinding
+import com.diary.recycler.Recycler_font
 import com.diary.recycler.Recycler_tag
+import com.diary.recycler.font_list
 import com.diary.recycler.tagline
 import com.github.dhaval2404.colorpicker.ColorPickerDialog
 import com.github.dhaval2404.colorpicker.ColorPickerView
@@ -62,11 +66,10 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 // 현재 문제? 잘모르겠음 이건. 레이아웃 마진 설정하는것. 추가해도 되고 안해도 된다.
-// 폰트에서 색깔은 colorpicker 사용
-// 만약 폰트 지정시, 팝업창에서 미리 보기가 가능하게 하기.
 // 뷰모델에 onclick 이벤트들 연결시키고 클릭시 각자의 함수 실행시키는 거로 가독성 증가 및 유지보수 쉽게시키기.
 // @자동 저장, @내 폰트, @모든 사진 삭제 << 와 같은 단축키 설정. observe 통해서 edit들을 확인하고, 만약 저 글자들이 포함되는 순간, 이벤트 발생. 이후 글자 삭제.
 // 레이아웃 삭제시 editarray에서 본 edit으로 붙여넣기.
+// 모든 종료 이벤트 시 interface의 string을 꺼짐으로 설정해주기.
 
 class Roommodel:ViewModel(){
     private val edittitle = MutableLiveData<String>()
@@ -87,10 +90,14 @@ class Roommodel:ViewModel(){
     }
 }
 
+class recyclermodel:ViewModel(){
+
+}
+
 lateinit var recy:RecyclerView
 lateinit var tag_array:ArrayList<tagline>
 
-class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통해서 전해진 데이터값으로 태그를 받는다. 태그값에 따라 room에 넣어지는 값도 달리하기.
+class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // intent 통해서 전해진 데이터값으로 태그를 받는다. 태그값에 따라 room에 넣어지는 값도 달리하기.
 
     lateinit var binding:ActivityContentCreateBinding
     
@@ -100,10 +107,15 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
     var frame_array:ArrayList<FrameLayout?> = arrayListOf()
     var linear_array:ArrayList<LinearLayout?> = arrayListOf()
 
+    var color_btn_array = arrayOfNulls<Button>(6) // 버튼 저장용
     var color_array = arrayOfNulls<String>(6) //색상 저장용
 
-    var tag_changed = 1 // 버튼 클릭 이벤트 감지
-    var trash_changed = 1 // 버튼 클릭 이벤트 감지
+    var notouch_change = 1 // 터치 무효화 버튼 이벤트 감지
+    var tag_changed = 1 // 태그 버튼 클릭 이벤트 감지
+    var trash_changed = 1 // 제거용(쓰레기통) 버튼 클릭 이벤트 감지
+    var line_spacing = 1 // 라인간격 확인용
+    var letter_spacing = 0.0f // 자간 확인용
+    var text_size = 16f
 
     var remove_btn_id = -1
 
@@ -112,8 +124,8 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
 
     var titletext = "" //제목
     var contenttext = "" // 내용
+
     companion object{
-        var color_btn_array = arrayOfNulls<Button>(6) // 버튼 저장용
         lateinit var viewModel:Roommodel
         lateinit var db:RoomdiaryDB
         
@@ -123,7 +135,6 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
 
         lateinit var metrics:DisplayMetrics // 디바이스 화면 크기 알아내는 변수
     }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -137,7 +148,6 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
             "RoomDB"
         )
                 .build()
-
         tag_array = arrayListOf()
         binding.FlexRecycler.layoutManager = FlexboxLayoutManager(
             this,
@@ -151,6 +161,24 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
         metrics = resources.displayMetrics
 
         // 함수 불러올 공간
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if(linear_array.isNotEmpty()) { // 쓰레기통버튼 on일경우 사진 추가했을때 remove버튼 나오게 하기.
+            if (trash_changed == -1)
+                for (i in 0 until button_array.size) {
+                    button_array[i]?.visibility = View.VISIBLE
+                }
+        }
+
+        if(notouch_change == -1) // 터치 버튼 on일경우 사진 추가했을때 터치 안되게 하기.
+            for (i in 0 until button_array.size) {
+                Edit_array[i]?.isEnabled = false
+                image_array[i]?.isEnabled = false
+            }
+        Log.d("감지", trash_changed.toString())
         observemodel()
         clickListener()
     }
@@ -201,7 +229,7 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
                     val editText = EditText(this).apply {
                         this.setBackgroundResource(android.R.color.transparent)
                         this.typeface = Typeface.SERIF //타입페이스는 serif
-                        this.textSize = 16F //사이즈는 16
+                        this.textSize = 16f //사이즈는 16
                         this.gravity = left
 
                         this.hint = "내용을 추가하세요."
@@ -277,7 +305,7 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
                     val editText = EditText(this).apply {
                         this.setBackgroundResource(android.R.color.transparent)
                         this.typeface = Typeface.SERIF //타입페이스는 serif
-                        this.textSize = 16F //사이즈는 16
+                        this.textSize = 16f //사이즈는 16
                         this.gravity = left
                         this.hint = "내용을 추가하세요."
                         this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
@@ -379,9 +407,7 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
                     dialog.show()
                     dialog.window!!.attributes = lp // 다이얼로그 표출 넓이 넣어주기.
 
-                } else {
-
-                }
+                } 
 
             }
         }
@@ -460,7 +486,6 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
     }
 
     private fun clickListener(){
-        var notouch_change = 1
         var toast: Toast? = null
 
         binding.camera.setOnClickListener {
@@ -501,22 +526,35 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
 
         binding.notouch.setOnClickListener { //터치 활성화 이벤트
             notouch_change *= -1
-            if(notouch_change == -1) {
+            if (notouch_change == -1) {
                 binding.contentTitle.isEnabled = false
                 binding.contentText.isEnabled = false
-
-                if(toast == null) {
-                    toast = Toast.makeText(this, "터치 비활성화", Toast.LENGTH_SHORT)
+                if(linear_array.isNotEmpty()){
+                    for(i in 0 until linear_array.size) {
+                        Edit_array[i]?.isEnabled = false
+                        image_array[i]?.isEnabled = false
+                    }
                 }
-                else{ // 토스트 삭제 후 재생성.
+
+                if (toast == null) {
+                    toast = Toast.makeText(this, "터치 비활성화", Toast.LENGTH_SHORT)
+                } else { // 토스트 삭제 후 재생성.
                     toast!!.cancel()
                     toast = Toast.makeText(this, "터치 비활성화", Toast.LENGTH_SHORT)
                 }
+                binding.notouch.setBackgroundResource(R.drawable.btn_on)
             }
             else{
                 binding.contentTitle.isEnabled = true
                 binding.contentText.isEnabled = true
 
+                if(linear_array.isNotEmpty()){
+                    for(i in 0 until linear_array.size) {
+                        Edit_array[i]?.isEnabled = true
+                        image_array[i]?.isEnabled = true
+                    }
+                }
+
                 if(toast == null) {
                     toast = Toast.makeText(this, "터치 활성화", Toast.LENGTH_SHORT)
                 }
@@ -524,6 +562,7 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
                     toast!!.cancel()
                     toast = Toast.makeText(this, "터치 활성화", Toast.LENGTH_SHORT)
                 }
+                binding.notouch.setBackgroundResource(R.drawable.btn_select)
             }
             toast!!.show()
         }
@@ -611,12 +650,114 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
             var color:String? = null
             val fontview = LayoutInflater.from(this).inflate(R.layout.font_dialog, null)
 
+            val colorpicker = fontview.findViewById<ColorPickerView>(R.id.colorview)
+            val preview = fontview.findViewById<EditText>(R.id.preview_edit)
+
+            var btn = fontview.findViewById<Button>(R.id.line_btn)
+
             var btn1 = fontview.findViewById<Button>(R.id.color_btn1)
             var btn2 = fontview.findViewById<Button>(R.id.color_btn2)
             var btn3 = fontview.findViewById<Button>(R.id.color_btn3)
             var btn4 = fontview.findViewById<Button>(R.id.color_btn4)
             var btn5 = fontview.findViewById<Button>(R.id.color_btn5)
             var btn6 = fontview.findViewById<Button>(R.id.color_btn6)
+
+            var plus = fontview.findViewById<Button>(R.id.plus)
+            var minus = fontview.findViewById<Button>(R.id.minus)
+            var letter_plus = fontview.findViewById<Button>(R.id.letter_plus)
+            var letter_minus = fontview.findViewById<Button>(R.id.letter_minus)
+            var size_plus = fontview.findViewById<Button>(R.id.size_plus)
+            var size_minus = fontview.findViewById<Button>(R.id.size_minus)
+
+            var font_recyclerview = fontview.findViewById<RecyclerView>(R.id.font_recyclerview)
+
+            var font_array:ArrayList<font_list> = arrayListOf(font_list(Typeface.DEFAULT, "기본"), font_list(Typeface.DEFAULT_BOLD, "기본 두꺼움"), font_list(resources.getFont(R.font.bazzi), "넥슨 배찌"), font_list(resources.getFont(R.font.bmeuljiro10yearslater), "을지로 10년 후"), font_list(resources.getFont(R.font.cafe24ohsquareair), "카페24 아네모네 에어")
+                    , font_list(resources.getFont(R.font.cafe24oneprettynight), "카페24 고운밤"), font_list(resources.getFont(R.font.cafe24shiningstar), "카페24 빛나는 별"), font_list(resources.getFont(R.font.cafe24ssurroundair), "카페24 써라운드 에어")
+                    , font_list(resources.getFont(R.font.chosuncentennial_ttf), "조선 100년"), font_list(resources.getFont(R.font.heiroflightbold), "빛의 사용자 bold"), font_list(resources.getFont(R.font.heiroflightregular), "빛의 사용자 regular")
+                    , font_list(resources.getFont(R.font.koreanfrenchtypewriter), "한불 정부표준 타자기"), font_list(resources.getFont(R.font.mapoflower), "마포 꽃"), font_list(resources.getFont(R.font.sdsamliphopangchettfbasic), "삼립 호빵")
+                    , font_list(resources.getFont(R.font.yyour), "너만을 비춤")
+            )
+
+            font_recyclerview.layoutManager = GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false)
+            font_recyclerview.setHasFixedSize(true)
+            font_recyclerview.adapter = Recycler_font(font_array, preview)
+
+            plus.setOnClickListener {//linespacingMultiplier 1 ~ 1.5까지만 하기.
+                when(line_spacing) {
+                    1 -> preview.setLineSpacing(0.0f, 1.2f)
+                    2 ->  preview.setLineSpacing(0.0f, 1.4f)
+                    3 ->  preview.setLineSpacing(0.0f, 1.6f)
+                    4 -> {
+                        preview.setLineSpacing(0.0f, 1.8f)
+                        toast?.cancel()
+                        toast = Toast.makeText(this, "줄 간격이 최대치입니다.", Toast.LENGTH_SHORT)
+                        toast?.show()
+                    }
+                }
+                if(line_spacing < 4)
+                    line_spacing++
+            }
+            minus.setOnClickListener {
+                when(line_spacing) {
+                    1 -> preview.setLineSpacing(0.0f, 1.0f)
+                    2 ->  preview.setLineSpacing(0.0f, 1.2f)
+                    3 ->  preview.setLineSpacing(0.0f, 1.4f)
+                    4 -> preview.setLineSpacing(0.0f, 1.6f)
+                }
+                if(line_spacing > 1)
+                    line_spacing--
+                else{
+                    toast?.cancel()
+                    toast = Toast.makeText(this, "줄 간격이 최소치입니다.", Toast.LENGTH_SHORT)
+                    toast?.show()
+                }
+            }
+            letter_plus.setOnClickListener {
+                if(preview.letterSpacing >= 0.5f){
+                    toast?.cancel()
+                    toast = Toast.makeText(this, "자간이 최대치입니다.", Toast.LENGTH_SHORT)
+                    toast?.show()
+                }
+                else
+                    preview.letterSpacing += 0.1f
+
+                letter_spacing = preview.letterSpacing
+            }
+
+            letter_minus.setOnClickListener {
+                if(preview.letterSpacing <= -0.1f){
+                    toast?.cancel()
+                    toast = Toast.makeText(this, "자간이 최소치입니다.", Toast.LENGTH_SHORT)
+                    toast?.show()
+                }
+                else
+                    preview.letterSpacing -= 0.1f
+
+                letter_spacing = preview.letterSpacing
+            }
+
+            size_plus.setOnClickListener {
+                if(text_size < 20) {
+                    text_size += 1f
+                    preview.setTextSize(TypedValue.COMPLEX_UNIT_SP, text_size)
+                }
+                else{
+                    toast?.cancel()
+                    toast = Toast.makeText(this, "사이즈가 최대치입니다.", Toast.LENGTH_SHORT)
+                    toast?.show()
+                }
+            }
+            size_minus.setOnClickListener {
+                if(text_size > 12) {
+                    text_size -= 1f
+                    preview.setTextSize(TypedValue.COMPLEX_UNIT_SP, text_size)
+                }
+                else {
+                    toast?.cancel()
+                    toast = Toast.makeText(this, "사이즈가 최소치입니다.", Toast.LENGTH_SHORT)
+                    toast?.show()
+                }
+            }
 
             color_btn_array[0] = btn1
             color_btn_array[1] = btn2
@@ -625,85 +766,83 @@ class Content_create: AppCompatActivity(), Inter_recycler_remove { // intent 통
             color_btn_array[4] = btn5
             color_btn_array[5] = btn6
 
-            for(i in 0 .. 5){
-                if(color_array[i] != null)
-                    color_btn_array[i]?.setBackgroundColor(Color.parseColor(color_array[i])) //다시 불러왔을때 버튼에 재저장.
-            }
+            color_array[0] = "#000000"
 
-            val colorpicker = fontview.findViewById<ColorPickerView>(R.id.colorview)
-            val preview = fontview.findViewById<EditText>(R.id.preview_edit)
-
-            var btn = fontview.findViewById<Button>(R.id.line_btn)
-
-            preview.addTextChangedListener(object : TextWatcher{
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                }
-
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                    Log.d("카운트", preview.lineCount.toString())
-                    if(preview.lineCount == 3){// Edittext 입력 2줄제한
-                        var str = preview.text.toString()
-                        preview.setText(str.substring(0, str.length - 1))
-                        preview.clearFocus()
-                    }
-                }
-
-                override fun afterTextChanged(s: Editable?) {
-                }
-            })
-
-            val font_dialog = Dialog(this).apply{
-                setContentView(fontview)
-                window!!.setBackgroundDrawable(ColorDrawable(Color.argb(255, 245, 245, 245)))
-            }
-
-            font_dialog.window!!.attributes.apply {
-                width = metrics.widthPixels * 9 / 10
-                height = metrics.heightPixels * 8 / 10
-            }
-
-            colorpicker.setColorListener { i, s ->
-               preview.setTextColor(Color.parseColor(s))
-                preview.setHintTextColor(Color.parseColor(s))
-                color = s
-                Log.d("TAG", s.toString()) //s 는 #000000 이런 값이므로 버튼에 1개씩 넣기.
-            }
-
-            btn.setOnClickListener {
                 for(i in 0 .. 5){
-                    if(color_array[i] == null) {
-                        color_array[i] = color
-                        color_btn_array[i]?.setBackgroundColor(Color.parseColor(color_array[i]))
-                        Log.d("TAG", "실행 11")
-                        break
+                    if(color_array[i] != null)
+                        color_btn_array[i]?.setBackgroundColor(Color.parseColor(color_array[i])) //다시 불러왔을때 버튼에 재저장.
+                }
+
+                preview.addTextChangedListener(object : TextWatcher{
+                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
                     }
-                    else if(color_array[5] == null){ //마지막인 5 번째가 안채워져 있으면 넘어감.
-                        continue
+
+                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                        Log.d("카운트", preview.lineCount.toString())
+                        if(preview.lineCount == 3){// Edittext 입력 2줄제한
+                            var str = preview.text.toString()
+                            preview.setText(str.substring(0, str.length - 1))
+                            preview.clearFocus()
+                        }
                     }
-                    else{
-                        if(i == 5) {
-                            for (e in i downTo 1) {
-                                color_array[e] = color_array[e - 1]
-                                color_btn_array[e]?.setBackgroundColor(Color.parseColor(color_array[e - 1]))
-                                Log.d("TAG", "실행 $e")
+
+                    override fun afterTextChanged(s: Editable?) {
+                    }
+                })
+
+                val font_dialog = Dialog(this).apply{
+                    setContentView(fontview)
+                    window!!.setBackgroundDrawable(ColorDrawable(Color.argb(255, 245, 245, 245)))
+                }
+
+                font_dialog.window!!.attributes.apply {
+                    width = metrics.widthPixels * 9 / 10
+                    height = metrics.heightPixels * 9 / 10
+                }
+
+                colorpicker.setColorListener { i, s ->
+                    if(s != "") {
+                        preview.setTextColor(Color.parseColor(s))
+                        preview.setHintTextColor(Color.parseColor(s))
+                        color = s
+                    }
+                }
+
+                btn.setOnClickListener {
+                    if (color != null) {
+                        for (i in 0..5) {
+                            if (color_array[i] == null) {
+                                color_array[i] = color
+                                color_btn_array[i]?.setBackgroundColor(Color.parseColor(color_array[i]))
+                                Log.d("TAG", "실행 11")
+                                break
+                            } else if (color_array[5] == null) { //마지막인 6 번째가 안채워져 있으면 넘어감.
+                                continue
+                            } else {
+                                if (i == 5) {
+                                    for (e in i downTo 2) {
+                                        color_array[e] = color_array[e - 1]
+                                        color_btn_array[e]?.setBackgroundColor(Color.parseColor(color_array[e - 1]))
+                                        Log.d("TAG", "실행 $e")
+                                    }
+                                    color_array[1] = color
+                                    color_btn_array[1]?.setBackgroundColor(Color.parseColor(color_array[1]))
+                                }
                             }
-                            color_array[0] = color
-                            color_btn_array[0]?.setBackgroundColor(Color.parseColor(color_array[0]))
                         }
                     }
                 }
-            }
 
-            for(i in 0 .. 5) {
-                color_btn_array[i]?.setOnClickListener {
-                    if(color_array[i] != null) { //사용자가 이전에 지정한 색깔이 존재하면 실행. 없을시 실행 안함.
-                        preview.setTextColor(Color.parseColor(color_array[i]))
-                        preview.setHintTextColor(Color.parseColor(color_array[i]))
+                for(i in 0 .. 5) {
+                    color_btn_array[i]?.setOnClickListener {
+                        if(color_array[i] != null) { //사용자가 이전에 지정한 색깔이 존재하면 실행. 없을시 실행 안함.
+                            preview.setTextColor(Color.parseColor(color_array[i]))
+                            preview.setHintTextColor(Color.parseColor(color_array[i]))
+                        }
                     }
                 }
-            }
 
-            font_dialog.show()
+                font_dialog.show()
         }
 
         binding.backBtn.setOnClickListener { //X버튼 누를시

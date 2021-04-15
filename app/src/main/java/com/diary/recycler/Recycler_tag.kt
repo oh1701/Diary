@@ -13,8 +13,9 @@ import com.diary.diary.R
 class Recycler_tag(val tagline:ArrayList<tagline>): RecyclerView.Adapter<Recycler_tag.ViewHolder>(), Inter_recycler_remove {
     lateinit var context:Context
     var change = 1
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Recycler_tag.ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.Recycler_tag_layout, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.recycler_tag_layout, parent, false)
         context = parent.context
 
         return ViewHolder(view)

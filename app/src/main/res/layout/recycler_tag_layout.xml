@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    android:id="@+id/tag_toplayout"
+
+<LinearLayout android:id="@+id/tag_toplayout"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-
     app:flexWrap="wrap"
     app:alignItems="stretch"
     app:alignContent="stretch"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
 
     <FrameLayout
         android:id="@+id/copy_layout"
