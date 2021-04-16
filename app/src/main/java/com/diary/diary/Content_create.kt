@@ -90,10 +90,6 @@ class Roommodel:ViewModel(){
     }
 }
 
-class recyclermodel:ViewModel(){
-
-}
-
 lateinit var recy:RecyclerView
 lateinit var tag_array:ArrayList<tagline>
 
@@ -113,7 +109,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
     var notouch_change = 1 // 터치 무효화 버튼 이벤트 감지
     var tag_changed = 1 // 태그 버튼 클릭 이벤트 감지
     var trash_changed = 1 // 제거용(쓰레기통) 버튼 클릭 이벤트 감지
-    var line_spacing = 1 // 라인간격 확인용
+    var line_spacing = 1.0f // 라인간격 확인용
     var letter_spacing = 0.0f // 자간 확인용
     var text_size = 16f
 
@@ -178,7 +174,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                 Edit_array[i]?.isEnabled = false
                 image_array[i]?.isEnabled = false
             }
-        Log.d("감지", trash_changed.toString())
+
         observemodel()
         clickListener()
     }
@@ -366,12 +362,11 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
         when(requestCode){ // requestpermissions을 통해 arrayof는 grantresults로, requestcode는 그대로 가져와진다.
             0 -> {
                 if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED || grantResults[1] != PackageManager.PERMISSION_GRANTED || grantResults[2] != PackageManager.PERMISSION_GRANTED) { // grantResult가 비어있을시 혹은 0번째 확인(읽고 쓰기)가 거절인지, 1번째 확인(카메라) 가 거절인지 확인.
-                    val permission_view: View = LayoutInflater.from(this).inflate(
-                        R.layout.activity_permission_intent,
-                        null
-                    )// 커스텀 다이얼로그 생성하기. 권한은 저장공간, 카메라
+                    val permission_view: View = LayoutInflater.from(this).inflate(R.layout.activity_permission_intent, null)// 커스텀 다이얼로그 생성하기. 권한은 저장공간, 카메라
+                    Log.d("실행 여기임", "여기임")
 
                     val dialog = Dialog(this)
+                    dialog.setContentView(permission_view)
 
                     val permission_positive_btn =
                         permission_view.findViewById<Button>(R.id.warning_positive)
@@ -381,10 +376,11 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                     permission_positive_btn.setOnClickListener { //설정버튼 누를시 이동
                         val intent = Intent(
                             Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse(
-                                "package:" + packageName
+                                "package:" + packageName // uristring
                             )
                         ) //어플 정보를 가진 설정창으로 이동.
                         startActivity(intent)
+
                         dialog.dismiss()
                     }
 
@@ -392,22 +388,14 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         dialog.dismiss()
                     }
 
-                    dialog.setContentView(permission_view)
-
-                    val size = Point()
-
-                    val x = (size.x * 0.7f).toInt() //디바이스 사이즈 width 구하기. 70% 비율
-                    val y = (size.y * 0.4f).toInt() // 디바이스 사이즈 height 구하기. 40%비율
-
-
                     var lp = WindowManager.LayoutParams()
                     lp.copyFrom(dialog.window!!.attributes)
-                    lp.width = x //레이아웃 params 에 width, height 넣어주기.
-                    lp.height = y
+                    lp.width = metrics.widthPixels * 7 / 10 //레이아웃 params 에 width, height 넣어주기.
+                    lp.height = metrics.heightPixels * 5 / 10
                     dialog.show()
                     dialog.window!!.attributes = lp // 다이얼로그 표출 넓이 넣어주기.
 
-                } 
+                }
 
             }
         }
@@ -485,31 +473,30 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
         }
     }
 
-    private fun clickListener(){
+    private fun clickListener() {
         var toast: Toast? = null
 
         binding.camera.setOnClickListener {
-            if ((ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)&&
+            if ((ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) &&
                     ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
-                    cameraIntent()
-            }
-            else{
+                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                cameraIntent()
+            } else {
                 makeRequest()
             }
-        }
+        } //사진 버튼 적용 끝
 
 
         binding.picture.setOnClickListener { //갤러리에서 사진 가져오기 기능
 
-            if((ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)&&
+            if ((ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) &&
                     ContextCompat.checkSelfPermission(
-                        this,
-                        android.Manifest.permission.READ_EXTERNAL_STORAGE
+                            this,
+                            android.Manifest.permission.READ_EXTERNAL_STORAGE
                     ) == PackageManager.PERMISSION_GRANTED &&
                     ContextCompat.checkSelfPermission(
-                        this,
-                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                            this,
+                            android.Manifest.permission.WRITE_EXTERNAL_STORAGE
                     ) == PackageManager.PERMISSION_GRANTED) {
                 //모든 퍼미션 허용시
                 val intent = Intent()
@@ -517,11 +504,10 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                 intent.action = Intent.ACTION_GET_CONTENT
 
                 startActivityForResult(Intent.createChooser(intent, "사진을 가져오는 중.."), PICTURE_REQUEST)
-            }
-            else{ //퍼미션 하나라도 허용이 안되어있을 시.
+            } else { //퍼미션 하나라도 허용이 안되어있을 시.
                 makeRequest()
             }
-        }
+        } //갤러리 버튼 적용 끝
 
 
         binding.notouch.setOnClickListener { //터치 활성화 이벤트
@@ -529,8 +515,8 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
             if (notouch_change == -1) {
                 binding.contentTitle.isEnabled = false
                 binding.contentText.isEnabled = false
-                if(linear_array.isNotEmpty()){
-                    for(i in 0 until linear_array.size) {
+                if (linear_array.isNotEmpty()) {
+                    for (i in 0 until linear_array.size) {
                         Edit_array[i]?.isEnabled = false
                         image_array[i]?.isEnabled = false
                     }
@@ -543,34 +529,32 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                     toast = Toast.makeText(this, "터치 비활성화", Toast.LENGTH_SHORT)
                 }
                 binding.notouch.setBackgroundResource(R.drawable.btn_on)
-            }
-            else{
+            } else {
                 binding.contentTitle.isEnabled = true
                 binding.contentText.isEnabled = true
 
-                if(linear_array.isNotEmpty()){
-                    for(i in 0 until linear_array.size) {
+                if (linear_array.isNotEmpty()) {
+                    for (i in 0 until linear_array.size) {
                         Edit_array[i]?.isEnabled = true
                         image_array[i]?.isEnabled = true
                     }
                 }
 
-                if(toast == null) {
+                if (toast == null) {
                     toast = Toast.makeText(this, "터치 활성화", Toast.LENGTH_SHORT)
-                }
-                else{ // 토스트 삭제 후 재생성.
+                } else { // 토스트 삭제 후 재생성.
                     toast!!.cancel()
                     toast = Toast.makeText(this, "터치 활성화", Toast.LENGTH_SHORT)
                 }
                 binding.notouch.setBackgroundResource(R.drawable.btn_select)
             }
             toast!!.show()
-        }
+        } // 터치 활성화 버튼 끝
 
         binding.tag.setOnClickListener { //태그 생성 버튼
             tag_changed *= -1 // 태그 체인지드가 1일경우 tag넣는 공간 사라지게 만들기.
 
-            if(tag_changed == 1){ // 태그 버튼이 꺼짐
+            if (tag_changed == 1) { // 태그 버튼이 꺼짐
                 binding.tagline.visibility = View.GONE
                 binding.tag.setBackgroundResource(R.drawable.btn_select)
 
@@ -581,8 +565,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
 
                 binding.bottomLinear.visibility = View.VISIBLE
                 binding.tagline.visibility = View.GONE
-            }
-            else { // 태그 버튼이 켜짐
+            } else { // 태그 버튼이 켜짐
                 binding.tagline.visibility = View.VISIBLE
                 binding.bottomLinear.visibility = View.GONE // 태그, 쓰레기통 버튼 켜짐. 및 나머지 리니어 GONE
 
@@ -604,8 +587,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
 
                             binding.tag.setBackgroundResource(R.drawable.btn_select)
                             binding.etn.text = null // null 값으로 설정
-                        }
-                        else{
+                        } else {
                             binding.bottomLinear.visibility = View.VISIBLE
                             binding.tagline.visibility = View.GONE// 태그 및 나머지 리니어 visible
                             binding.tag.setBackgroundResource(R.drawable.btn_select)
@@ -618,141 +600,140 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                 }
             }
             binding.etn.text = null // null 값으로 설정
-        }
+        } // 태그 버튼 끝
 
         binding.trash.setOnClickListener {
             trash_changed *= -1
             recy.adapter?.notifyDataSetChanged() // 쓰레기통 버튼 클릭시 remove 버튼 VISIBLE 상태로 만들기 위함. (업데이트)
 
-            if(trash_changed == 1){
+            if (trash_changed == 1) {
                 trash_checkd("꺼짐")
                 binding.trash.setBackgroundResource(R.drawable.btn_select)
-                if(button_array.size >= 1){
-                    for(i in 0 until button_array.size){
+                if (button_array.size >= 1) {
+                    for (i in 0 until button_array.size) {
                         button_array[i]?.visibility = View.GONE
                     }
                 }
-            }
-            else{
+            } else {
                 trash_checkd("켜짐")
                 binding.trash.setBackgroundResource(R.drawable.btn_on)
-                if(button_array.size >= 1){
-                    for(i in 0 until button_array.size){
+                if (button_array.size >= 1) {
+                    for (i in 0 until button_array.size) {
                         button_array[i]?.visibility = View.VISIBLE
                     }
                 }
             }
-        }
+        } //쓰레기통 버튼 적용 끝
 
         binding.fontChange.setOnClickListener {
             //폰트, 장문, 장단, 글자크기
             //전체가 아닌, 사용자의 커서가 위치한 곳부터 바뀌는 것이면 좋음.
-            var color:String? = null
+            var color: String? = null
             val fontview = LayoutInflater.from(this).inflate(R.layout.font_dialog, null)
 
             val colorpicker = fontview.findViewById<ColorPickerView>(R.id.colorview)
             val preview = fontview.findViewById<EditText>(R.id.preview_edit)
 
-            var btn = fontview.findViewById<Button>(R.id.line_btn)
+            val btn = fontview.findViewById<Button>(R.id.line_btn)
 
-            var btn1 = fontview.findViewById<Button>(R.id.color_btn1)
-            var btn2 = fontview.findViewById<Button>(R.id.color_btn2)
-            var btn3 = fontview.findViewById<Button>(R.id.color_btn3)
-            var btn4 = fontview.findViewById<Button>(R.id.color_btn4)
-            var btn5 = fontview.findViewById<Button>(R.id.color_btn5)
-            var btn6 = fontview.findViewById<Button>(R.id.color_btn6)
+            val btn1 = fontview.findViewById<Button>(R.id.color_btn1)
+            val btn2 = fontview.findViewById<Button>(R.id.color_btn2)
+            val btn3 = fontview.findViewById<Button>(R.id.color_btn3)
+            val btn4 = fontview.findViewById<Button>(R.id.color_btn4)
+            val btn5 = fontview.findViewById<Button>(R.id.color_btn5)
+            val btn6 = fontview.findViewById<Button>(R.id.color_btn6)
 
-            var plus = fontview.findViewById<Button>(R.id.plus)
-            var minus = fontview.findViewById<Button>(R.id.minus)
-            var letter_plus = fontview.findViewById<Button>(R.id.letter_plus)
-            var letter_minus = fontview.findViewById<Button>(R.id.letter_minus)
-            var size_plus = fontview.findViewById<Button>(R.id.size_plus)
-            var size_minus = fontview.findViewById<Button>(R.id.size_minus)
+            val plus = fontview.findViewById<Button>(R.id.plus)
+            val minus = fontview.findViewById<Button>(R.id.minus)
+            val letter_plus = fontview.findViewById<Button>(R.id.letter_plus)
+            val letter_minus = fontview.findViewById<Button>(R.id.letter_minus)
+            val size_plus = fontview.findViewById<Button>(R.id.size_plus)
+            val size_minus = fontview.findViewById<Button>(R.id.size_minus)
 
-            var font_recyclerview = fontview.findViewById<RecyclerView>(R.id.font_recyclerview)
+            val font_positive = fontview.findViewById<Button>(R.id.font_positive)
+            val font_cancel = fontview.findViewById<Button>(R.id.font_cancel)
 
-            var font_array:ArrayList<font_list> = arrayListOf(font_list(Typeface.DEFAULT, "기본"), font_list(Typeface.DEFAULT_BOLD, "기본 두꺼움"), font_list(resources.getFont(R.font.bazzi), "넥슨 배찌"), font_list(resources.getFont(R.font.bmeuljiro10yearslater), "을지로 10년 후"), font_list(resources.getFont(R.font.cafe24ohsquareair), "카페24 아네모네 에어")
-                    , font_list(resources.getFont(R.font.cafe24oneprettynight), "카페24 고운밤"), font_list(resources.getFont(R.font.cafe24shiningstar), "카페24 빛나는 별"), font_list(resources.getFont(R.font.cafe24ssurroundair), "카페24 써라운드 에어")
-                    , font_list(resources.getFont(R.font.chosuncentennial_ttf), "조선 100년"), font_list(resources.getFont(R.font.heiroflightbold), "빛의 사용자 bold"), font_list(resources.getFont(R.font.heiroflightregular), "빛의 사용자 regular")
-                    , font_list(resources.getFont(R.font.koreanfrenchtypewriter), "한불 정부표준 타자기"), font_list(resources.getFont(R.font.mapoflower), "마포 꽃"), font_list(resources.getFont(R.font.sdsamliphopangchettfbasic), "삼립 호빵")
-                    , font_list(resources.getFont(R.font.yyour), "너만을 비춤")
+            var local_line_spacing = line_spacing
+            var local_letter_spacing = letter_spacing
+            var local_text_size = text_size
+
+            val font_recyclerview = fontview.findViewById<RecyclerView>(R.id.font_recyclerview)
+
+            val font_array: ArrayList<font_list> = arrayListOf(font_list(Typeface.DEFAULT, "기본"), font_list(Typeface.DEFAULT_BOLD, "기본 두꺼움"), font_list(resources.getFont(R.font.bazzi), "넥슨 배찌"), font_list(resources.getFont(R.font.bmeuljiro10yearslater), "을지로 10년 후"), font_list(resources.getFont(R.font.cafe24ohsquareair), "카페24 아네모네 에어"), font_list(resources.getFont(R.font.cafe24oneprettynight), "카페24 고운밤"), font_list(resources.getFont(R.font.cafe24shiningstar), "카페24 빛나는 별"), font_list(resources.getFont(R.font.cafe24ssurroundair), "카페24 써라운드 에어"), font_list(resources.getFont(R.font.chosuncentennial_ttf), "조선 100년"), font_list(resources.getFont(R.font.heiroflightbold), "빛의 사용자 bold"), font_list(resources.getFont(R.font.heiroflightregular), "빛의 사용자 regular"), font_list(resources.getFont(R.font.koreanfrenchtypewriter), "한불 정부표준 타자기"), font_list(resources.getFont(R.font.mapoflower), "마포 꽃"), font_list(resources.getFont(R.font.sdsamliphopangchettfbasic), "삼립 호빵"), font_list(resources.getFont(R.font.yyour), "너만을 비춤")
             )
 
             font_recyclerview.layoutManager = GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false)
             font_recyclerview.setHasFixedSize(true)
             font_recyclerview.adapter = Recycler_font(font_array, preview)
 
-            plus.setOnClickListener {//linespacingMultiplier 1 ~ 1.5까지만 하기.
-                when(line_spacing) {
-                    1 -> preview.setLineSpacing(0.0f, 1.2f)
-                    2 ->  preview.setLineSpacing(0.0f, 1.4f)
-                    3 ->  preview.setLineSpacing(0.0f, 1.6f)
-                    4 -> {
-                        preview.setLineSpacing(0.0f, 1.8f)
-                        toast?.cancel()
-                        toast = Toast.makeText(this, "줄 간격이 최대치입니다.", Toast.LENGTH_SHORT)
-                        toast?.show()
-                    }
+            preview.apply{
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, text_size)
+                setTextColor(binding.contentText.textColors)
+                typeface = binding.contentText.typeface
+                setLineSpacing(0.0f, line_spacing)
+                letterSpacing = letter_spacing
+            }
+
+            plus.setOnClickListener {
+                if (local_line_spacing < 1.8f) {
+                    local_line_spacing += 0.2f
+                    preview.setLineSpacing(0.0f, local_line_spacing)
                 }
-                if(line_spacing < 4)
-                    line_spacing++
+                else{
+                    toast?.cancel()
+                    toast = Toast.makeText(this, "줄 간격이 최대치입니다.", Toast.LENGTH_SHORT)
+                    toast?.show()
+                }
+
             }
             minus.setOnClickListener {
-                when(line_spacing) {
-                    1 -> preview.setLineSpacing(0.0f, 1.0f)
-                    2 ->  preview.setLineSpacing(0.0f, 1.2f)
-                    3 ->  preview.setLineSpacing(0.0f, 1.4f)
-                    4 -> preview.setLineSpacing(0.0f, 1.6f)
+                if (local_line_spacing > 1.0f) {
+                    local_line_spacing -= 0.2f
+                    preview.setLineSpacing(0.0f, local_line_spacing)
                 }
-                if(line_spacing > 1)
-                    line_spacing--
-                else{
+                else {
                     toast?.cancel()
                     toast = Toast.makeText(this, "줄 간격이 최소치입니다.", Toast.LENGTH_SHORT)
                     toast?.show()
                 }
             }
             letter_plus.setOnClickListener {
-                if(preview.letterSpacing >= 0.5f){
+                if (preview.letterSpacing >= 0.5f) {
                     toast?.cancel()
                     toast = Toast.makeText(this, "자간이 최대치입니다.", Toast.LENGTH_SHORT)
                     toast?.show()
-                }
-                else
+                } else
                     preview.letterSpacing += 0.1f
 
-                letter_spacing = preview.letterSpacing
+                local_letter_spacing = preview.letterSpacing
             }
 
             letter_minus.setOnClickListener {
-                if(preview.letterSpacing <= -0.1f){
+                if (preview.letterSpacing <= -0.1f) {
                     toast?.cancel()
                     toast = Toast.makeText(this, "자간이 최소치입니다.", Toast.LENGTH_SHORT)
                     toast?.show()
-                }
-                else
+                } else
                     preview.letterSpacing -= 0.1f
 
-                letter_spacing = preview.letterSpacing
+                local_letter_spacing = preview.letterSpacing
             }
 
             size_plus.setOnClickListener {
-                if(text_size < 20) {
-                    text_size += 1f
-                    preview.setTextSize(TypedValue.COMPLEX_UNIT_SP, text_size)
-                }
-                else{
+                if (local_text_size < 20f) {
+                    local_text_size += 1f
+                    preview.setTextSize(TypedValue.COMPLEX_UNIT_SP, local_text_size)
+                } else {
                     toast?.cancel()
                     toast = Toast.makeText(this, "사이즈가 최대치입니다.", Toast.LENGTH_SHORT)
                     toast?.show()
                 }
             }
             size_minus.setOnClickListener {
-                if(text_size > 12) {
-                    text_size -= 1f
-                    preview.setTextSize(TypedValue.COMPLEX_UNIT_SP, text_size)
-                }
-                else {
+                if (local_text_size > 12) {
+                    local_text_size -= 1f
+                    preview.setTextSize(TypedValue.COMPLEX_UNIT_SP, local_text_size)
+                } else {
                     toast?.cancel()
                     toast = Toast.makeText(this, "사이즈가 최소치입니다.", Toast.LENGTH_SHORT)
                     toast?.show()
@@ -766,87 +747,125 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
             color_btn_array[4] = btn5
             color_btn_array[5] = btn6
 
-            color_array[0] = "#000000"
+            color_array[0] = "#000000" // 1번째 버튼에 기본 색깔인 검은 색 지정.
 
-                for(i in 0 .. 5){
-                    if(color_array[i] != null)
-                        color_btn_array[i]?.setBackgroundColor(Color.parseColor(color_array[i])) //다시 불러왔을때 버튼에 재저장.
+            for (i in 0..5) {
+                if (color_array[i] != null)
+                    color_btn_array[i]?.setBackgroundColor(Color.parseColor(color_array[i])) //다시 불러왔을때 버튼에 재저장.
+            }
+
+            preview.addTextChangedListener(object : TextWatcher { //EditText 2줄로 제한하기.
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
                 }
 
-                preview.addTextChangedListener(object : TextWatcher{
-                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                    }
-
-                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                        Log.d("카운트", preview.lineCount.toString())
-                        if(preview.lineCount == 3){// Edittext 입력 2줄제한
-                            var str = preview.text.toString()
-                            preview.setText(str.substring(0, str.length - 1))
-                            preview.clearFocus()
-                        }
-                    }
-
-                    override fun afterTextChanged(s: Editable?) {
-                    }
-                })
-
-                val font_dialog = Dialog(this).apply{
-                    setContentView(fontview)
-                    window!!.setBackgroundDrawable(ColorDrawable(Color.argb(255, 245, 245, 245)))
-                }
-
-                font_dialog.window!!.attributes.apply {
-                    width = metrics.widthPixels * 9 / 10
-                    height = metrics.heightPixels * 9 / 10
-                }
-
-                colorpicker.setColorListener { i, s ->
-                    if(s != "") {
-                        preview.setTextColor(Color.parseColor(s))
-                        preview.setHintTextColor(Color.parseColor(s))
-                        color = s
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    Log.d("카운트", preview.lineCount.toString())
+                    if (preview.lineCount == 3) {// Edittext 입력 2줄제한
+                        var str = preview.text.toString()
+                        preview.setText(str.substring(0, str.length - 1))
+                        preview.clearFocus()
                     }
                 }
 
-                btn.setOnClickListener {
-                    if (color != null) {
-                        for (i in 0..5) {
-                            if (color_array[i] == null) {
-                                color_array[i] = color
-                                color_btn_array[i]?.setBackgroundColor(Color.parseColor(color_array[i]))
-                                Log.d("TAG", "실행 11")
-                                break
-                            } else if (color_array[5] == null) { //마지막인 6 번째가 안채워져 있으면 넘어감.
-                                continue
-                            } else {
-                                if (i == 5) {
-                                    for (e in i downTo 2) {
-                                        color_array[e] = color_array[e - 1]
-                                        color_btn_array[e]?.setBackgroundColor(Color.parseColor(color_array[e - 1]))
-                                        Log.d("TAG", "실행 $e")
-                                    }
-                                    color_array[1] = color
-                                    color_btn_array[1]?.setBackgroundColor(Color.parseColor(color_array[1]))
+                override fun afterTextChanged(s: Editable?) {
+                }
+            })
+
+            val font_dialog = Dialog(this).apply {
+                setContentView(fontview)
+                window!!.setBackgroundDrawable(ColorDrawable(Color.argb(255, 245, 245, 245)))
+            }
+
+            font_dialog.window!!.attributes.apply { //다이얼로그 크기 지정
+                width = metrics.widthPixels * 9 / 10
+                height = metrics.heightPixels * 9 / 10
+            }
+
+            colorpicker.setColorListener { i, s -> //칼라피커에서 사용자가 지정한 위치에 맞는 색깔을 출력.
+                if (s != "") {
+                    preview.setTextColor(Color.parseColor(s))
+                    preview.setHintTextColor(Color.parseColor(s))
+                    color = s
+                }
+            }
+
+            font_positive.setOnClickListener { // 적용버튼 클릭시
+                letter_spacing = local_letter_spacing
+                line_spacing = local_line_spacing
+                text_size = local_text_size //임시 저장한 변수들 전역변수에 넣어주기.
+
+                if (color != null) {
+                    for (i in 0..5) {
+                        if (color_array[i] == null) {
+                            color_array[i] = color
+                            color_btn_array[i]?.setBackgroundColor(Color.parseColor(color_array[i]))
+                            Log.d("TAG", "실행 11")
+                            break
+                        } else if (color_array[5] == null) { //마지막인 6 번째가 안채워져 있으면 넘어감.
+                            continue
+                        } else {
+                            if (i == 5) {
+                                for (e in i downTo 2) {
+                                    color_array[e] = color_array[e - 1]
+                                    color_btn_array[e]?.setBackgroundColor(Color.parseColor(color_array[e - 1]))
+                                    Log.d("TAG", "실행 $e")
                                 }
+                                color_array[1] = color
+                                color_btn_array[1]?.setBackgroundColor(Color.parseColor(color_array[1]))
                             }
                         }
                     }
                 }
 
-                for(i in 0 .. 5) {
-                    color_btn_array[i]?.setOnClickListener {
-                        if(color_array[i] != null) { //사용자가 이전에 지정한 색깔이 존재하면 실행. 없을시 실행 안함.
-                            preview.setTextColor(Color.parseColor(color_array[i]))
-                            preview.setHintTextColor(Color.parseColor(color_array[i]))
+                binding.contentText.apply{
+                    typeface = preview.typeface
+                    setTextColor(preview.textColors)
+                    setLineSpacing(0.0f, line_spacing)
+                    letterSpacing = letter_spacing
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, text_size)
+                }
+                binding.contentTitle.apply{
+                    typeface = preview.typeface
+                    setTextColor(preview.textColors)
+                    setLineSpacing(0.0f, line_spacing)
+                    letterSpacing = letter_spacing
+                }
+                binding.contentDate.apply {
+                    typeface = preview.typeface
+                    setTextColor(preview.textColors)
+                }
+
+                if(Edit_array.isNotEmpty()) {
+                    for (i in 0 until Edit_array.size) {
+                        Edit_array[i]?.apply{
+                            typeface = preview.typeface
+                            setTextColor(preview.textColors)
+                            setLineSpacing(0.0f, line_spacing)
+                            letterSpacing = letter_spacing
+                            setTextSize(TypedValue.COMPLEX_UNIT_SP, text_size)
                         }
                     }
                 }
+            }
 
-                font_dialog.show()
-        }
+                font_cancel.setOnClickListener {
+                    font_dialog.dismiss()
+                }
+
+            for (i in 0..5) {
+                color_btn_array[i]?.setOnClickListener {
+                    if (color_array[i] != null) { //사용자가 이전에 지정한 색깔이 존재하면 실행. 없을시 실행 안함.
+                        preview.setTextColor(Color.parseColor(color_array[i]))
+                        preview.setHintTextColor(Color.parseColor(color_array[i]))
+                    }
+                }
+            }
+
+            font_dialog.show()
+        } //폰트 적용 끝
 
         binding.backBtn.setOnClickListener { //X버튼 누를시
-            if(viewModel.getEdi().value != null || viewModel.getContent().value != null){
+            if (viewModel.getEdi().value != null || viewModel.getContent().value != null) {
                 Toast.makeText(this, "내용이 있음", Toast.LENGTH_SHORT).show()
                 AlertDialog.Builder(this)
                         .setTitle("내용이 존재합니다. 저장하시겠습니까?")
@@ -858,17 +877,16 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                             startActivity(Intent(this, MainActivity::class.java))
                             Log.d("TAG", "확인")
                         }
-                        .setNegativeButton("취소"){ dialog, which ->
+                        .setNegativeButton("취소") { dialog, which ->
                             finish()
                         }
                         .show()
                 //저장할건지 물어보고 저장한다고 하면 내용 작성 안하면 삭제.
-            }
-            else {
+            } else {
                 val intent = Intent(this, MainActivity::class.java)
                 startActivity(intent)
             }
-        }
+        } //x 버튼 적용 끝
     }
 }
 /*

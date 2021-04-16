@@ -120,7 +120,7 @@
                     app:layout_constraintTop_toBottomOf="@id/content_title"
                     app:layout_constraintBottom_toTopOf="@id/content_view"
                     app:layout_constraintLeft_toLeftOf="parent"
-                    android:text="@={creatediary.content}"
+                    android:text="@={creatediary.edi}"
 
                     android:inputType="text"
                     android:maxLines="1"
@@ -166,7 +166,7 @@
                         <EditText
                             android:id="@+id/content_text"
                             android:textSize="16sp"
-                            android:text="@={creatediary.textcontent}"
+                            android:text="@={creatediary.content}"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
 
@@ -176,7 +176,6 @@
 
                             android:hint="내용을 입력해주세요."
 
-                            android:lineSpacingMultiplier="1.5"
                             android:background="@android:color/transparent"
                             android:fontFamily="serif"
                             android:layout_marginBottom="10dp"
@@ -189,6 +188,7 @@
                             app:layout_constraintTop_toBottomOf="@id/content_text"
                             app:layout_constraintLeft_toLeftOf="parent"
                             android:orientation="vertical">
+
 
                         </LinearLayout>
 

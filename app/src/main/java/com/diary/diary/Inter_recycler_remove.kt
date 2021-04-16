@@ -1,15 +1,10 @@
 package com.diary.diary
 
-import android.content.Context
 import android.graphics.Typeface
-import android.media.Image
-import android.text.Editable
-import android.util.Log
-import android.view.View
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ImageButton
 import android.widget.TextView
+import com.diary.recycler.font_list
 
 interface Inter_recycler_remove{
 
@@ -38,7 +33,7 @@ interface Inter_recycler_remove{
 
 interface rere{
 
-    fun dd(EditText:EditText, typeface: Typeface){
+    fun dd(EditText: EditText, typeface: Typeface){
         EditText.typeface = typeface
     }
 }
