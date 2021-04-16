@@ -3,11 +3,14 @@ package com.diary.diary
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Typeface
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -16,15 +19,19 @@ import androidx.room.*
 import com.diary.diary.databinding.ActivityMainBinding
 import com.diary.recycler.Recycler_main
 import com.diary.recycler.list
+import com.diary.recycler.tagline
 import kotlinx.coroutines.*
 import java.util.jar.Manifest
 
 @Entity
-data class Diaryroom(
+data class Diaryroom(//id, 날짜, 제목, 내용, 태그, layout 두개.
         @PrimaryKey(autoGenerate = true) val id:Int,
         @ColumnInfo(name = "date") val date:Long,
         @ColumnInfo(name = "title") val title:String,
-        @ColumnInfo(name = "content") val content:String
+        @ColumnInfo(name = "content") val content:String,
+        @ColumnInfo(name = "tag_array") val tag_array:ArrayList<tagline>,
+        @ColumnInfo(name = "create_linear") val create_linear:ArrayList<LinearLayout?>,
+        @ColumnInfo(name = "create_frame") val create_frame:ArrayList<FrameLayout?>
 )
 
 @Dao
@@ -67,7 +74,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val context = this
-        var diarylist:ArrayList<list> = arrayListOf()
+        var diarylist:ArrayList<list> = arrayListOf() //이거 이미지도 추가하기.
 
         var db = Room.databaseBuilder(
                 applicationContext, RoomdiaryDB::class.java

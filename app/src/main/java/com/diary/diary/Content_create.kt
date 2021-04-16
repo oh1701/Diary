@@ -65,10 +65,8 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.ArrayList
 
-// 현재 문제? 잘모르겠음 이건. 레이아웃 마진 설정하는것. 추가해도 되고 안해도 된다.
-// 뷰모델에 onclick 이벤트들 연결시키고 클릭시 각자의 함수 실행시키는 거로 가독성 증가 및 유지보수 쉽게시키기.
 // @자동 저장, @내 폰트, @모든 사진 삭제 << 와 같은 단축키 설정. observe 통해서 edit들을 확인하고, 만약 저 글자들이 포함되는 순간, 이벤트 발생. 이후 글자 삭제.
-// 레이아웃 삭제시 editarray에서 본 edit으로 붙여넣기.
+// 현재 observe 부문에서 단축키 만드는중. 나중에 설정에서 단축키 설정하고 room으로 가져오기. room으로 가져온 단축키는 array로 설정해서 for문 돌리고 contain으로 비교, replace로 없애기
 // 모든 종료 이벤트 시 interface의 string을 꺼짐으로 설정해주기.
 
 class Roommodel:ViewModel(){
@@ -118,8 +116,8 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
     val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd")
     val now = LocalDateTime.now().format(dateformat).toLong() //현재 시간.
 
-    var titletext = "" //제목
-    var contenttext = "" // 내용
+    var titletext = "" //Dao에 넣는용도의 제목(observe 받아와서 넣어짐)
+    var contenttext = "" // Dao에 넣는용도의 내용(observe 받아와서 넣어짐)
 
     companion object{
         lateinit var viewModel:Roommodel
@@ -214,6 +212,11 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         this.setOnClickListener {
                             binding.imageEditLayout.removeView(frame_array[this.id])
                             binding.imageEditLayout.removeView(linear_array[this.id])
+                            Log.d("확인2", contenttext)
+                            Log.d("확인1", Edit_array[this.id]?.text.toString())
+                            binding.contentText.setText(binding.contentText.text.toString() + Edit_array[this.id]?.text.toString())
+
+                            Log.d("확인3", contenttext)
                         }
                     }
 
@@ -239,15 +242,16 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         )
                         imageview.setImageBitmap(bitmap)
 
+                        create_frame.addView(imageview)
+                        create_frame.addView(remove_btn)
+                        create_linear.addView(editText)
+
                             image_array.add(imageview)
                             button_array.add(remove_btn)
                             Edit_array.add(editText)
                             frame_array.add(create_frame)
                             linear_array.add(create_linear)
 
-                        create_frame.addView(imageview)
-                        create_frame.addView(remove_btn)
-                        create_linear.addView(editText)
                         binding.imageEditLayout.addView(create_frame) // imageEditLayout 은 constraint 의 자식인 Linearlayout
                         binding.imageEditLayout.addView(create_linear)
 
@@ -291,6 +295,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         this.setOnClickListener { // 버튼을 클릭하면 포지션에 맞는 layout들을 삭제시킴.
                             binding.imageEditLayout.removeView(frame_array[this.id])
                             binding.imageEditLayout.removeView(linear_array[this.id])
+                            binding.contentText.setText(binding.contentText.text.toString() + Edit_array[this.id]?.text.toString())
                         }
                     }
 
@@ -320,15 +325,17 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         imageview.setImageBitmap(bitmap)
                     }
 
-                    image_array.add(imageview)
-                    button_array.add(remove_btn)
-                    Edit_array.add(editText)
-                    frame_array.add(create_frame)
-                    linear_array.add(create_linear)
-
                     create_frame.addView(imageview)
                     create_frame.addView(remove_btn)
                     create_linear.addView(editText)
+
+                    image_array.add(imageview)
+                    button_array.add(remove_btn)
+                    Edit_array.add(editText)
+
+                    frame_array.add(create_frame)
+                    linear_array.add(create_linear)
+
                     binding.imageEditLayout.addView(create_frame) // imageEditLayout 은 constraint 의 자식인 Linearlayout
                     binding.imageEditLayout.addView(create_linear)
 
@@ -408,7 +415,20 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
         })
 
         viewModel.getContent().observe(this, {
-            contenttext = it
+            if (it.contains("@내 폰트@", true)) {//적용된다. //단축키 !!!
+                Log.d("단축키", "폰트") //적용된다.
+
+                var a = it.replace("@내 폰트@", "") //적용된다.
+                Toast.makeText(this, "저장한 폰트가 불러와졌습니다.", Toast.LENGTH_SHORT).show()
+
+                binding.contentText.typeface = resources.getFont(R.font.bazzi)
+                binding.contentText.setText(a) //binding.contenttext 는 getcontent와 연결되어있습니다.
+
+            } else if (it.contains("@현재 날짜@")) { //만들자
+            }
+            else if(it.contains("@현재 시각@")) //만들자
+
+            contenttext = it //contenttext는 Dao에 넣는용도.
         })
 
         viewModel.Checktext().observe(this, {
@@ -418,7 +438,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                 Log.d("TAG", "글자 바뀜")
 
                 CoroutineScope(Dispatchers.IO).launch {
-                    db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext))
+                    db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, tag_array, linear_array, frame_array))
                     Log.d(
                         "TAG날짜",
                         "${db.RoomDao().getAll()}"
@@ -846,6 +866,8 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         }
                     }
                 }
+
+                font_dialog.dismiss()
             }
 
                 font_cancel.setOnClickListener {
@@ -871,7 +893,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         .setTitle("내용이 존재합니다. 저장하시겠습니까?")
                         .setPositiveButton("저장") { dialog, which ->
                             CoroutineScope(Dispatchers.IO).launch {
-                                db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext))
+                                db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, tag_array, linear_array, frame_array))
                             }
 
                             startActivity(Intent(this, MainActivity::class.java))
@@ -890,11 +912,10 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
     }
 }
 /*
-* 이미지뷰 삭제. edittext 삭제도 똑같이 하면 될듯.
-            binding.imageEditLayout.removeView(image_array[image_array.size - 1]) // 삭제된다. 나중에 사용자가 삭제하고 싶은 이미지뷰 삭제방법 강구해보자.
-           
-            image_array.removeAt(image_array.size - 1) // 이거 안하면 array에 남아있어서 1번밖에 되질 않는다.
-            * 사진 삭제 시 내용도 삭제. 내용 edittext에 사진 아래의 edittext내용 추가해준다. a.text = a.text + b.text
-            *
-            * setid로 버튼과 이미지, 에딧텍스트에 id를 int형으로 추가한것을 준다음 버튼 누를시 for문을 통해 int와 setid 비교 후 삭제. 근데 버튼을 어케 추가하지.
+*             if(tag_array.isNotEmpty()){
+                for(i in tag_array.indices){
+                    Log.d("태그는", "$i, ${tag_array[i].tag_content}")
+                }
+            } 이거 변형해서 태그 insert하기.
+*
 * */
