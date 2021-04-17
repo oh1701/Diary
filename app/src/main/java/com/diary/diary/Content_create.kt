@@ -68,6 +68,7 @@ import kotlin.collections.ArrayList
 // @자동 저장, @내 폰트, @모든 사진 삭제 << 와 같은 단축키 설정. observe 통해서 edit들을 확인하고, 만약 저 글자들이 포함되는 순간, 이벤트 발생. 이후 글자 삭제.
 // 현재 observe 부문에서 단축키 만드는중. 나중에 설정에서 단축키 설정하고 room으로 가져오기. room으로 가져온 단축키는 array로 설정해서 for문 돌리고 contain으로 비교, replace로 없애기
 // 모든 종료 이벤트 시 interface의 string을 꺼짐으로 설정해주기.
+// 타입컨버터 사용해서 arrayList를 json 형식으로 변환시켜주라고 한다.
 
 class Roommodel:ViewModel(){
     private val edittitle = MutableLiveData<String>()
@@ -161,20 +162,32 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
         super.onResume()
 
         if(linear_array.isNotEmpty()) { // 쓰레기통버튼 on일경우 사진 추가했을때 remove버튼 나오게 하기.
-            if (trash_changed == -1)
+            if (trash_changed == -1) {
                 for (i in 0 until button_array.size) {
                     button_array[i]?.visibility = View.VISIBLE
                 }
+            }
         }
 
-        if(notouch_change == -1) // 터치 버튼 on일경우 사진 추가했을때 터치 안되게 하기.
+        if(notouch_change == -1) { // 터치 버튼 on일경우 사진 추가했을때 터치 안되게 하기.
             for (i in 0 until button_array.size) {
                 Edit_array[i]?.isEnabled = false
                 image_array[i]?.isEnabled = false
             }
+        }
 
         observemodel()
         clickListener()
+    }
+
+    override fun onBackPressed() {
+
+        if(titletext.isNotEmpty() || contenttext.isNotEmpty()) {
+            warning_dialog("백 버튼 경고")
+        }
+        else{
+            super.onBackPressed()
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) { // 사진, 갤러리 설정하기.
@@ -369,44 +382,79 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
         when(requestCode){ // requestpermissions을 통해 arrayof는 grantresults로, requestcode는 그대로 가져와진다.
             0 -> {
                 if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED || grantResults[1] != PackageManager.PERMISSION_GRANTED || grantResults[2] != PackageManager.PERMISSION_GRANTED) { // grantResult가 비어있을시 혹은 0번째 확인(읽고 쓰기)가 거절인지, 1번째 확인(카메라) 가 거절인지 확인.
-                    val permission_view: View = LayoutInflater.from(this).inflate(R.layout.activity_permission_intent, null)// 커스텀 다이얼로그 생성하기. 권한은 저장공간, 카메라
-                    Log.d("실행 여기임", "여기임")
-
-                    val dialog = Dialog(this)
-                    dialog.setContentView(permission_view)
-
-                    val permission_positive_btn =
-                        permission_view.findViewById<Button>(R.id.warning_positive)
-                    val permission_negative_btn =
-                        permission_view.findViewById<Button>(R.id.warning_negative)
-
-                    permission_positive_btn.setOnClickListener { //설정버튼 누를시 이동
-                        val intent = Intent(
-                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse(
-                                "package:" + packageName // uristring
-                            )
-                        ) //어플 정보를 가진 설정창으로 이동.
-                        startActivity(intent)
-
-                        dialog.dismiss()
-                    }
-
-                    permission_negative_btn.setOnClickListener {
-                        dialog.dismiss()
-                    }
-
-                    var lp = WindowManager.LayoutParams()
-                    lp.copyFrom(dialog.window!!.attributes)
-                    lp.width = metrics.widthPixels * 7 / 10 //레이아웃 params 에 width, height 넣어주기.
-                    lp.height = metrics.heightPixels * 5 / 10
-                    dialog.show()
-                    dialog.window!!.attributes = lp // 다이얼로그 표출 넓이 넣어주기.
-
+                    warning_dialog("퍼미션 체크")
                 }
 
             }
         }
         return
+    }
+
+    private fun warning_dialog(call_check:String){
+        val permission_view: View = LayoutInflater.from(this).inflate(R.layout.activity_permission_intent, null)// 커스텀 다이얼로그 생성하기. 권한은 저장공간, 카메라
+
+        val dialog = Dialog(this)
+        dialog.setContentView(permission_view)
+
+        val permission_positive_btn =
+            permission_view.findViewById<Button>(R.id.warning_positive)
+        val permission_negative_btn =
+            permission_view.findViewById<Button>(R.id.warning_negative)
+        val text = permission_view.findViewById<TextView>(R.id.warnig_text)
+
+        when(call_check) {
+            "퍼미션 체크" -> {
+                permission_positive_btn.setOnClickListener { //설정버튼 누를시 이동
+                    val intent = Intent(
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse(
+                            "package:" + packageName // uristring
+                        )
+                    ) //어플 정보를 가진 설정창으로 이동.
+                    startActivity(intent)
+
+                    dialog.dismiss()
+                }
+
+
+                var lp = WindowManager.LayoutParams()
+                lp.copyFrom(dialog.window!!.attributes)
+                lp.width = metrics.widthPixels * 7 / 10 //레이아웃 params 에 width, height 넣어주기.
+                lp.height = metrics.heightPixels * 5 / 10
+                dialog.show()
+                dialog.window!!.attributes = lp // 다이얼로그 표출 넓이 넣어주기.
+
+                permission_negative_btn.setOnClickListener {
+                    dialog.dismiss()
+                }
+            }
+
+            "백 버튼 경고" -> {
+                text.text = "현재 기록되어 있는 내용이 존재합니다. 저장하시겠습니까?"
+                permission_positive_btn.text = "저장"
+                permission_negative_btn.text = "저장 안함"
+
+                permission_positive_btn.setOnClickListener {
+
+                    CoroutineScope(Dispatchers.IO).launch {
+                        db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext))
+                    }
+                    startActivity(Intent(this, MainActivity::class.java))
+                }
+
+                permission_negative_btn.setOnClickListener {
+                    dialog.dismiss()
+                    startActivity(Intent(this, MainActivity::class.java))
+                }
+
+                var lp = WindowManager.LayoutParams()
+                lp.copyFrom(dialog.window!!.attributes)
+                lp.width = metrics.widthPixels * 7 / 10 //레이아웃 params 에 width, height 넣어주기.
+                lp.height = metrics.heightPixels * 4 / 10
+                dialog.show()
+                dialog.window!!.attributes = lp // 다이얼로그 표출 넓이 넣어주기.
+            }
+
+        }
     }
 
     private fun observemodel(){
@@ -424,9 +472,12 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                 binding.contentText.typeface = resources.getFont(R.font.bazzi)
                 binding.contentText.setText(a) //binding.contenttext 는 getcontent와 연결되어있습니다.
 
-            } else if (it.contains("@현재 날짜@")) { //만들자
             }
-            else if(it.contains("@현재 시각@")) //만들자
+            else if (it.contains("@현재 날짜@")) { //만들자
+            }
+            else if(it.contains("@현재 시각@")) {
+
+            }//만들자
 
             contenttext = it //contenttext는 Dao에 넣는용도.
         })
@@ -438,7 +489,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                 Log.d("TAG", "글자 바뀜")
 
                 CoroutineScope(Dispatchers.IO).launch {
-                    db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, tag_array, linear_array, frame_array))
+                    db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext))
                     Log.d(
                         "TAG날짜",
                         "${db.RoomDao().getAll()}"
@@ -729,7 +780,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
             }
 
             letter_minus.setOnClickListener {
-                if (preview.letterSpacing <= -0.1f) {
+                if (preview.letterSpacing <= 0.0f) {
                     toast?.cancel()
                     toast = Toast.makeText(this, "자간이 최소치입니다.", Toast.LENGTH_SHORT)
                     toast?.show()
@@ -750,7 +801,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                 }
             }
             size_minus.setOnClickListener {
-                if (local_text_size > 12) {
+                if (local_text_size > 16) {
                     local_text_size -= 1f
                     preview.setTextSize(TypedValue.COMPLEX_UNIT_SP, local_text_size)
                 } else {
@@ -774,7 +825,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                     color_btn_array[i]?.setBackgroundColor(Color.parseColor(color_array[i])) //다시 불러왔을때 버튼에 재저장.
             }
 
-            preview.addTextChangedListener(object : TextWatcher { //EditText 2줄로 제한하기.
+            preview.addTextChangedListener(object : TextWatcher { //EditText 2줄로 제한하기 위한 textwatch.
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
                 }
 
@@ -852,7 +903,6 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                 }
                 binding.contentDate.apply {
                     typeface = preview.typeface
-                    setTextColor(preview.textColors)
                 }
 
                 if(Edit_array.isNotEmpty()) {
@@ -893,7 +943,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         .setTitle("내용이 존재합니다. 저장하시겠습니까?")
                         .setPositiveButton("저장") { dialog, which ->
                             CoroutineScope(Dispatchers.IO).launch {
-                                db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, tag_array, linear_array, frame_array))
+                                db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext))
                             }
 
                             startActivity(Intent(this, MainActivity::class.java))
