@@ -40,10 +40,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
 import com.bumptech.glide.Glide
 import com.diary.diary.databinding.ActivityContentCreateBinding
-import com.diary.recycler.Recycler_font
-import com.diary.recycler.Recycler_tag
-import com.diary.recycler.font_list
-import com.diary.recycler.tagline
+import com.diary.recycler.*
 import com.github.dhaval2404.colorpicker.ColorPickerDialog
 import com.github.dhaval2404.colorpicker.ColorPickerView
 import com.github.dhaval2404.colorpicker.model.ColorShape
@@ -69,6 +66,33 @@ import kotlin.collections.ArrayList
 // 현재 observe 부문에서 단축키 만드는중. 나중에 설정에서 단축키 설정하고 room으로 가져오기. room으로 가져온 단축키는 array로 설정해서 for문 돌리고 contain으로 비교, replace로 없애기
 // 모든 종료 이벤트 시 interface의 string을 꺼짐으로 설정해주기.
 // 타입컨버터 사용해서 arrayList를 json 형식으로 변환시켜주라고 한다.
+/*
+*
+            var list: List<LinearLayout?> = linear_array.toList()
+            var list2: List<FrameLayout?> = frame_array.toList()
+            Log.d("확인", list.toString())
+            var d = list[ff]
+            var e = list2[ff]
+
+            binding.imageEditLayout.addView(e)
+            binding.imageEditLayout.addView(d) // 된다. layout으로 가져오면 그 아래것도 가져와진다.
+            *
+            *
+            if(linear_array.isNotEmpty()){//removeAt로 지우면 자동으로 위치가 줄어든다.
+                for(i in 0 until linear_array.size){
+                    Log.d("어레이", "$i,는 ${linear_array[i].toString()}")
+                    if(i == linear_array.size - 1) {
+                        Log.d("어레이", "사이즈는 ${linear_array.size.toString()}")
+                        Log.d("어레이", linear_array[0].toString())
+                    }
+                }
+            }
+            *
+            *
+            linear_list = linear_array.toList()
+            frame_list = frame_array.toList()
+* */
+
 
 class Roommodel:ViewModel(){
     private val edittitle = MutableLiveData<String>()
@@ -95,24 +119,24 @@ lateinit var tag_array:ArrayList<tagline>
 class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // intent 통해서 전해진 데이터값으로 태그를 받는다. 태그값에 따라 room에 넣어지는 값도 달리하기.
 
     lateinit var binding:ActivityContentCreateBinding
-    
-    var image_array:ArrayList<ImageView?> = arrayListOf() //이미지 저장용 리스트
-    var button_array:ArrayList<ImageButton?> = arrayListOf()
-    var Edit_array:ArrayList<EditText?> = arrayListOf()
-    var frame_array:ArrayList<FrameLayout?> = arrayListOf()
-    var linear_array:ArrayList<LinearLayout?> = arrayListOf()
 
-    var color_btn_array = arrayOfNulls<Button>(6) // 버튼 저장용
-    var color_array = arrayOfNulls<String>(6) //색상 저장용
+    private var image_array:ArrayList<ImageView?> = arrayListOf() //이미지 저장용 리스트
+    private var button_array:ArrayList<ImageButton?> = arrayListOf()
+    private var Edit_array:ArrayList<EditText?> = arrayListOf()
+    private var frame_array:ArrayList<FrameLayout?> = arrayListOf()
+    private var linear_array:ArrayList<LinearLayout?> = arrayListOf()
 
-    var notouch_change = 1 // 터치 무효화 버튼 이벤트 감지
-    var tag_changed = 1 // 태그 버튼 클릭 이벤트 감지
-    var trash_changed = 1 // 제거용(쓰레기통) 버튼 클릭 이벤트 감지
-    var line_spacing = 1.0f // 라인간격 확인용
-    var letter_spacing = 0.0f // 자간 확인용
-    var text_size = 16f
+    private var color_btn_array = arrayOfNulls<Button>(6) // 버튼 저장용
+    private var color_array = arrayOfNulls<String>(6) //색상 저장용
 
-    var remove_btn_id = -1
+    private var notouch_change = 1 // 터치 무효화 버튼 이벤트 감지
+    private var tag_changed = 1 // 태그 버튼 클릭 이벤트 감지
+    private var trash_changed = 1 // 제거용(쓰레기통) 버튼 클릭 이벤트 감지
+    private var line_spacing = 1.0f // 라인간격 확인용
+    private var letter_spacing = 0.0f // 자간 확인용
+    private var text_size = 16f
+
+    private var remove_btn_id = -1
 
     val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd")
     val now = LocalDateTime.now().format(dateformat).toLong() //현재 시간.
@@ -120,6 +144,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
     var titletext = "" //Dao에 넣는용도의 제목(observe 받아와서 넣어짐)
     var contenttext = "" // Dao에 넣는용도의 내용(observe 받아와서 넣어짐)
 
+    var ff = -1
     companion object{
         lateinit var viewModel:Roommodel
         lateinit var db:RoomdiaryDB
@@ -133,6 +158,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = DataBindingUtil.setContentView(this, R.layout.activity_content_create)
         binding.lifecycleOwner = this
         viewModel = ViewModelProvider(this).get(Roommodel::class.java)
@@ -152,14 +178,28 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
         binding.FlexRecycler.setHasFixedSize(true)
         binding.FlexRecycler.adapter = Recycler_tag(tag_array)
 
+
         recy = binding.FlexRecycler
         metrics = resources.displayMetrics
 
+        Log.d("확인", "온크리에이트")
         // 함수 불러올 공간
     }
 
     override fun onResume() {
         super.onResume()
+
+        Log.d("확인", "온리즘")
+
+        for(i in 0 until Edit_array.size){
+            if(binding.contentText.typeface != Edit_array[i]?.typeface) {
+                Edit_array[i]?.typeface = binding.contentText.typeface // 현재 메인 내용의 typeface와 동일하게 설정한다.
+                Edit_array[i]?.setTextColor(binding.contentText.textColors)
+                Edit_array[i]?.setLineSpacing(0.0f, line_spacing)
+                Edit_array[i]?.letterSpacing = letter_spacing
+                Edit_array[i]?.textSize = text_size
+            }
+        }
 
         if(linear_array.isNotEmpty()) { // 쓰레기통버튼 on일경우 사진 추가했을때 remove버튼 나오게 하기.
             if (trash_changed == -1) {
@@ -178,6 +218,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
 
         observemodel()
         clickListener()
+
     }
 
     override fun onBackPressed() {
@@ -225,6 +266,10 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         this.setOnClickListener {
                             binding.imageEditLayout.removeView(frame_array[this.id])
                             binding.imageEditLayout.removeView(linear_array[this.id])
+
+                            linear_array.removeAt(this.id)
+                            frame_array.removeAt(this.id)
+
                             Log.d("확인2", contenttext)
                             Log.d("확인1", Edit_array[this.id]?.text.toString())
                             binding.contentText.setText(binding.contentText.text.toString() + Edit_array[this.id]?.text.toString())
@@ -268,7 +313,6 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         binding.imageEditLayout.addView(create_frame) // imageEditLayout 은 constraint 의 자식인 Linearlayout
                         binding.imageEditLayout.addView(create_linear)
 
-                        Log.d("바뀌나", "${image_array[image_array.size - 1]}")
                     } catch (e: Exception) {
                         Toast.makeText(this, "오류 $e", Toast.LENGTH_SHORT).show()
                     }
@@ -308,6 +352,10 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         this.setOnClickListener { // 버튼을 클릭하면 포지션에 맞는 layout들을 삭제시킴.
                             binding.imageEditLayout.removeView(frame_array[this.id])
                             binding.imageEditLayout.removeView(linear_array[this.id])
+
+                            linear_array.removeAt(this.id)
+                            frame_array.removeAt(this.id)
+
                             binding.contentText.setText(binding.contentText.text.toString() + Edit_array[this.id]?.text.toString())
                         }
                     }
@@ -436,7 +484,10 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                 permission_positive_btn.setOnClickListener {
 
                     CoroutineScope(Dispatchers.IO).launch {
-                        db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext))
+                        var linear_list = linear_array.toList()
+                        var frame_list = frame_array.toList()
+
+                        db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, linear_list, frame_list))
                     }
                     startActivity(Intent(this, MainActivity::class.java))
                 }
@@ -489,7 +540,10 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                 Log.d("TAG", "글자 바뀜")
 
                 CoroutineScope(Dispatchers.IO).launch {
-                    db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext))
+                    var linear_list = linear_array.toList()
+                    var frame_list = frame_array.toList()
+
+                    db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, linear_list, frame_list))
                     Log.d(
                         "TAG날짜",
                         "${db.RoomDao().getAll()}"
@@ -502,9 +556,9 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                 Toast.makeText(this, "제목을 입력해주세요.", Toast.LENGTH_SHORT).show()
             }
         })
-        
+
     }
-    
+
     private fun makeRequest(){
         ActivityCompat.requestPermissions( //리퀘스트 퍼미션에 가져가기.
             this, arrayOf(
@@ -697,6 +751,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
         } //쓰레기통 버튼 적용 끝
 
         binding.fontChange.setOnClickListener {
+
             //폰트, 장문, 장단, 글자크기
             //전체가 아닌, 사용자의 커서가 위치한 곳부터 바뀌는 것이면 좋음.
             var color: String? = null
@@ -943,7 +998,10 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         .setTitle("내용이 존재합니다. 저장하시겠습니까?")
                         .setPositiveButton("저장") { dialog, which ->
                             CoroutineScope(Dispatchers.IO).launch {
-                                db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext))
+                                var linear_list = linear_array.toList()
+                                var frame_list = frame_array.toList()
+
+                                db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, linear_list, frame_list))
                             }
 
                             startActivity(Intent(this, MainActivity::class.java))

@@ -63,6 +63,21 @@
                 android:fontFamily="serif"
                 />
 
+            <LinearLayout
+                android:id="@+id/recycler_linear"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/recycler_frame"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+            </FrameLayout>
         </ScrollView>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
