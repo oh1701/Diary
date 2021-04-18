@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.*
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
@@ -51,6 +52,7 @@ import com.google.android.flexbox.FlexboxLayoutManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -137,6 +139,8 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
     private var text_size = 16f
 
     private var remove_btn_id = -1
+
+    private var byteimage_array:ArrayList<Byte?> = arrayListOf()
 
     val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd")
     val now = LocalDateTime.now().format(dateformat).toLong() //현재 시간.
@@ -270,6 +274,9 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                             linear_array.removeAt(this.id)
                             frame_array.removeAt(this.id)
 
+                            image_array.removeAt(this.id)
+                            Edit_array.removeAt(this.id)
+
                             Log.d("확인2", contenttext)
                             Log.d("확인1", Edit_array[this.id]?.text.toString())
                             binding.contentText.setText(binding.contentText.text.toString() + Edit_array[this.id]?.text.toString())
@@ -355,6 +362,9 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
 
                             linear_array.removeAt(this.id)
                             frame_array.removeAt(this.id)
+
+                            image_array.removeAt(this.id)
+                            Edit_array.removeAt(this.id)
 
                             binding.contentText.setText(binding.contentText.text.toString() + Edit_array[this.id]?.text.toString())
                         }
@@ -484,10 +494,16 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                 permission_positive_btn.setOnClickListener {
 
                     CoroutineScope(Dispatchers.IO).launch {
-                        var linear_list = linear_array.toList()
-                        var frame_list = frame_array.toList()
-
-                        db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, linear_list, frame_list))
+                        if(image_array.isNotEmpty()) {
+                            for (i in image_array.indices) {
+                                var a: BitmapDrawable = (image_array[i]?.drawable as BitmapDrawable)
+                                var b: Bitmap = a.bitmap
+                                var ByteOutputstream = ByteArrayOutputStream()
+                                b.compress(Bitmap.CompressFormat.PNG, 100, ByteOutputstream)
+                                byteimage_array[i] = ByteOutputstream.toByteArray()
+                            }
+                        }
+                        db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext))
                     }
                     startActivity(Intent(this, MainActivity::class.java))
                 }
@@ -540,10 +556,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                 Log.d("TAG", "글자 바뀜")
 
                 CoroutineScope(Dispatchers.IO).launch {
-                    var linear_list = linear_array.toList()
-                    var frame_list = frame_array.toList()
-
-                    db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, linear_list, frame_list))
+                    db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext))
                     Log.d(
                         "TAG날짜",
                         "${db.RoomDao().getAll()}"
@@ -998,14 +1011,11 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         .setTitle("내용이 존재합니다. 저장하시겠습니까?")
                         .setPositiveButton("저장") { dialog, which ->
                             CoroutineScope(Dispatchers.IO).launch {
-                                var linear_list = linear_array.toList()
-                                var frame_list = frame_array.toList()
 
-                                db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, linear_list, frame_list))
+                                db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext))
+
+                                Log.d("확인", "insert 된다.")
                             }
-
-                            startActivity(Intent(this, MainActivity::class.java))
-                            Log.d("TAG", "확인")
                         }
                         .setNegativeButton("취소") { dialog, which ->
                             finish()
