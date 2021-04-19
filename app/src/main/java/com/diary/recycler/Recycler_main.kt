@@ -1,6 +1,8 @@
 package com.diary.recycler
 
 import android.content.Context
+import android.content.Intent
+import android.content.Intent.ACTION_OPEN_DOCUMENT
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
@@ -32,15 +34,18 @@ class Recycler_main(val diary_list:ArrayList<list>) :  RecyclerView.Adapter<Recy
         holder.title.text = diary_list[position].title
         holder.content.text = diary_list[position].content
 
-        fun loadBitmapFromMediaStoreBy(photoUri: Uri?): Bitmap? {
+        fun loadBitmapFromMediaStoreBy(photoUri: Uri?): Bitmap? { //이미지 uri 비트맵형식으로 변경하기
             var image: Bitmap? = null
+            Log.d("확인이이여여", "확인00")
             try {
+                Log.d("확인이이여여", "확인11")
                 image = if (Build.VERSION.SDK_INT > 27) { // Api 버전별 이미지 처리
                     val source: ImageDecoder.Source =
                             ImageDecoder.createSource(context.contentResolver, photoUri!!)
                     ImageDecoder.decodeBitmap(source)
                 } else {
-                    MediaStore.Images.Media.getBitmap(context.contentResolver, photoUri)
+                    Log.d("확인이이여여", "확인22")
+                    MediaStore.Images.Media.getBitmap(context.contentResolver, photoUri!!)
                 }
             } catch (e: IOException) {
                 e.printStackTrace()

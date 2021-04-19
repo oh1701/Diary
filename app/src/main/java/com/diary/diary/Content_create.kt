@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.Intent.ACTION_OPEN_DOCUMENT
 import android.content.pm.PackageManager
+import android.database.Cursor
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
@@ -15,7 +16,9 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.DocumentsContract
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
@@ -32,6 +35,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.createBitmap
 import androidx.core.view.marginBottom
 import androidx.core.view.marginTop
 import androidx.databinding.DataBindingUtil
@@ -54,6 +58,7 @@ import com.google.android.flexbox.FlexboxLayoutManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.selects.select
 import java.io.*
 import java.lang.reflect.Type
 import java.text.DateFormat
@@ -66,36 +71,6 @@ import kotlin.collections.ArrayList
 // @자동 저장, @내 폰트, @모든 사진 삭제 << 와 같은 단축키 설정. observe 통해서 edit들을 확인하고, 만약 저 글자들이 포함되는 순간, 이벤트 발생. 이후 글자 삭제.
 // 현재 observe 부문에서 단축키 만드는중. 나중에 설정에서 단축키 설정하고 room으로 가져오기. room으로 가져온 단축키는 array로 설정해서 for문 돌리고 contain으로 비교, replace로 없애기
 // 모든 종료 이벤트 시 interface의 string을 꺼짐으로 설정해주기.
-// 타입컨버터 사용해서 arrayList를 json 형식으로 변환시켜주라고 한다.
-// 비트맵으로 이미지 저장되는듯
-/*
-*
-        fun loadBitmapFromMediaStoreBy(photoUri: Uri?): Bitmap? {
-            var image: Bitmap? = null
-            try {
-                image = if (Build.VERSION.SDK_INT > 27) { // Api 버전별 이미지 처리
-                    val source: ImageDecoder.Source =
-                            ImageDecoder.createSource(this.contentResolver, photoUri!!)
-                    ImageDecoder.decodeBitmap(source)
-                } else {
-                    MediaStore.Images.Media.getBitmap(this.contentResolver, photoUri)
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            return image
-        }
-
-            if(uri_array.isNotEmpty()){
-                for(i in uri_array.indices){
-                    Log.d("uri확인", uri_array[i])
-                }
-            }
-            var ee = loadBitmapFromMediaStoreBy(Uri.parse(uri_array[0]))
-
-            binding.photo.setImageBitmap(ee)
-
- */
 
 class Roommodel:ViewModel(){
     private val edittitle = MutableLiveData<String>()
@@ -125,7 +100,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
 
     private var uri_array:ArrayList<String> = arrayListOf() // Uri주소를 uri.parse 통해 스트링으로 받아와 roop 전달.
 
-
+    private var bitmap_array:ArrayList<Bitmap?> = arrayListOf()
 
     private var image_array:ArrayList<ImageView?> = arrayListOf() //이미지 저장용 리스트
     private var button_array:ArrayList<ImageButton?> = arrayListOf()
@@ -260,6 +235,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                     }
 
                     uri_array.add(dataUri.toString()) // room에 데이터 추가하기 위해서 이미지 uri를 스트링형식 배열에 넣는다.
+                    Log.d("시팔", dataUri.toString())
                     Glide.with(this).load(dataUri).into(imageview)
 
                     val remove_btn = ImageButton(this).apply {
@@ -304,7 +280,21 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         val bitmap: Bitmap = MediaStore.Images.Media.getBitmap( //사진 비트맵 형식으로 가져옴.
                                 this.contentResolver,
                                 dataUri
-                        ) //냐냐냐냐냐
+                        )
+
+                       fun uri(context:Context, inImage:Bitmap):Uri {
+                            var bytes = ByteArrayOutputStream();
+                            inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+                            var path = MediaStore.Images.Media.insertImage(context.getContentResolver(), inImage, "Title", null);
+                            return Uri.parse(path);
+                        } // 이거되는듯 이거된다 ㅅㅅㅅㅅ
+
+                        Log.d("이거확인", uri(this, bitmap).toString())
+                        uri_array[0] = uri(this, bitmap).toString()
+                        Log.d("uri확인", uri_array[0].toString())
+
+                        bitmap_array.add(bitmap)
+
                         imageview.setImageBitmap(bitmap) //
 
                         create_frame.addView(imageview)
@@ -386,6 +376,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
 
                     if(Build.VERSION.SDK_INT < 28){ //안드로이드 9.0(pie) 미만일경우
                         bitmap = MediaStore.Images.Media.getBitmap(contentResolver, Uri.fromFile(file))
+                        bitmap_array.add(bitmap)
                         imageview.setImageBitmap(bitmap)
                     }
                     else{ //9.0보다 높을 경우
@@ -394,6 +385,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                                 Uri.fromFile(file)
                         )
                         bitmap = ImageDecoder.decodeBitmap(decode)
+                        bitmap_array.add(bitmap)
                         imageview.setImageBitmap(bitmap)
                     }
 
@@ -425,10 +417,10 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
         val folderPath = Environment.getExternalStorageDirectory().absolutePath + "/Pictures/" //저장공간 경로 설정.
         val time:String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
         val fileName = "${time}.jpeg"
-        val folder = File(folderPath)
+        /*val folder = File(folderPath)
         if(!folder.isDirectory){ // 디렉토리 폴더가 없을시.
             folder.mkdirs() // make directory 줄임말로 해당 경로에 폴더 자동으로 새로 만들어줌.
-        }
+        }*/
 
         val out = FileOutputStream(folderPath + fileName) //출력 형태는 경로 + 이름
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out) //JPEG 형태로 퀄리티 원본으로 저장.
@@ -443,10 +435,9 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
     ) {
         when(requestCode){ // requestpermissions을 통해 arrayof는 grantresults로, requestcode는 그대로 가져와진다.
             0 -> {
-                if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED || grantResults[1] != PackageManager.PERMISSION_GRANTED || grantResults[2] != PackageManager.PERMISSION_GRANTED) { // grantResult가 비어있을시 혹은 0번째 확인(읽고 쓰기)가 거절인지, 1번째 확인(카메라) 가 거절인지 확인.
+                if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED || grantResults[1] != PackageManager.PERMISSION_GRANTED || grantResults[2] != PackageManager.PERMISSION_GRANTED){ // grantResult가 비어있을시 혹은 0번째 확인(읽고 쓰기)가 거절인지, 1번째 확인(카메라) 가 거절인지 확인.
                     warning_dialog("퍼미션 체크")
                 }
-
             }
         }
         return
@@ -580,26 +571,26 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
     }
 
     private fun cameraIntent(){
-        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also{
-            takePictureIntent -> takePictureIntent.resolveActivity(packageManager)?.also{
-                val photofile: File? = try{
-                    createImage()
-                }catch (ex: IOException){
-                    null
-                }
-                photofile?.also{
-                    val photoURI = FileProvider.getUriForFile(
-                            this,
-                            "com.diary.diary.fileprovider",
-                            it
-                    )
-                    uri_array.add(photoURI.toString())  // room에 데이터 추가하기 위해서 이미지 uri를 스트링형식 배열에 넣는다.
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
+                takePictureIntent.resolveActivity(packageManager)?.also {
+                    val photofile: File? = try {
+                        createImage()
+                    } catch (ex: IOException) {
+                        null
+                    }
+                    photofile?.also {
+                        val photoURI = FileProvider.getUriForFile(
+                                this,
+                                "com.diary.diary.fileprovider",
+                                it
+                        )
+                        uri_array.add(photoURI.toString())  // room에 데이터 추가하기 위해서 이미지 uri를 스트링형식 배열에 넣는다.
 
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                    startActivityForResult(takePictureIntent, CAMERA_REQUEST) //tagpictureIntent를 한 상태로, REQUEST코드 가져감.
+                        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                        startActivityForResult(takePictureIntent, CAMERA_REQUEST)
+                    }
                 }
-        }
-        }
+            }
     }
 
     private fun createImage():File{
@@ -614,7 +605,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
         var toast: Toast? = null
 
         binding.camera.setOnClickListener {
-            if ((ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) &&
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
                     ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
                     ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 cameraIntent()
@@ -627,25 +618,18 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
         binding.picture.setOnClickListener { //갤러리에서 사진 가져오기 기능
 
             if ((ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) &&
-                    ContextCompat.checkSelfPermission(
-                            this,
-                            android.Manifest.permission.READ_EXTERNAL_STORAGE
-                    ) == PackageManager.PERMISSION_GRANTED &&
-                    ContextCompat.checkSelfPermission(
-                            this,
-                            android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-                    ) == PackageManager.PERMISSION_GRANTED) {
+                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 //모든 퍼미션 허용시
                 val intent = Intent()
                 intent.type = "image/*"
-                intent.action = Intent.ACTION_GET_CONTENT
+                intent.action = ACTION_OPEN_DOCUMENT
 
                 startActivityForResult(Intent.createChooser(intent, "사진을 가져오는 중.."), PICTURE_REQUEST)
             } else { //퍼미션 하나라도 허용이 안되어있을 시.
                 makeRequest()
             }
         } //갤러리 버튼 적용 끝
-
 
         binding.notouch.setOnClickListener { //터치 활성화 이벤트
             /*
@@ -1015,8 +999,24 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         .setTitle("내용이 존재합니다. 저장하시겠습니까?")
                         .setPositiveButton("저장") { dialog, which ->
                             CoroutineScope(Dispatchers.IO).launch {
+                                fun loadBitmapFromMediaStoreBy(photoUri: Uri?): Bitmap? {
+                                    var image: Bitmap? = null
+                                    try {
+                                        image = if (Build.VERSION.SDK_INT > 27) { // Api 버전별 이미지 처리
+                                            val source: ImageDecoder.Source =
+                                                    ImageDecoder.createSource(contentResolver, photoUri!!)
+                                            ImageDecoder.decodeBitmap(source)
+                                        } else {
+                                            MediaStore.Images.Media.getBitmap(contentResolver, photoUri)
+                                        }
+                                    } catch (e: IOException) {
+                                        e.printStackTrace()
+                                    }
+                                    return image
+                                }
 
                                 val urilist = uri_array.toList()
+                                Log.d("확인용","리스트는 ${urilist[0].toString()}")
                                 db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, urilist))
 
                                 Log.d("확인", "insert 된다.")
