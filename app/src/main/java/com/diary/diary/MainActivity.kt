@@ -4,7 +4,9 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.Typeface
+import android.media.Image
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
@@ -12,6 +14,7 @@ import android.util.Log
 import android.widget.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.databinding.adapters.Converters
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.room.*
 import com.diary.diary.databinding.ActivityMainBinding
@@ -22,21 +25,34 @@ import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.*
+import java.io.ByteArrayOutputStream
 import java.io.File.separator
 import java.util.jar.Manifest
 // 리무브 버튼은 0번째 리스트부터 하나씩 넣어가기(바이트형 이미지와 스트링형 edit도)
-
 @Entity
 data class Diaryroom(//id, 날짜, 제목, 내용, 태그, layout 두개.
         @PrimaryKey(autoGenerate = true) val id:Int,
         @ColumnInfo(name = "date") val date:Long,
         @ColumnInfo(name = "title") val title:String,
         @ColumnInfo(name = "content") val content:String,
-
-        /*@ColumnInfo(name = "linear_list") val linear_list:List<Byte>, //바이트에서 형 변환하자
-
-        @ColumnInfo(name = "frame_list") val frame_list:List<String?> //스트링형으로 변환.*/
+        @ColumnInfo(name = "uri_string_array") val uri_string_array:List<String?> //스트링형으로 변환.*/
 )
+
+class Imagelist {
+    @TypeConverter
+    fun uristringToJson(value: List<String?>) = Gson().toJson(value)
+
+    @TypeConverter
+    fun jsonToUriString(value: String) = Gson().fromJson(value, Array<String?>::class.java).toList()
+}
+
+/*class Editlist {
+    @TypeConverter
+    fun frameToJson(frame: List<String>) = Gson().toJson(frame)
+
+    @TypeConverter
+    fun jsonrframeTolist(frame: String) = Gson().fromJson(frame, Array<String>::class.java).toList()
+}*/
 
 @Dao
 interface DiaryDao{
@@ -50,26 +66,9 @@ interface DiaryDao{
     fun getAll():List<Diaryroom>
 }
 
-object Converters{
-    class linear {
-        @TypeConverter
-        fun linearToJson(linear: List<Byte?>) = Gson().toJson(linear)
-
-        @TypeConverter
-        fun jsonlinearTolist(linear: String) = Gson().fromJson(linear, Array<Byte>::class.java).toList()
-    }
-
-    class frame {
-        @TypeConverter
-        fun frameToJson(frame: List<String>) = Gson().toJson(frame)
-
-        @TypeConverter
-        fun jsonrframeTolist(frame: String) = Gson().fromJson(frame, Array<String>::class.java).toList()
-    }
-}
 
 @Database(entities = [Diaryroom::class], version = 1)
-@TypeConverters(Converters.linear::class, Converters.frame::class)
+@TypeConverters(Imagelist::class)
 abstract class RoomdiaryDB:RoomDatabase(){
     abstract fun RoomDao():DiaryDao
 }
@@ -86,7 +85,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         Log.d("확인", "get 된다.")
         val context = this
-        var linear: ArrayList<LinearLayout?>
 
         db = Room.databaseBuilder(
                 applicationContext, RoomdiaryDB::class.java
@@ -100,13 +98,30 @@ class MainActivity : AppCompatActivity() {
 
             Log.d("사이즈", a.toString())
 
-            if(a == 0){
+            if(db.RoomDao().getAll().isNotEmpty()){
+                Log.d("로그", db.RoomDao().getAll().size.toString())
+                for(i in db.RoomDao().getAll().size -1 downTo 0){
+                    val room: Diaryroom = db.RoomDao().getAll()[i]
+                    val id: Int = room.id
+                    val date: Long = room.date
+                    val title: String = room.title
+                    val content: String = room.content
+                    val sss = room.uri_string_array
+                    diarylist.add(list(id, date, title, content, sss))
+                }
+            }
+            /*if(a == 0){
                 val room: Diaryroom = db.RoomDao().getAll()[0]
                 val id: Int = room.id
                 val date: Long = room.date
                 val title: String = room.title
                 val content: String = room.content
 
+                if(room.uri_string_array.isNotEmpty()) {
+                    for(i in room.uri_string_array.indices){
+
+                    }
+                }
                 diarylist.add(list(id, date, title, content, null, null))
             }
             else if(a >= 1){
@@ -119,7 +134,7 @@ class MainActivity : AppCompatActivity() {
 
                     diarylist.add(list(id, date, title, content, null, null))
                 }
-            }
+            }*/
             Log.d("TAG", "안임")
             Log.d("TAG룸", "${db.RoomDao().getAll()}")
         }

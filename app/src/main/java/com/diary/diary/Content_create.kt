@@ -3,8 +3,10 @@ package com.diary.diary
 import android.app.ActionBar
 import android.app.Activity
 import android.app.Dialog
+import android.app.Notification
 import android.content.Context
 import android.content.Intent
+import android.content.Intent.ACTION_OPEN_DOCUMENT
 import android.content.pm.PackageManager
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
@@ -52,10 +54,7 @@ import com.google.android.flexbox.FlexboxLayoutManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
+import java.io.*
 import java.lang.reflect.Type
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -68,33 +67,35 @@ import kotlin.collections.ArrayList
 // 현재 observe 부문에서 단축키 만드는중. 나중에 설정에서 단축키 설정하고 room으로 가져오기. room으로 가져온 단축키는 array로 설정해서 for문 돌리고 contain으로 비교, replace로 없애기
 // 모든 종료 이벤트 시 interface의 string을 꺼짐으로 설정해주기.
 // 타입컨버터 사용해서 arrayList를 json 형식으로 변환시켜주라고 한다.
+// 비트맵으로 이미지 저장되는듯
 /*
 *
-            var list: List<LinearLayout?> = linear_array.toList()
-            var list2: List<FrameLayout?> = frame_array.toList()
-            Log.d("확인", list.toString())
-            var d = list[ff]
-            var e = list2[ff]
+        fun loadBitmapFromMediaStoreBy(photoUri: Uri?): Bitmap? {
+            var image: Bitmap? = null
+            try {
+                image = if (Build.VERSION.SDK_INT > 27) { // Api 버전별 이미지 처리
+                    val source: ImageDecoder.Source =
+                            ImageDecoder.createSource(this.contentResolver, photoUri!!)
+                    ImageDecoder.decodeBitmap(source)
+                } else {
+                    MediaStore.Images.Media.getBitmap(this.contentResolver, photoUri)
+                }
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+            return image
+        }
 
-            binding.imageEditLayout.addView(e)
-            binding.imageEditLayout.addView(d) // 된다. layout으로 가져오면 그 아래것도 가져와진다.
-            *
-            *
-            if(linear_array.isNotEmpty()){//removeAt로 지우면 자동으로 위치가 줄어든다.
-                for(i in 0 until linear_array.size){
-                    Log.d("어레이", "$i,는 ${linear_array[i].toString()}")
-                    if(i == linear_array.size - 1) {
-                        Log.d("어레이", "사이즈는 ${linear_array.size.toString()}")
-                        Log.d("어레이", linear_array[0].toString())
-                    }
+            if(uri_array.isNotEmpty()){
+                for(i in uri_array.indices){
+                    Log.d("uri확인", uri_array[i])
                 }
             }
-            *
-            *
-            linear_list = linear_array.toList()
-            frame_list = frame_array.toList()
-* */
+            var ee = loadBitmapFromMediaStoreBy(Uri.parse(uri_array[0]))
 
+            binding.photo.setImageBitmap(ee)
+
+ */
 
 class Roommodel:ViewModel(){
     private val edittitle = MutableLiveData<String>()
@@ -122,6 +123,10 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
 
     lateinit var binding:ActivityContentCreateBinding
 
+    private var uri_array:ArrayList<String> = arrayListOf() // Uri주소를 uri.parse 통해 스트링으로 받아와 roop 전달.
+
+
+
     private var image_array:ArrayList<ImageView?> = arrayListOf() //이미지 저장용 리스트
     private var button_array:ArrayList<ImageButton?> = arrayListOf()
     private var Edit_array:ArrayList<EditText?> = arrayListOf()
@@ -140,15 +145,12 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
 
     private var remove_btn_id = -1
 
-    private var byteimage_array:ArrayList<Byte?> = arrayListOf()
-
     val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd")
     val now = LocalDateTime.now().format(dateformat).toLong() //현재 시간.
 
     var titletext = "" //Dao에 넣는용도의 제목(observe 받아와서 넣어짐)
     var contenttext = "" // Dao에 넣는용도의 내용(observe 받아와서 넣어짐)
 
-    var ff = -1
     companion object{
         lateinit var viewModel:Roommodel
         lateinit var db:RoomdiaryDB
@@ -250,12 +252,14 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         this.layoutParams = frame_params
                     }
 
-                    val dataUri = data?.data
+                    val dataUri = data?.data //픽쳐 uri는 이거로. String list로 보내면 될듯.
                     val imageview = ImageView(this).apply {
                         var params = FrameLayout.LayoutParams(metrics.widthPixels * 5/10,  FrameLayout.LayoutParams.WRAP_CONTENT) //x 값은 디바이스 크기의 %, y는 x와 어울리는 크기만큼.
                         params.gravity = Gravity.LEFT
                         this.layoutParams = params// this.layoutParams = ViewGroup.LayoutParams(x, y) 이거로 된다.
                     }
+
+                    uri_array.add(dataUri.toString()) // room에 데이터 추가하기 위해서 이미지 uri를 스트링형식 배열에 넣는다.
                     Glide.with(this).load(dataUri).into(imageview)
 
                     val remove_btn = ImageButton(this).apply {
@@ -277,11 +281,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                             image_array.removeAt(this.id)
                             Edit_array.removeAt(this.id)
 
-                            Log.d("확인2", contenttext)
-                            Log.d("확인1", Edit_array[this.id]?.text.toString())
                             binding.contentText.setText(binding.contentText.text.toString() + Edit_array[this.id]?.text.toString())
-
-                            Log.d("확인3", contenttext)
                         }
                     }
 
@@ -304,8 +304,8 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         val bitmap: Bitmap = MediaStore.Images.Media.getBitmap( //사진 비트맵 형식으로 가져옴.
                                 this.contentResolver,
                                 dataUri
-                        )
-                        imageview.setImageBitmap(bitmap)
+                        ) //냐냐냐냐냐
+                        imageview.setImageBitmap(bitmap) //
 
                         create_frame.addView(imageview)
                         create_frame.addView(remove_btn)
@@ -345,6 +345,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         params.gravity = Gravity.LEFT
                         this.layoutParams = params// this.layoutParams = ViewGroup.LayoutParams(x, y) 이거로 된다.
                     }
+
                     Glide.with(this).load(Uri.fromFile(file)).into(imageview) //uri는 file 가져온 것으로 함. 사용이유는 갤럭시에서 가끔 사진 회전된 상태로 나타남을 방지하기 위해.
 
                     val remove_btn = ImageButton(this).apply {
@@ -417,6 +418,8 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
             }
         }
     }
+//content://com.android.providers.media.documents/document/image%3A6851
+    // /storage/emulated/0/Pictures/20210419_143335.jpeg
 
     private fun savePhoto(bitmap: Bitmap) {
         val folderPath = Environment.getExternalStorageDirectory().absolutePath + "/Pictures/" //저장공간 경로 설정.
@@ -429,6 +432,7 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
 
         val out = FileOutputStream(folderPath + fileName) //출력 형태는 경로 + 이름
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out) //JPEG 형태로 퀄리티 원본으로 저장.
+        Log.d("PHOTO_PATH", "아웃은 ${bitmap.toString()}")
         Toast.makeText(this, "사진이 저장되었습니다.", Toast.LENGTH_SHORT).show()
     }
 
@@ -494,16 +498,8 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                 permission_positive_btn.setOnClickListener {
 
                     CoroutineScope(Dispatchers.IO).launch {
-                        if(image_array.isNotEmpty()) {
-                            for (i in image_array.indices) {
-                                var a: BitmapDrawable = (image_array[i]?.drawable as BitmapDrawable)
-                                var b: Bitmap = a.bitmap
-                                var ByteOutputstream = ByteArrayOutputStream()
-                                b.compress(Bitmap.CompressFormat.PNG, 100, ByteOutputstream)
-                                byteimage_array[i] = ByteOutputstream.toByteArray()
-                            }
-                        }
-                        db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext))
+                        val urilist = uri_array.toList()
+                        db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, urilist))
                     }
                     startActivity(Intent(this, MainActivity::class.java))
                 }
@@ -556,7 +552,8 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                 Log.d("TAG", "글자 바뀜")
 
                 CoroutineScope(Dispatchers.IO).launch {
-                    db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext))
+                    val urilist = uri_array.toList()
+                    db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, urilist))
                     Log.d(
                         "TAG날짜",
                         "${db.RoomDao().getAll()}"
@@ -591,11 +588,13 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                     null
                 }
                 photofile?.also{
-                    val photoURI:Uri = FileProvider.getUriForFile(
+                    val photoURI = FileProvider.getUriForFile(
                             this,
                             "com.diary.diary.fileprovider",
                             it
                     )
+                    uri_array.add(photoURI.toString())  // room에 데이터 추가하기 위해서 이미지 uri를 스트링형식 배열에 넣는다.
+
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
                     startActivityForResult(takePictureIntent, CAMERA_REQUEST) //tagpictureIntent를 한 상태로, REQUEST코드 가져감.
                 }
@@ -649,6 +648,11 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
 
 
         binding.notouch.setOnClickListener { //터치 활성화 이벤트
+            /*
+            * 2021-04-19 15:23:47.685 11773-11773/com.diary.diary D/uri확인: content://com.android.providers.media.documents/document/image%3A6858
+2021-04-19 15:23:47.685 11773-11773/com.diary.diary D/uri확인: content://com.diary.diary.fileprovider/my_images/JPEG_20210419__152336_750107770699042526.jpg
+2021-04-19 15:23:47.685 11773-11773/com.diary.diary D/uri확인: content://com.android.providers.media.documents/document/image%3A6658
+2021-04-19 15:23:47.685 11773-11773/com.diary.diary D/uri확인: content://com.android.providers.media.documents/document/image%3A6853*/
             notouch_change *= -1
             if (notouch_change == -1) {
                 binding.contentTitle.isEnabled = false
@@ -1012,7 +1016,8 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         .setPositiveButton("저장") { dialog, which ->
                             CoroutineScope(Dispatchers.IO).launch {
 
-                                db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext))
+                                val urilist = uri_array.toList()
+                                db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, urilist))
 
                                 Log.d("확인", "insert 된다.")
                             }
