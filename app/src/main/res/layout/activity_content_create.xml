@@ -150,14 +150,15 @@
                     android:id="@+id/content_scroll"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    app:layout_constraintTop_toBottomOf="@id/content_view"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginRight="10dp"
+                    android:layout_marginBottom="5dp"
                     app:layout_constraintBottom_toTopOf="@id/content_view2"
+                    app:layout_constraintHorizontal_bias="0.0"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginBottom="5dp"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="10dp">
+                    app:layout_constraintTop_toBottomOf="@id/content_view">
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"
@@ -165,34 +166,33 @@
 
                         <EditText
                             android:id="@+id/content_text"
-                            android:textSize="16sp"
-                            android:text="@={creatediary.content}"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:layout_constraintRight_toRightOf="parent"
-                            app:layout_constraintLeft_toLeftOf="parent"
-
-                            android:hint="내용을 입력해주세요."
-
-                            android:background="@android:color/transparent"
-                            android:fontFamily="serif"
                             android:layout_marginBottom="10dp"
-                            />
+                            android:background="@android:color/transparent"
+
+                            android:fontFamily="serif"
+                            android:hint="내용을 입력해주세요."
+                            android:text="@={creatediary.content}"
+
+                            android:textSize="16sp"
+
+                            app:layout_constraintLeft_toLeftOf="parent"
+                            app:layout_constraintRight_toRightOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
 
                         <LinearLayout
                             android:id="@+id/image_edit_layout"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            app:layout_constraintTop_toBottomOf="@id/content_text"
+                            android:orientation="vertical"
                             app:layout_constraintLeft_toLeftOf="parent"
-                            android:orientation="vertical">
+                            app:layout_constraintTop_toBottomOf="@id/content_text">
 
                             <ImageView
                                 android:id="@+id/photo"
                                 android:layout_width="match_parent"
-                                android:layout_height="200dp"/>
+                                android:layout_height="100dp"/>
 
 
                         </LinearLayout>
@@ -202,19 +202,19 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
 
-                            app:flexWrap="wrap"
-                            app:alignItems="stretch"
+                            android:layout_marginTop="5dp"
                             app:alignContent="stretch"
+                            app:alignItems="stretch"
                             app:flexDirection="row"
 
-                            app:layout_constraintTop_toBottomOf="@id/image_edit_layout"
+                            app:flexWrap="wrap"
                             app:layout_constraintLeft_toLeftOf="parent"
-                            android:layout_marginTop="5dp">
+                            app:layout_constraintTop_toBottomOf="@id/image_edit_layout">
 
-                                <androidx.recyclerview.widget.RecyclerView
-                                    android:id="@+id/Flex_recycler"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"/>
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/Flex_recycler"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
 
                         </com.google.android.flexbox.FlexboxLayout>
 

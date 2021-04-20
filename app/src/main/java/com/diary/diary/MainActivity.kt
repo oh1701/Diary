@@ -1,9 +1,12 @@
 package com.diary.diary
 
+import android.content.Context
 import android.content.Intent
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
+import android.graphics.Matrix
+import android.media.ExifInterface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -14,6 +17,7 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.room.*
+import com.bumptech.glide.Glide
 import com.diary.diary.databinding.ActivityMainBinding
 import com.diary.recycler.Recycler_main
 import com.diary.recycler.list
@@ -23,6 +27,8 @@ import java.io.IOException
 
 
 // 리무브 버튼은 0번째 리스트부터 하나씩 넣어가기(바이트형 이미지와 스트링형 edit도)
+// 리사이클러뷰 모두 불러와지면 화면 띄우게 만들기.
+
 @Entity
 data class Diaryroom(//id, 날짜, 제목, 내용, 태그, layout 두개.
         @PrimaryKey(autoGenerate = true) val id: Int,
@@ -44,13 +50,13 @@ class Imagelist {
 @Dao
 interface DiaryDao{
     @Insert
-    fun insertDao(vararg diaryroom: Diaryroom)
+    suspend fun insertDao(vararg diaryroom: Diaryroom)
 
     @Query("DELETE FROM Diaryroom")
-    fun DeleteDao()
+    suspend fun DeleteDao()
 
     @Query("SELECT * FROM Diaryroom")
-    fun getAll():List<Diaryroom>
+    suspend fun getAll():List<Diaryroom>
 }
 
 
@@ -61,14 +67,10 @@ abstract class RoomdiaryDB:RoomDatabase(){
 }
 
 class MainActivity : AppCompatActivity() {
-
     lateinit var binding: ActivityMainBinding
     var diarylist: ArrayList<list> = arrayListOf() //이거 이미지도 추가하기.
     lateinit var db: RoomdiaryDB
-
-    companion object {
-        val PICTURE_REQUEST = 2000
-    }
+    lateinit var room:List<Diaryroom>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,43 +78,67 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         Log.d("TAG", "get 된다.")
 
+        binding.mainRecylerview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+
         db = Room.databaseBuilder(
                 applicationContext, RoomdiaryDB::class.java, "RoomDB"
         )
                 .build()
 
-        //db.RoomDao().DeleteDao()
-        CoroutineScope(Dispatchers.IO).launch { // Room DB는 mainthread에서 못가져온다.
-            val a = db.RoomDao().getAll().size - 1
-
-            if (db.RoomDao().getAll().isNotEmpty()) {
-                Log.d("TAG디비", db.RoomDao().getAll().size.toString())
-                for (i in db.RoomDao().getAll().size - 1 downTo 0) {
-                    val room: Diaryroom = db.RoomDao().getAll()[i]
-                    val id: Int = room.id
-                    val date: Long = room.date
-                    val title: String = room.title
-                    val content: String = room.content
-                    val uri = room.uri_string_array
-
-                    diarylist.add(list(id, date, title, content, uri))
+        fun loadBitmapFromMediaStoreBy(photoUri: Uri?): Bitmap? { //이미지 uri 비트맵형식으로 변경하기
+            var image: Bitmap? = null
+            try {
+                image = if (Build.VERSION.SDK_INT > 27) { // Api 버전별 이미지 처리
+                    val source: ImageDecoder.Source =
+                            ImageDecoder.createSource(this.contentResolver, photoUri!!)
+                    ImageDecoder.decodeBitmap(source)
+                } else {
+                    MediaStore.Images.Media.getBitmap(this.contentResolver, photoUri!!)
                 }
+            } catch (e: IOException) {
+                e.printStackTrace()
             }
+            return image
         }
 
-        Log.d("TAG", "확인")
+        //db.RoomDao().DeleteDao()
 
-        binding.mainRecylerview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        binding.mainRecylerview.setHasFixedSize(true)
-        binding.mainRecylerview.adapter = Recycler_main(diarylist)
+        CoroutineScope(Dispatchers.IO).launch { // Room DB는 mainthread에서 못가져온다.
+            CoroutineScope(Dispatchers.IO).launch {
+                if (db.RoomDao().getAll().isNotEmpty()) {
+                    room = db.RoomDao().getAll()
+
+                    for (i in room.size - 1 downTo 0) {
+                        val id: Int = room[i].id
+                        val date: Long = room[i].date
+                        val title: String = room[i].title
+                        val content: String = room[i].content
+                        val uri = room[i].uri_string_array
+
+                        val uriBitmap: ArrayList<Bitmap?> = arrayListOf()
+                        if (uri.isNotEmpty()) {
+                            for (i in uri.indices) {
+                                uriBitmap.add(loadBitmapFromMediaStoreBy(Uri.parse(uri[i]))) //받아온 uri를 bitmap형식으로 ArrayList형식에 추가.
+                                Log.d("확인이여", loadBitmapFromMediaStoreBy(Uri.parse(uri[i])).toString())
+                            }
+                        }
+                        diarylist.add(list(id, date, title, content, uriBitmap, uri))
+                    }
+                }
+            }.join()
 
 
-
-        Log.d("TAG", "밖임")
+            CoroutineScope(Dispatchers.Main).launch { //Ui 관련이니 Dispachers.main 사용.
+                binding.mainRecylerview.setHasFixedSize(true)
+                binding.mainRecylerview.adapter = Recycler_main(diarylist)
+            }
+        }
 
         binding.allDiary.setOnClickListener {
             var intent = Intent(this, Content_create::class.java)
             startActivity(intent)
         }
     }
+
+
 }
