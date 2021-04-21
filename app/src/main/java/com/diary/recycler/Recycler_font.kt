@@ -10,9 +10,9 @@ import android.widget.Button
 import android.widget.EditText
 import androidx.recyclerview.widget.RecyclerView
 import com.diary.diary.R
-import com.diary.diary.rere
+import com.diary.diary.text_font
 
-class Recycler_font(val font_list:ArrayList<font_list>, editText: EditText): RecyclerView.Adapter<Recycler_font.ViewHolder>(), rere {
+class Recycler_font(val font_list:ArrayList<font_list>, editText: EditText): RecyclerView.Adapter<Recycler_font.ViewHolder>(), text_font {
     var preview = editText
     var btn: Array<Button?> = arrayOfNulls(15)
 
@@ -34,7 +34,7 @@ class Recycler_font(val font_list:ArrayList<font_list>, editText: EditText): Rec
             for(i in btn.indices) {
                 if(i == position) {
                     btn[i]?.setBackgroundResource(R.drawable.font_on) // 선택한 것은 font_on으로 바꾸기.
-                    dd(preview, holder.font_btn.typeface) //선택한 typeface로 에딧텍스트 바꾸기.
+                    inter_font_change(preview, holder.font_btn.typeface) //선택한 typeface로 에딧텍스트 바꾸기.
                 }
                 else{
                     btn[i]?.setBackgroundColor(Color.parseColor("#ECE1E1")) // 나머지는 일반 배경색으로 지정.

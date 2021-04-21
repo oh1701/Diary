@@ -57,7 +57,7 @@
                     android:id="@+id/content_date"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="03월 12일, 2021"
+                    android:text="MM월 dd일, YYYY"
                     android:textSize="16sp"
                     android:textStyle="bold"
 
@@ -188,12 +188,6 @@
                             android:orientation="vertical"
                             app:layout_constraintLeft_toLeftOf="parent"
                             app:layout_constraintTop_toBottomOf="@id/content_text">
-
-                            <ImageView
-                                android:id="@+id/photo"
-                                android:layout_width="match_parent"
-                                android:layout_height="100dp"/>
-
 
                         </LinearLayout>
 
@@ -413,7 +407,11 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-
+    <ImageView
+        android:id="@+id/match_photo"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
     </LinearLayout>
 
 </layout>

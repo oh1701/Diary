@@ -3,15 +3,14 @@ package com.diary.diary
 import android.content.Context
 import android.content.Intent
 import android.database.Cursor
-import android.graphics.Bitmap
-import android.graphics.ImageDecoder
-import android.graphics.Matrix
+import android.graphics.*
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.provider.OpenableColumns
+import android.util.Base64
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -27,20 +26,25 @@ import java.io.IOException
 
 
 // 리무브 버튼은 0번째 리스트부터 하나씩 넣어가기(바이트형 이미지와 스트링형 edit도)
-// 리사이클러뷰 모두 불러와지면 화면 띄우게 만들기.
+// uri null 허용시키기.
 
 @Entity
-data class Diaryroom(//id, 날짜, 제목, 내용, 태그, layout 두개.
+data class Diaryroom(//id, 날짜, 제목, 내용, 태그, 이미지uri, 에딧text
         @PrimaryKey(autoGenerate = true) val id: Int,
         @ColumnInfo(name = "date") val date: Long,
         @ColumnInfo(name = "title") val title: String,
         @ColumnInfo(name = "content") val content: String,
-        @ColumnInfo(name = "uri_string_array") val uri_string_array: List<String?> //스트링형으로 변환.*/
+        @ColumnInfo(name = "uri_string_array") val uri_string_array: List<String?>, //스트링형으로 변환.*/
+        @ColumnInfo(name = "edit_string_array") val edit_string_array: List<String?>,
+        @ColumnInfo(name = "edit_font") val edit_font:String,
+        @ColumnInfo(name = "edit_color") val edit_color:String,
+        @ColumnInfo(name = "edit_linespacing") val linespacing:Float,
+        @ColumnInfo(name = "edit_letterspacing") val letterspacing:Float
 )
 
 class Imagelist {
     @TypeConverter
-    fun uristringToJson(value: List<String?>) = Gson().toJson(value)
+    fun uristringToJson(value: List<String?>?) = Gson().toJson(value)
 
     @TypeConverter
     fun jsonToUriString(value: String) = Gson().fromJson(value, Array<String?>::class.java).toList()
@@ -105,6 +109,7 @@ class MainActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch { // Room DB는 mainthread에서 못가져온다.
             CoroutineScope(Dispatchers.IO).launch {
+                var d = 0
                 if (db.RoomDao().getAll().isNotEmpty()) {
                     room = db.RoomDao().getAll()
 
@@ -113,18 +118,19 @@ class MainActivity : AppCompatActivity() {
                         val date: Long = room[i].date
                         val title: String = room[i].title
                         val content: String = room[i].content
+                        val font:String = room[i].edit_font
                         val uri = room[i].uri_string_array
+                        val editstr = room[i].edit_string_array
 
-                        val uriBitmap: ArrayList<Bitmap?> = arrayListOf()
-                        if (uri.isNotEmpty()) {
-                            for (i in uri.indices) {
-                                uriBitmap.add(loadBitmapFromMediaStoreBy(Uri.parse(uri[i]))) //받아온 uri를 bitmap형식으로 ArrayList형식에 추가.
-                                Log.d("확인이여", loadBitmapFromMediaStoreBy(Uri.parse(uri[i])).toString())
-                            }
-                        }
-                        diarylist.add(list(id, date, title, content, uriBitmap, uri))
+                        if(editstr.isNotEmpty()){
+                            Log.d("확인", editstr[0].toString())
+                        } //47개 불러오는데 4초.
+                        d++
+                        diarylist.add(list(id, date, title, content, uri, font))
                     }
                 }
+
+                Log.d("확인", "모두 불러와짐, $d")
             }.join()
 
 
@@ -140,5 +146,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
+    override fun onBackPressed() {
+        super.onBackPressed()
+        //네비게이션바 열린것이 아니면 종료하도록 만들기.
+    }
 }

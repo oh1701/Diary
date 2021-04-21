@@ -46,6 +46,7 @@ import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayoutManager
 import kotlinx.coroutines.*
 import java.io.*
+import java.lang.reflect.Type
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -55,9 +56,8 @@ import java.util.*
 
 // @자동 저장, @내 폰트, @모든 사진 삭제 << 와 같은 단축키 설정. observe 통해서 edit들을 확인하고, 만약 저 글자들이 포함되는 순간, 이벤트 발생. 이후 글자 삭제.
 // 현재 observe 부문에서 단축키 만드는중. 나중에 설정에서 단축키 설정하고 room으로 가져오기. room으로 가져온 단축키는 array로 설정해서 for문 돌리고 contain으로 비교, replace로 없애기
-// 모든 종료 이벤트 시 interface의 string을 꺼짐으로 설정해주기.
-// Intent putextra 값에따라 터치 활성화, 비활성화 나누기
-// 뒤로가기 버튼 누를시 저장 안함, 취소 버튼 나누기
+// 모든 종료 이벤트 시 interface의 string을 꺼짐으로 설정해주기. <<< 안해도 되는듯
+// main에서 들어온 (레이아웃 터치해서 들어온) Intent putextra 값에따라 전체 터치 활성화, 비활성화 나누기 처음은 비활성화로 두기.
 /*
 *                   fun uri(context: Context, inImage: Bitmap): Uri {
                         var bytes = ByteArrayOutputStream();
@@ -70,7 +70,6 @@ import java.util.*
 class Roommodel:ViewModel(){
     private val edittitle = MutableLiveData<String>()
     private val editcontent = MutableLiveData<String>()
-
     var title = MutableLiveData<String>()
     var textcontent = MutableLiveData<String>()
 
@@ -81,23 +80,28 @@ class Roommodel:ViewModel(){
 
     fun onclick(){
         title.value = edittitle.value
-        textcontent.value = editcontent.value
-        Log.d("TAG", "보내진 것은 ${title.value}")
+        Log.d("옵저브온클릭", "보내진 것은 ${title.value}")
     }
 }
 
 lateinit var recy:RecyclerView
 lateinit var tag_array:ArrayList<tagline>
 
-class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // intent 통해서 전해진 데이터값으로 태그를 받는다. 태그값에 따라 room에 넣어지는 값도 달리하기.
+class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { // intent 통해서 전해진 데이터값으로 태그를 받는다. 태그값에 따라 room에 넣어지는 값도 달리하기.
 
     lateinit var binding:ActivityContentCreateBinding
 
     private var uri_array:ArrayList<String> = arrayListOf() // Uri주소를 uri.parse 통해 스트링으로 받아와 roop 전달.
 
-    private var image_array:ArrayList<ImageView?> = arrayListOf() //이미지 저장용 리스트
+    private var image_array:ArrayList<ImageView?> = arrayListOf() //이미지 저장 및 전달용 리스트
+    private var Edit_array:ArrayList<EditText?> = arrayListOf() // 내용 저장 및 전달용 리스트
+    private var edit_font = "" // 폰트 전달.
+    private var edit_color = "#000000" // 색깔 전달.
+    private var line_spacing = 1.0f // 라인간격 확인, 전달용
+    private var letter_spacing = 0.0f // 자간 확인, 전달용
+    private var text_size = 16f // 사이즈 확인, 전달용
+
     private var button_array:ArrayList<ImageButton?> = arrayListOf()
-    private var Edit_array:ArrayList<EditText?> = arrayListOf()
     private var frame_array:ArrayList<FrameLayout?> = arrayListOf()
     private var linear_array:ArrayList<LinearLayout?> = arrayListOf()
 
@@ -107,9 +111,6 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
     private var notouch_change = 1 // 터치 무효화 버튼 이벤트 감지
     private var tag_changed = 1 // 태그 버튼 클릭 이벤트 감지
     private var trash_changed = 1 // 제거용(쓰레기통) 버튼 클릭 이벤트 감지
-    private var line_spacing = 1.0f // 라인간격 확인용
-    private var letter_spacing = 0.0f // 자간 확인용
-    private var text_size = 16f
 
 
     private var remove_btn_id = -1
@@ -178,6 +179,8 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
 
         Log.d("확인", "온크리에이트")
         // 함수 불러올 공간
+        observemodel()
+        clickListener()
     }
 
     override fun onResume() {
@@ -209,15 +212,15 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                 image_array[i]?.isEnabled = false
             }
         }
-
-        observemodel()
-        clickListener()
-
     }
 
     override fun onBackPressed() {
 
-        if(titletext.isNotEmpty() || contenttext.isNotEmpty()) {
+        if(binding.matchPhoto.visibility == View.VISIBLE) {
+            binding.matchPhoto.setImageResource(0)
+            binding.matchPhoto.visibility = View.GONE
+        }
+        else if(titletext.isNotEmpty()) {
             warning_dialog("백 버튼 경고")
         }
         else{
@@ -247,6 +250,10 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         var params = FrameLayout.LayoutParams(metrics.widthPixels * 5 / 10, FrameLayout.LayoutParams.WRAP_CONTENT) //x 값은 디바이스 크기의 %, y는 x와 어울리는 크기만큼.
                         params.gravity = Gravity.LEFT
                         this.layoutParams = params// this.layoutParams = ViewGroup.LayoutParams(x, y) 이거로 된다.
+                        this.setOnClickListener {
+                            binding.matchPhoto.setImageDrawable(this.drawable)
+                            binding.matchPhoto.visibility = View.VISIBLE
+                        }
                     }
 
                     Glide.with(this).load(dataUri).into(imageview)
@@ -261,21 +268,26 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         this.visibility = View.GONE
 
                         this.setOnClickListener {
+                            for(i in 0 until button_array.size){ // 버튼 어레이 비교
+                                if(this.id == button_array[i]?.id){ // 아이디와 버튼 어레이 아이디와 비교해서 일치시,
+                                    if(i > 0){ //해당 순서 모든 어레이 업데이트 및 삭제
+                                        Edit_array[i - 1]!!.setText(Edit_array[i - 1]?.text.toString() + Edit_array[i]?.text.toString())
+                                    }
+                                    else {
+                                        binding.contentText.setText(binding.contentText.text.toString() + Edit_array[i]?.text.toString())
+                                    }
+                                    binding.imageEditLayout.removeView(frame_array[i])
+                                    binding.imageEditLayout.removeView(linear_array[i])
 
-                            if(this.id > 0){
-                                Edit_array[this.id - 1]!!.setText(Edit_array[this.id - 1]?.text.toString() + Edit_array[this.id]?.text.toString())
+                                    linear_array.removeAt(i)
+                                    frame_array.removeAt(i)
+                                    button_array.removeAt(i)
+
+                                    image_array.removeAt(i)
+                                    Edit_array.removeAt(i)
+                                    break // break로 반복 멈춰서 버튼 누를경우 for문 재실행하게끔 만든다.
+                                }
                             }
-                            else {
-                                binding.contentText.setText(binding.contentText.text.toString() + Edit_array[this.id]?.text.toString())
-                            }
-                            binding.imageEditLayout.removeView(frame_array[this.id])
-                            binding.imageEditLayout.removeView(linear_array[this.id])
-
-                            linear_array.removeAt(this.id)
-                            frame_array.removeAt(this.id)
-
-                            image_array.removeAt(this.id)
-                            Edit_array.removeAt(this.id)
                         }
                     }
 
@@ -301,10 +313,10 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
 
                         fun saveBitmapToJpeg(bitmap: Bitmap) {
                             val time:String = (SimpleDateFormat("yyyyMMdd__HHmmss").format(Date())) + ".jpg" //사진 구별을 위한 이름 설정
-                            var tempFile: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)  //사진 구별을 위한 이름 설정
-
+                            //var tempFile: File? = File(cacheDir, "imgName")  //사진 구별을 위한 이름 설정
+                            //var path = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
                             try {
-                                pathfile = File.createTempFile("JPEG_${time}_", ".jpg", tempFile).apply {
+                                pathfile = File.createTempFile("JPEG_${time}_", ".jpg", filesDir).apply { // 경로가 데이터부분에 들어가야하는데 database 설정해야하나.
                                     picturepath = this.absolutePath  //이미지 경로 넣어주기.
                                 }.also{
                                     val photoURI = FileProvider.getUriForFile(
@@ -312,17 +324,25 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                                             "com.diary.diary.fileprovider",
                                             it
                                     )
-                                    uri_array.add(photoURI.toString())
-
+                                }
+                                val folder = File(picturepath)
+                                if(!folder.isDirectory){ // 디렉토리 폴더가 없을시.
+                                    folder.mkdirs() // make directory 줄임말로 해당 경로에 폴더 자동으로 새로 만들어줌.
                                 }
 
                                 var out: FileOutputStream = FileOutputStream(pathfile)
                                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+                                uri_array.add(Uri.fromFile(pathfile).toString())
+                                Log.d("경로", Uri.fromFile(pathfile).toString())
                                 out.close()
-
+                                //2021-04-21 20:39:05.947 17313-17313/com.diary.diary D/경로: /data/user/0/com.diary.diary/files/JPEG_20210421__203905_3832043215732287296.jpg
+                                //2021-04-21 20:39:05.947 17313-17313/com.diary.diary D/경로: file:///data/user/0/com.diary.diary/files/JPEG_20210421__203905_3832043215732287296.jpg
+                                //2021-04-21 20:45:52.285 21208-21208/com.diary.diary D/경로: file:///data/user/0/com.diary.diary/files/JPEG_20210421__204552.jpg_1519466465707732116.jpg
+                                //2021-04-21 20:46:20.455 21208-21208/com.diary.diary D/경로: file:///data/user/0/com.diary.diary/files/JPEG_20210421__204620.jpg_8654069385143795159.jpg
                                 Toast.makeText(this, "파일 저장 성고오옹", Toast.LENGTH_SHORT).show()
                             } catch (e: Exception) {
                                 Toast.makeText(this, "실패애", Toast.LENGTH_SHORT).show()
+                                Log.d("오류", e.message.toString())
                             }
                         }
 
@@ -330,9 +350,9 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                             var instream: InputStream? = contentResolver.openInputStream(dataUri!!)
                             var bitmap = BitmapFactory.decodeStream(instream)
                             imageview.setImageBitmap(bitmap)//이미지넣기
+                            instream?.close()
                             loadBitmapFromMediaStoreBy(dataUri)?.let { saveBitmapToJpeg(it) } // 이미지 uri를 가져가서 다른 경로에 복사 저장한다.
                         }
-
 
                         uri()
                         Log.d("확인유유", Uri.parse(picturepath).toString())
@@ -381,6 +401,10 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         var params = FrameLayout.LayoutParams(metrics.widthPixels * 5 / 10, FrameLayout.LayoutParams.WRAP_CONTENT) //x 값은 디바이스 크기의 %, y는 x와 어울리는 크기만큼.
                         params.gravity = Gravity.LEFT
                         this.layoutParams = params// this.layoutParams = ViewGroup.LayoutParams(x, y) 이거로 된다.
+                        this.setOnClickListener {
+                            binding.matchPhoto.setImageDrawable(this.drawable)
+                            binding.matchPhoto.visibility = View.VISIBLE
+                        }
                     }
 
                     Glide.with(this).load(Uri.fromFile(file)).into(imageview) //uri는 file 가져온 것으로 함. 사용이유는 갤럭시에서 가끔 사진 회전된 상태로 나타남을 방지하기 위해.
@@ -394,17 +418,27 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                         this.id = remove_btn_id //이 id값을 통해서 removebtn 클릭시 저장되어 있는 id값으로 arraylist 삭제함.
                         this.visibility = View.GONE
 
-                        this.setOnClickListener { // 버튼을 클릭하면 포지션에 맞는 layout들을 삭제시킴.
-                            binding.imageEditLayout.removeView(frame_array[this.id])
-                            binding.imageEditLayout.removeView(linear_array[this.id])
+                        this.setOnClickListener { // 버튼을 클릭하면 그에 맞는 layout들을 삭제시킴.
+                            for(i in 0 until button_array.size){ // 버튼 어레이 비교
+                                if(this.id == button_array[i]?.id){ // 아이디와 버튼 어레이 아이디와 비교해서 일치시,
+                                    if(i > 0){ //해당 순서 모든 어레이 업데이트 및 삭제
+                                        Edit_array[i - 1]!!.setText(Edit_array[i - 1]?.text.toString() + Edit_array[i]?.text.toString()) //입력한 문자열은 그 전의 위치로 이동.
+                                    }
+                                    else {
+                                        binding.contentText.setText(binding.contentText.text.toString() + Edit_array[i]?.text.toString()) // 만약 마지막 남은 하위 Edit일 경우 본문에 적용.
+                                    }
+                                    binding.imageEditLayout.removeView(frame_array[i])
+                                    binding.imageEditLayout.removeView(linear_array[i])
 
-                            linear_array.removeAt(this.id)
-                            frame_array.removeAt(this.id)
+                                    linear_array.removeAt(i)
+                                    frame_array.removeAt(i)
+                                    button_array.removeAt(i)
 
-                            image_array.removeAt(this.id)
-                            Edit_array.removeAt(this.id)
-
-                            binding.contentText.setText(binding.contentText.text.toString() + Edit_array[this.id]?.text.toString())
+                                    image_array.removeAt(i)
+                                    Edit_array.removeAt(i)
+                                    break // break로 반복 멈춰서 버튼 누를경우 for문 재실행하게끔 만든다.
+                                }
+                            }
                         }
                     }
 
@@ -457,14 +491,14 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
 //content://com.android.providers.media.documents/document/image%3A6851
     // /storage/emulated/0/Pictures/20210419_143335.jpeg
 
-    private fun savePhoto(bitmap: Bitmap) {
+    private fun savePhoto(bitmap: Bitmap) { //개별적으로 사용자를 위해 사진 저장하는 함수.
         val folderPath = Environment.getExternalStorageDirectory().absolutePath + "/Pictures/" //저장공간 경로 설정.
         val time:String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
         val fileName = "${time}.jpeg"
-        /*val folder = File(folderPath)
+        val folder = File(folderPath)
         if(!folder.isDirectory){ // 디렉토리 폴더가 없을시.
             folder.mkdirs() // make directory 줄임말로 해당 경로에 폴더 자동으로 새로 만들어줌.
-        }*/
+        }
 
         val out = FileOutputStream(folderPath + fileName) //출력 형태는 경로 + 이름
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out) //JPEG 형태로 퀄리티 원본으로 저장.
@@ -528,13 +562,27 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
             "백 버튼 경고" -> {
                 text.text = "현재 기록되어 있는 내용이 존재합니다. 저장하시겠습니까?"
                 permission_positive_btn.text = "저장"
-                permission_negative_btn.text = "저장 안함"
+                permission_negative_btn.text = "삭제"
 
                 permission_positive_btn.setOnClickListener {
 
+                    var Edit_strarray: ArrayList<String?> = arrayListOf()
+                    if (Edit_array.isNotEmpty()) {
+                        for (i in Edit_array.indices) {
+                            Edit_strarray.add(Edit_array[i]!!.text.toString())
+                        }
+                    }
+
                     CoroutineScope(Dispatchers.IO).launch {
                         val urilist = uri_array.toList()
-                        db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, urilist))
+                        val editlist = Edit_strarray.toList()
+                        edit_font = inter_roomdata_fontToString(binding.contentText.typeface, context)
+
+                        if (color_array.isNotEmpty()) {
+                            if (color_array[1] != null)
+                                edit_color = color_array[1]!!
+                        }
+                        db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, urilist, editlist, edit_font, edit_color, line_spacing, letter_spacing))
                     }
                     startActivity(Intent(this, MainActivity::class.java))
                 }
@@ -556,6 +604,38 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
     }
 
     private fun observemodel(){
+        viewModel.Checktext().observe(this, { // 왜 두번이 되는걸까
+            Log.d("TAG", "값은 ${viewModel.Checktext().value}")
+
+            if (viewModel.Checktext().value != null) {
+                Log.d("TAG", "글자 바뀜")
+
+                var Edit_strarray:ArrayList<String?> = arrayListOf()
+                if(Edit_array.isNotEmpty()){
+                    for(i in Edit_array.indices){
+                        Edit_strarray.add(Edit_array[i]!!.text.toString())
+                    }
+                }
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    val urilist = uri_array.toList()
+                    val editlist = Edit_strarray.toList()
+                    edit_font = inter_roomdata_fontToString(binding.contentText.typeface, context)
+                    if (color_array.isNotEmpty()) {
+                        if (color_array[1] != null)
+                            edit_color = color_array[1]!!
+                    }
+                    db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, urilist, editlist, edit_font, edit_color, line_spacing, letter_spacing))
+                    Log.d(
+                            "옵저브코루틴",
+                            "${db.RoomDao().getAll()}"
+                    )  //비동기처리로 Room에 데이터 처리. 만약 now가 똑같을 시 id가 작은것이 아래 리사이클러뷰 출력하게 만들기.
+                }
+            } else {
+                Toast.makeText(this, "제목을 입력해주세요.", Toast.LENGTH_SHORT).show()
+            }
+        })
+
         viewModel.getEdi().observe(this, {
             titletext = it
         })
@@ -566,9 +646,9 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
 
                 var a = it.replace("@내 폰트@", "") //적용된다.
                 Toast.makeText(this, "저장한 폰트가 불러와졌습니다.", Toast.LENGTH_SHORT).show()
-
+                
                 binding.contentText.typeface = resources.getFont(R.font.bazzi)
-                binding.contentText.setText(a) //binding.contenttext 는 getcontent와 연결되어있습니다.
+                binding.contentText.setText(a) //binding.contenttext 는 getcontent와 연결되어있음.
 
             } else if (it.contains("@현재 날짜@")) { //만들자
             } else if (it.contains("@현재 시각@")) {
@@ -577,29 +657,6 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
 
             contenttext = it //contenttext는 Dao에 넣는용도.
         })
-
-        viewModel.Checktext().observe(this, {
-            Log.d("TAG", "값은 ${viewModel.Checktext().value}")
-
-            if (viewModel.Checktext().value != null) {
-                Log.d("TAG", "글자 바뀜")
-
-                CoroutineScope(Dispatchers.IO).launch {
-                    val urilist = uri_array.toList()
-                    db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, urilist))
-                    Log.d(
-                            "TAG날짜",
-                            "${db.RoomDao().getAll()}"
-                    )  //비동기처리로 Room에 데이터 처리. 만약 now가 똑같을 시 id가 작은것이 아래 리사이클러뷰 출력하게 만들기.
-                }
-
-                var intent = Intent(this, MainActivity::class.java)
-                startActivity(intent)
-            } else {
-                Toast.makeText(this, "제목을 입력해주세요.", Toast.LENGTH_SHORT).show()
-            }
-        })
-
     }
 
     private fun makeRequest(){
@@ -626,8 +683,6 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                             "com.diary.diary.fileprovider",
                             it
                     )
-                    uri_array.add(photoURI.toString())  // room에 데이터 추가하기 위해서 이미지 uri를 스트링형식 배열에 넣는다.
-
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
                     startActivityForResult(takePictureIntent, CAMERA_REQUEST)
                 }
@@ -637,10 +692,13 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
 
     private fun createImage():File{
         val time:String = SimpleDateFormat("yyyyMMdd__HHmmss").format(Date()) //파일 구분 위해 날짜설정.
-        val storageDir:File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        return File.createTempFile("JPEG_${time}_", ".jpg", storageDir).apply{
+        //val storageDir:File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        val tempFile = File.createTempFile("JPEG_${time}_", ".jpg", filesDir).apply{
             PHOTO_PATH = absolutePath //PHOTO_PATH에 사진 경로를 붙여넣는다
         }
+        uri_array.add(Uri.fromFile(tempFile).toString())
+
+        return tempFile
     }
 
     private fun clickListener() {
@@ -673,11 +731,6 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
         } //갤러리 버튼 적용 끝
 
         binding.notouch.setOnClickListener { //터치 활성화 이벤트
-            /*
-            * 2021-04-19 15:23:47.685 11773-11773/com.diary.diary D/uri확인: content://com.android.providers.media.documents/document/image%3A6858
-2021-04-19 15:23:47.685 11773-11773/com.diary.diary D/uri확인: content://com.diary.diary.fileprovider/my_images/JPEG_20210419__152336_750107770699042526.jpg
-2021-04-19 15:23:47.685 11773-11773/com.diary.diary D/uri확인: content://com.android.providers.media.documents/document/image%3A6658
-2021-04-19 15:23:47.685 11773-11773/com.diary.diary D/uri확인: content://com.android.providers.media.documents/document/image%3A6853*/
             notouch_change *= -1
             if (notouch_change == -1) {
                 binding.contentTitle.isEnabled = false
@@ -1038,11 +1091,20 @@ class Content_create : AppCompatActivity(), rere, Inter_recycler_remove { // int
                 AlertDialog.Builder(this)
                         .setTitle("내용이 존재합니다. 저장하시겠습니까?")
                         .setPositiveButton("저장") { dialog, which ->
+                            var Edit_strarray:ArrayList<String?> = arrayListOf()
+                            if(Edit_array.isNotEmpty()){
+                                for(i in Edit_array.indices){
+                                    Edit_strarray.add(Edit_array[i]!!.text.toString())
+                                }
+                            }
                             CoroutineScope(Dispatchers.IO).launch {
 
                                 val urilist = uri_array.toList()
+                                val editlist = Edit_strarray.toList()
+                                edit_font = inter_roomdata_fontToString(binding.contentText.typeface, context)
+
                                 Log.d("확인용", "리스트는 ${urilist[0].toString()}")
-                                db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, urilist))
+                                db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, urilist, editlist, edit_font, edit_color, line_spacing, letter_spacing))
 
                                 Log.d("확인", "insert 된다.")
                             }
