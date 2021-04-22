@@ -39,9 +39,9 @@ data class Diaryroom(//id, 날짜, 제목, 내용, 태그, 이미지uri, 에딧t
         @ColumnInfo(name = "edit_font") val edit_font:String,
         @ColumnInfo(name = "edit_color") val edit_color:String,
         @ColumnInfo(name = "edit_linespacing") val linespacing:Float,
-        @ColumnInfo(name = "edit_letterspacing") val letterspacing:Float
+        @ColumnInfo(name = "edit_letterspacing") val letterspacing:Float,
+        @ColumnInfo(name = "Shortcuts") val Shortcuts:List<String?>?
 )
-
 class Imagelist {
     @TypeConverter
     fun uristringToJson(value: List<String?>?) = Gson().toJson(value)
@@ -53,14 +53,17 @@ class Imagelist {
 
 @Dao
 interface DiaryDao{
-    @Insert
+    @Insert //모든 것들 추가.
     suspend fun insertDao(vararg diaryroom: Diaryroom)
 
-    @Query("DELETE FROM Diaryroom")
+    @Query("DELETE FROM Diaryroom") //삭제
     suspend fun DeleteDao()
 
     @Query("SELECT * FROM Diaryroom")
     suspend fun getAll():List<Diaryroom>
+
+    @Query("SELECT * FROM Diaryroom WHERE id = :id") //동적으로 할당시 함수 파라미터에 변수 넣고, WHERE 에 :변수 로 넣기.
+    suspend fun getlayoutid(id:Int):Diaryroom
 }
 
 
