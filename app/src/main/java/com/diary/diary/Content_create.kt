@@ -57,7 +57,9 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 
 
-// @자동 저장, @내 폰트, @모든 사진 삭제 << 와 같은 단축키 설정. observe 통해서 edit들을 확인하고, 만약 저 글자들이 포함되는 순간, 이벤트 발생. 이후 글자 삭제.
+// @내 폰트@, @모든 사진 삭제@, @시간@, @날짜@, @기념일@, @ << 와 같은 단축키 설정. observe 통해서 edit들을 확인하고, 만약 저 글자들이 포함되는 순간, 이벤트 발생. 이후 글자 삭제.
+// 위의 것들은 기본 단축키. 사용자가 설정하는 것에 따라 추가 단축키를 만들고 그것을 실행하면 사용자가 설정했던 문자가 나오도록 설정하기.
+
 // 현재 observe 부문에서 단축키 만드는중. 나중에 설정에서 단축키 설정하고 room으로 가져오기. room으로 가져온 단축키는 array로 설정해서 for문 돌리고 contain으로 비교, replace로 없애기
 // 모든 종료 이벤트 시 interface의 string을 꺼짐으로 설정해주기. <<< 안해도 되는듯
 // main에서 들어온 (레이아웃 터치해서 들어온) Intent putextra 값에따라 전체 터치 활성화, 비활성화 나누기 처음은 비활성화로 두기.
@@ -113,12 +115,26 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
     lateinit var intent_room: Diaryroom // 리사이클러뷰 클릭 후 intent 통해서 넘어올시 가져올 데이터
     private var remove_btn_id = -1
 
-    val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd")
-    val now = LocalDateTime.now().format(dateformat).toLong() //현재 시간.
 
     var titletext = "" //Dao에 넣는용도의 제목(observe 받아와서 넣어짐)
     var contenttext = "" // Dao에 넣는용도의 내용(observe 받아와서 넣어짐)
     lateinit var context:Context
+
+    val cal = Calendar.getInstance()
+    val year = cal.get(Calendar.YEAR)
+    val month = cal.get(Calendar.MONTH) + 1
+    val day = cal.get(Calendar.DATE)
+    val dayOfWeek = cal.get(Calendar.DAY_OF_WEEK)
+
+    val hour = cal.get(Calendar.HOUR_OF_DAY)
+    val minute = cal.get(Calendar.MINUTE)
+    val second = cal.get(Calendar.SECOND)
+
+    val datearray:ArrayList<Int> = arrayListOf(year, month, day, hour, minute, second)
+
+    val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd")
+    val now = LocalDateTime.now().format(dateformat)
+
     companion object{
         lateinit var viewModel:Roommodel
         lateinit var custom_viewModel:Roommodel
@@ -153,6 +169,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
         context = this
         binding = DataBindingUtil.setContentView(this, R.layout.activity_content_create)
 
+        Log.d("시간은", "$year, $month, $day, $hour, $minute, $second")
         binding.lifecycleOwner = this
         viewModel = ViewModelProvider(this).get(Roommodel::class.java)
         binding.creatediary = viewModel
@@ -204,12 +221,14 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                     setText(intent_room.title)
                     typeface = inter_roomdata_stringToFont(intent_room.edit_font, context)
                     letterSpacing = intent_room.letterspacing
+                    setTextColor(Color.parseColor(intent_room.edit_color))
                 }
                 binding.contentText.apply {
                     setText(intent_room.content)
                     typeface = inter_roomdata_stringToFont(intent_room.edit_font, context)
                     letterSpacing = intent_room.letterspacing
                     setLineSpacing(0.0f, intent_room.linespacing)
+                    setTextColor(Color.parseColor(intent_room.edit_color))
                 }
                 if(intent_room.edit_string_array.isNotEmpty()){
                     for(i in intent_room.edit_string_array.indices){ //받아온 edittext 사이즈 -1 만큼 반복해서 뷰 생성하게 만든다.
@@ -219,6 +238,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                             typeface = inter_roomdata_stringToFont(intent_room.edit_font, context)
                             letterSpacing = intent_room.letterspacing
                             setLineSpacing(0.0F, intent_room.linespacing)
+                            setTextColor(Color.parseColor(intent_room.edit_color))
                         }
                     }
                 }
@@ -569,6 +589,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
                         CoroutineScope(Dispatchers.Main).launch {
                             val intent = Intent(context, MainActivity::class.java)
+                            intent.putExtra("이동", "이동")
                             startActivity(intent)
                         }
                     }
@@ -623,6 +644,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
                     CoroutineScope(Dispatchers.Main).launch {
                         val intent = Intent(context, MainActivity::class.java)
+                        intent.putExtra("이동", "이동")
                         startActivity(intent)
                     }
                 }
@@ -1103,6 +1125,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
                                 CoroutineScope(Dispatchers.Main).launch {
                                     val intent = Intent(context, MainActivity::class.java)
+                                    intent.putExtra("이동", "이동")
                                     startActivity(intent)
                                 }
                             }

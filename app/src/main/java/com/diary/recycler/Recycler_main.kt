@@ -11,6 +11,7 @@ import android.media.ExifInterface
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -23,13 +24,11 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.diary.diary.Content_create
-import com.diary.diary.Diaryroom
-import com.diary.diary.R
-import com.diary.diary.text_font
+import com.diary.diary.*
+import com.diary.diary.Content_create.Companion.metrics
 import java.io.IOException
 
-class Recycler_main(val diary_list:ArrayList<list>) :  RecyclerView.Adapter<Recycler_main.ViewHolder>(), text_font {
+class Recycler_main(val diary_list:ArrayList<list>) :  RecyclerView.Adapter<Recycler_main.ViewHolder>(), text_font, main_recycler_view {
 
     lateinit var context: Context
 
@@ -49,12 +48,33 @@ class Recycler_main(val diary_list:ArrayList<list>) :  RecyclerView.Adapter<Recy
         holder.content.apply {
             text = diary_list[position].content
             typeface = inter_roomdata_stringToFont(diary_list[position].font, context)
+            if(diary_list[position].content.isEmpty()) {
+                visibility = View.GONE
+                Log.d("불러진 곳", "$position")
+            }
+            else{
+                visibility = View.VISIBLE
+            }
         }
 
-        holder.photo.apply {
-            if(diary_list[position].imageuri.isNotEmpty()) {
-                var bitmap = diary_list[position].imageuri[0] //0번째 사진 붙여넣기. 리사이클러뷰에서 하는게 렉 가장 안걸린다.
-                setImageURI(Uri.parse(bitmap))
+        if(diary_list[position].imageuri.isNotEmpty()) { //이미지 uri 존재할시.
+            for(i in diary_list[position].imageuri.indices){ // when과 for 사용해서 반복작업.
+                when(i) {
+                    0 -> {
+                        holder.photo = photoimageset(holder.photo, diary_list[position].imageuri[i])
+                    }
+                    1 -> {
+                        holder.photo2 =  photoimageset(holder.photo2, diary_list[position].imageuri[i])
+                    }
+                    2 -> {
+                        holder.photo3 = photoimageset(holder.photo3, diary_list[position].imageuri[i])
+                    }
+                    3 -> {
+                        holder.photo4 =  photoimageset(holder.photo4, diary_list[position].imageuri[i])
+                    }
+                    else ->  break // 설정한 이미지 갯수인 4개보다 많을시, 추가 등록하지 않고 반복 멈추기.
+
+                }
             }
         }
 
@@ -64,6 +84,8 @@ class Recycler_main(val diary_list:ArrayList<list>) :  RecyclerView.Adapter<Recy
             intent.putExtra("이동", diary_list[position].id)
             context.startActivity(intent)
         }
+
+        datecolorset(diary_list[position].date)
     }
 
     override fun getItemCount(): Int {
@@ -73,11 +95,15 @@ class Recycler_main(val diary_list:ArrayList<list>) :  RecyclerView.Adapter<Recy
     class ViewHolder(itemview: View) :RecyclerView.ViewHolder(itemview){
         val title = itemview.findViewById<TextView>(R.id.recycler_title)
         val content = itemview.findViewById<TextView>(R.id.recycler_text)
-        val photo = itemview.findViewById<ImageView>(R.id.imagephoto)
+        var photo = itemview.findViewById<ImageView>(R.id.imagephoto)
+        var photo2 = itemview.findViewById<ImageView>(R.id.imagephoto2)
+        var photo3 = itemview.findViewById<ImageView>(R.id.imagephoto3)
+        var photo4 = itemview.findViewById<ImageView>(R.id.imagephoto4)
         val layout = itemview.findViewById<ConstraintLayout>(R.id.layout_main)
+        val date_color = itemview.findViewById<ImageView>(R.id.date_color)
     }
 }
 
 
 
-class list(val id:Int, val date:Long, val title:String, val content:String, val imageuri:List<String?>, val font: String)
+class list(val id:Int, val date:String, val title:String, val content:String, val imageuri:List<String?>, val font: String)

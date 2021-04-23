@@ -31,7 +31,7 @@ import java.io.IOException
 @Entity
 data class Diaryroom(//id, 날짜, 제목, 내용, 태그, 이미지uri, 에딧text
         @PrimaryKey(autoGenerate = true) val id: Int,
-        @ColumnInfo(name = "date") val date: Long,
+        @ColumnInfo(name = "date") val date: String,
         @ColumnInfo(name = "title") val title: String,
         @ColumnInfo(name = "content") val content: String,
         @ColumnInfo(name = "uri_string_array") val uri_string_array: List<String?>, //스트링형으로 변환.*/
@@ -118,16 +118,18 @@ class MainActivity : AppCompatActivity() {
 
                     for (i in room.size - 1 downTo 0) {
                         val id: Int = room[i].id
-                        val date: Long = room[i].date
+                        val date = room[i].date
                         val title: String = room[i].title
-                        val content: String = room[i].content
+                        var content: String = room[i].content
                         val font:String = room[i].edit_font
                         val uri = room[i].uri_string_array
                         val editstr = room[i].edit_string_array
 
                         if(editstr.isNotEmpty()){
-                            Log.d("확인", editstr[0].toString())
-                        } //47개 불러오는데 4초.
+                            for(i in editstr.indices) {
+                                content += editstr[i]
+                            }
+                        }
                         d++
                         diarylist.add(list(id, date, title, content, uri, font))
                     }
@@ -150,7 +152,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        super.onBackPressed()
-        //네비게이션바 열린것이 아니면 종료하도록 만들기.
+
+        if(intent.hasExtra("이동")) // 나중에 종료 팝업 만들고, 네비게이션시 네비게이션 닫게 만들기.
+            Log.d("이동함", "이동함")
+        else {
+            super.onBackPressed()
+        }
     }
 }
