@@ -84,8 +84,6 @@ class Recycler_main(val diary_list:ArrayList<list>) :  RecyclerView.Adapter<Recy
             intent.putExtra("이동", diary_list[position].id)
             context.startActivity(intent)
         }
-
-        datecolorset(diary_list[position].date)
     }
 
     override fun getItemCount(): Int {
@@ -106,4 +104,4 @@ class Recycler_main(val diary_list:ArrayList<list>) :  RecyclerView.Adapter<Recy
 
 
 
-class list(val id:Int, val date:String, val title:String, val content:String, val imageuri:List<String?>, val font: String)
+class list(val id:Int, val title:String, val content:String, val imageuri:List<String?>, val font: String)

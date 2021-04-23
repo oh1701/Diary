@@ -99,6 +99,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
     private var letter_spacing = 0.0f // 자간 확인, 전달용
     private var text_size = 16f // 사이즈 확인, 전달용
 
+    private var Edit_strarray: ArrayList<String?> = arrayListOf()
     private var button_array:ArrayList<ImageButton?> = arrayListOf()
     private var frame_array:ArrayList<FrameLayout?> = arrayListOf()
     private var linear_array:ArrayList<LinearLayout?> = arrayListOf()
@@ -130,10 +131,6 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
     val minute = cal.get(Calendar.MINUTE)
     val second = cal.get(Calendar.SECOND)
 
-    val datearray:ArrayList<Int> = arrayListOf(year, month, day, hour, minute, second)
-
-    val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd")
-    val now = LocalDateTime.now().format(dateformat)
 
     companion object{
         lateinit var viewModel:Roommodel
@@ -169,7 +166,6 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
         context = this
         binding = DataBindingUtil.setContentView(this, R.layout.activity_content_create)
 
-        Log.d("시간은", "$year, $month, $day, $hour, $minute, $second")
         binding.lifecycleOwner = this
         viewModel = ViewModelProvider(this).get(Roommodel::class.java)
         binding.creatediary = viewModel
@@ -567,7 +563,6 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
                 permission_positive_btn.setOnClickListener {
 
-                    var Edit_strarray: ArrayList<String?> = arrayListOf()
                     if (Edit_array.isNotEmpty()) {
                         for (i in Edit_array.indices) {
                             Edit_strarray.add(Edit_array[i]!!.text.toString())
@@ -575,16 +570,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                     }
                     CoroutineScope(Dispatchers.IO).launch {
                         CoroutineScope(Dispatchers.IO).launch {
-                            val urilist = uri_array.toList()
-                            val editlist = Edit_strarray.toList()
-                            val short = shortcuts.toList()
-                            edit_font = inter_roomdata_fontToString(binding.contentText.typeface, context)
-
-                            if (color_array.isNotEmpty()) {
-                                if (color_array[1] != null)
-                                    edit_color = color_array[1]!!
-                            }
-                            db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, urilist, editlist, edit_font, edit_color, line_spacing, letter_spacing, short))
+                            insertdao()
                         }.join()
 
                         CoroutineScope(Dispatchers.Main).launch {
@@ -627,19 +613,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
                 CoroutineScope(Dispatchers.IO).launch {
                     CoroutineScope(Dispatchers.IO).launch {
-                        val urilist = uri_array.toList()
-                        val editlist = Edit_strarray.toList()
-                        val short = shortcuts.toList()
-                        edit_font = inter_roomdata_fontToString(binding.contentText.typeface, context)
-                        if (color_array.isNotEmpty()) {
-                            if (color_array[1] != null)
-                                edit_color = color_array[1]!!
-                        }
-                        db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, urilist, editlist, edit_font, edit_color, line_spacing, letter_spacing, short))
-                        Log.d(
-                                "옵저브코루틴",
-                                "${db.RoomDao().getAll()}"
-                        )  //비동기처리로 Room에 데이터 처리. 만약 now가 똑같을 시 id가 작은것이 아래 리사이클러뷰 출력하게 만들기.
+                        insertdao()
                     }.join()
 
                     CoroutineScope(Dispatchers.Main).launch {
@@ -1112,15 +1086,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                             }
                             CoroutineScope(Dispatchers.IO).launch {
                                 CoroutineScope(Dispatchers.IO).launch {
-                                    val urilist = uri_array.toList()
-                                    val editlist = Edit_strarray.toList()
-                                    val short = shortcuts.toList()
-                                    edit_font = inter_roomdata_fontToString(binding.contentText.typeface, context)
-
-                                    Log.d("확인용", "리스트는 ${urilist[0].toString()}")
-                                    db.RoomDao().insertDao(Diaryroom(0, now, titletext, contenttext, urilist, editlist, edit_font, edit_color, line_spacing, letter_spacing, short))
-
-                                    Log.d("확인", "insert 된다.")
+                                    insertdao()
                                 }.join()
 
                                 CoroutineScope(Dispatchers.Main).launch {
@@ -1140,6 +1106,38 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                 startActivity(intent)
             }
         } //x 버튼 적용 끝
+    }
+
+
+    suspend fun insertdao(){ // 반복되는 insertdao 부르기 위함.
+        val urilist = uri_array.toList()
+        val editlist = Edit_strarray.toList()
+        val short = shortcuts.toList()
+        edit_font = inter_roomdata_fontToString(binding.contentText.typeface, context)
+
+        val datearray: Long = (year.toString() + "0$month" + day.toString() +  hour.toString() + minute.toString() + second.toString()).toLong() //이거로 리사이클러뷰 비교해서 최신 날짜가 위로 오게끔 만들기.
+        Log.d("시간은", datearray.toString())
+        val date_dayofweek = "0$month" + "." + "$day" + " " + dayofweekfunction(dayOfWeek) //이거로 리사이클러뷰 날짜 속성에 넣기. 비교시 datearray의 year를 통해서 년도 구별, moth를 통해서 월 구별하기.
+        Log.d("요일은", date_dayofweek.toString())
+        if (color_array.isNotEmpty()) {
+            if (color_array[1] != null)
+                edit_color = color_array[1]!!
+        }
+        db.RoomDao().insertDao(Diaryroom(0, titletext, contenttext, urilist, editlist, edit_font, edit_color, line_spacing, letter_spacing, short))
+    }
+    
+    fun dayofweekfunction(week:Int):String{
+        var d= ""
+        when(week){
+            1 -> d ="일"
+            2 ->  d ="월"
+            3 ->  d ="화"
+            4 ->  d ="수"
+            5 ->  d ="목"
+            6 ->  d ="금"
+            7 ->  d ="토"
+        }
+        return d
     }
 }
 /*

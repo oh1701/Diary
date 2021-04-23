@@ -31,7 +31,6 @@ import java.io.IOException
 @Entity
 data class Diaryroom(//id, 날짜, 제목, 내용, 태그, 이미지uri, 에딧text
         @PrimaryKey(autoGenerate = true) val id: Int,
-        @ColumnInfo(name = "date") val date: String,
         @ColumnInfo(name = "title") val title: String,
         @ColumnInfo(name = "content") val content: String,
         @ColumnInfo(name = "uri_string_array") val uri_string_array: List<String?>, //스트링형으로 변환.*/
@@ -40,7 +39,8 @@ data class Diaryroom(//id, 날짜, 제목, 내용, 태그, 이미지uri, 에딧t
         @ColumnInfo(name = "edit_color") val edit_color:String,
         @ColumnInfo(name = "edit_linespacing") val linespacing:Float,
         @ColumnInfo(name = "edit_letterspacing") val letterspacing:Float,
-        @ColumnInfo(name = "Shortcuts") val Shortcuts:List<String?>?
+        @ColumnInfo(name = "Shortcuts") val Shortcuts:List<String?>?,
+
 )
 class Imagelist {
     @TypeConverter
@@ -118,7 +118,6 @@ class MainActivity : AppCompatActivity() {
 
                     for (i in room.size - 1 downTo 0) {
                         val id: Int = room[i].id
-                        val date = room[i].date
                         val title: String = room[i].title
                         var content: String = room[i].content
                         val font:String = room[i].edit_font
@@ -131,7 +130,7 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                         d++
-                        diarylist.add(list(id, date, title, content, uri, font))
+                        diarylist.add(list(id, title, content, uri, font))
                     }
                 }
 
