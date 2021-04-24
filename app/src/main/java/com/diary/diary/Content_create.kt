@@ -62,8 +62,6 @@ import java.util.*
 
 // 현재 observe 부문에서 단축키 만드는중. 나중에 설정에서 단축키 설정하고 room으로 가져오기. room으로 가져온 단축키는 array로 설정해서 for문 돌리고 contain으로 비교, replace로 없애기
 // 모든 종료 이벤트 시 interface의 string을 꺼짐으로 설정해주기. <<< 안해도 되는듯
-// main에서 들어온 (레이아웃 터치해서 들어온) Intent putextra 값에따라 전체 터치 활성화, 비활성화 나누기 처음은 비활성화로 두기.
-// intent 받고 종료시 insert가 아닌, update로 할 것.
 
 class Roommodel:ViewModel(){
     private val edittitle = MutableLiveData<String>()
@@ -122,6 +120,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
     lateinit var context:Context
 
     val cal = Calendar.getInstance()
+
     val year = cal.get(Calendar.YEAR)
     val month = cal.get(Calendar.MONTH) + 1
     val day = cal.get(Calendar.DATE)
@@ -134,7 +133,6 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
     companion object{
         lateinit var viewModel:Roommodel
-        lateinit var custom_viewModel:Roommodel
         lateinit var db:RoomdiaryDB
         
         var CAMERA_REQUEST = 1000 // 사진 리퀘스트 코드
@@ -210,6 +208,12 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
         CoroutineScope(Dispatchers.IO).launch {
             CoroutineScope(Dispatchers.IO).launch {
                 intent_room = db.RoomDao().getlayoutid(id)
+
+                line_spacing = intent_room.linespacing
+                letter_spacing = intent_room.letterspacing
+                text_size = intent_room.edit_size
+                edit_color = intent_room.edit_color
+                //shortcuts = intent_room.Shortcuts
             }.join()
 
             CoroutineScope(Dispatchers.Main).launch { //UI 관련은 Main에서 설정. 받아온 데이터들 넣는 작업 코루틴.
@@ -225,16 +229,21 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                     letterSpacing = intent_room.letterspacing
                     setLineSpacing(0.0f, intent_room.linespacing)
                     setTextColor(Color.parseColor(intent_room.edit_color))
+                    textSize = intent_room.edit_size
                 }
-                if(intent_room.edit_string_array.isNotEmpty()){
-                    for(i in intent_room.edit_string_array.indices){ //받아온 edittext 사이즈 -1 만큼 반복해서 뷰 생성하게 만든다.
+                if (intent_room.uri_string_array.isNotEmpty()) {
+                    for (i in intent_room.uri_string_array.indices) { //받아온 uri 사이즈 -1 만큼 반복해서 뷰 생성하게 만든다.
                         Glide.with(context).load(Uri.parse(intent_room.uri_string_array[i])).into(createView())
+                        uri_array.add(intent_room.uri_string_array[i]!!)
+
+                        Log.d("실행", "실행되었음.")
                         Edit_array[i]!!.apply {
                             setText(intent_room.edit_string_array[i])
                             typeface = inter_roomdata_stringToFont(intent_room.edit_font, context)
                             letterSpacing = intent_room.letterspacing
                             setLineSpacing(0.0F, intent_room.linespacing)
                             setTextColor(Color.parseColor(intent_room.edit_color))
+                            textSize = intent_room.edit_size
                         }
                     }
                 }
@@ -247,14 +256,12 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
         Log.d("확인", "온리즘")
         if(Edit_array.isNotEmpty()) {
-            for (i in 0 until Edit_array.size) {
-                if (binding.contentText.typeface != Edit_array[i]?.typeface) {
-                    Edit_array[i]?.typeface = binding.contentText.typeface // 현재 메인 내용의 typeface와 동일하게 설정한다.
-                    Edit_array[i]?.setTextColor(binding.contentText.textColors)
-                    Edit_array[i]?.setLineSpacing(0.0f, line_spacing)
-                    Edit_array[i]?.letterSpacing = letter_spacing
-                    Edit_array[i]?.textSize = text_size
-                }
+            for (i in Edit_array.indices) {
+                Edit_array[i]?.typeface = binding.contentText.typeface // 현재 메인 내용의 typeface와 동일하게 설정한다.
+                Edit_array[i]?.setTextColor(binding.contentText.textColors)
+                Edit_array[i]?.setLineSpacing(0.0f, line_spacing)
+                Edit_array[i]?.letterSpacing = letter_spacing
+                Edit_array[i]?.textSize = text_size
             }
         }
 
@@ -331,9 +338,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
                                 Log.d("경로", Uri.fromFile(pathfile).toString())
                                 out.close()
-                                Toast.makeText(this, "파일 저장 성고오옹", Toast.LENGTH_SHORT).show()
                             } catch (e: Exception) {
-                                Toast.makeText(this, "실패애", Toast.LENGTH_SHORT).show()
                                 Log.d("오류", e.message.toString())
                             }
                         }
@@ -413,7 +418,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
             this.gravity = left
             this.hint = "내용을 추가하세요."
             this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            var e = this
+            var edittx = this
 
             this.addTextChangedListener(object:TextWatcher{ // mvvm패턴으로 적용하고 싶은데, 동적 추가한 뷰는 mvvm 추가할 줄 몰라서 이거로 만족하자.
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -422,8 +427,8 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                     //binding.createtext.setText(s.toString())
                     if(s.toString().contains("@내 폰트@", true)){ //
-                        e.setText(s.toString().replace("@내 폰트@", ""))
-                        e.clearFocus()
+                        edittx.setText(s.toString().replace("@내 폰트@", ""))
+                        edittx.clearFocus()
                     }
                 }
 
@@ -500,7 +505,13 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
         val out = FileOutputStream(folderPath + fileName) //출력 형태는 경로 + 이름
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out) //JPEG 형태로 퀄리티 원본으로 저장.
         Log.d("PHOTO_PATH", "아웃은 ${bitmap.toString()}")
-        Toast.makeText(this, "사진이 저장되었습니다.", Toast.LENGTH_SHORT).show()
+        if(toast == null){
+            toast = Toast.makeText(this, "사진이 갤러리에 저장되었습니다.", Toast.LENGTH_SHORT)}
+        else {
+            toast!!.cancel()
+            toast =Toast.makeText(this, "사진이 갤러리에 저장되었습니다.", Toast.LENGTH_SHORT)
+        }
+        toast!!.show()
     }
 
     override fun onRequestPermissionsResult(
@@ -557,9 +568,16 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
             }
 
             "백 버튼 경고" -> {
-                text.text = "현재 기록되어 있는 내용이 존재합니다. 저장하시겠습니까?"
-                permission_positive_btn.text = "저장"
-                permission_negative_btn.text = "삭제"
+                if(intent.hasExtra("이동")) {
+                    text.text = "현재 내용으로 변경 하시겠습니까?"
+                    permission_positive_btn.text = "변경"
+                    permission_negative_btn.text = "변경 안함"
+                }
+                else {
+                    text.text = "현재 기록되어 있는 내용이 존재합니다. 저장하시겠습니까?"
+                    permission_positive_btn.text = "저장"
+                    permission_negative_btn.text = "삭제"
+                }
 
                 permission_positive_btn.setOnClickListener {
 
@@ -570,7 +588,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                     }
                     CoroutineScope(Dispatchers.IO).launch {
                         CoroutineScope(Dispatchers.IO).launch {
-                            insertdao()
+                            insert_update_dao()
                         }.join()
 
                         CoroutineScope(Dispatchers.Main).launch {
@@ -604,7 +622,6 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
             if (viewModel.Checktext().value != null) {
                 Log.d("확인", "글자 바뀜")
 
-                var Edit_strarray:ArrayList<String?> = arrayListOf()
                 if(Edit_array.isNotEmpty()){
                     for(i in Edit_array.indices){
                         Edit_strarray.add(Edit_array[i]!!.text.toString())
@@ -613,7 +630,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
                 CoroutineScope(Dispatchers.IO).launch {
                     CoroutineScope(Dispatchers.IO).launch {
-                        insertdao()
+                        insert_update_dao()
                     }.join()
 
                     CoroutineScope(Dispatchers.Main).launch {
@@ -813,6 +830,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
         } // 태그 버튼 끝
 
         binding.trash.setOnClickListener {
+
             trash_changed *= -1
             recy.adapter?.notifyDataSetChanged() // 쓰레기통 버튼 클릭시 remove 버튼 VISIBLE 상태로 만들기 위함. (업데이트)
 
@@ -1074,19 +1092,17 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
         binding.backBtn.setOnClickListener { //X버튼 누를시
             if (viewModel.getEdi().value != null || viewModel.getContent().value != null) {
-                Toast.makeText(this, "내용이 있음", Toast.LENGTH_SHORT).show()
                 AlertDialog.Builder(this)
                         .setTitle("내용이 존재합니다. 저장하시겠습니까?")
                         .setPositiveButton("저장") { dialog, which ->
-                            var Edit_strarray:ArrayList<String?> = arrayListOf()
-                            if(Edit_array.isNotEmpty()){
-                                for(i in Edit_array.indices){
+                            if (Edit_array.isNotEmpty()) {
+                                for (i in Edit_array.indices) {
                                     Edit_strarray.add(Edit_array[i]!!.text.toString())
                                 }
                             }
                             CoroutineScope(Dispatchers.IO).launch {
                                 CoroutineScope(Dispatchers.IO).launch {
-                                    insertdao()
+                                    insert_update_dao()
                                 }.join()
 
                                 CoroutineScope(Dispatchers.Main).launch {
@@ -1096,7 +1112,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                                 }
                             }
                         }
-                        .setNegativeButton("취소") { dialog, which ->
+                        .setNegativeButton("삭제") { dialog, which ->
                             finish()
                         }
                         .show()
@@ -1109,21 +1125,49 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
     }
 
 
-    suspend fun insertdao(){ // 반복되는 insertdao 부르기 위함.
+    suspend fun insert_update_dao(){ // 반복되는 insertdao 부르기 위함.
+        var month_string = month.toString()
+        var day_string = day.toString()
+        var hour_string = hour.toString()
+        var minute_string = minute.toString()
+        var second_string = second.toString()
+
+        if(month < 10)
+            month_string = "0$month"
+        if(day < 10)
+            day_string = "0$day"
+        if(hour < 10)
+            hour_string = "0$hour"
+        if(minute < 10)
+             minute_string = "0$minute"
+        if (second < 10)
+            second_string = "0$second"
+
+        Log.d("시간은은은", "월$month_string, 일$day_string, 시$hour_string, 분$minute_string, 초$second_string")
         val urilist = uri_array.toList()
         val editlist = Edit_strarray.toList()
         val short = shortcuts.toList()
         edit_font = inter_roomdata_fontToString(binding.contentText.typeface, context)
 
-        val datearray: Long = (year.toString() + "0$month" + day.toString() +  hour.toString() + minute.toString() + second.toString()).toLong() //이거로 리사이클러뷰 비교해서 최신 날짜가 위로 오게끔 만들기.
-        Log.d("시간은", datearray.toString())
-        val date_dayofweek = "0$month" + "." + "$day" + " " + dayofweekfunction(dayOfWeek) //이거로 리사이클러뷰 날짜 속성에 넣기. 비교시 datearray의 year를 통해서 년도 구별, moth를 통해서 월 구별하기.
-        Log.d("요일은", date_dayofweek.toString())
+        val dateLong: Long = (year.toString() + month_string + day_string + hour_string + minute_string + second_string).toLong() //이거로 리사이클러뷰 비교해서 최신 날짜가 위로 오게끔 만들기.
+        Log.d("시간은", dateLong.toString())
+        val date_daytofweek = "$month_string.$day_string " //이거로 리사이클러뷰 날짜 속성에 넣기. 비교시 datearray의 year를 통해서 년도 구별, moth를 통해서 월 구별하기.
+        val daytoweek = dayofweekfunction(dayOfWeek)
+        Log.d("요일은", date_daytofweek.toString())
+
         if (color_array.isNotEmpty()) {
             if (color_array[1] != null)
                 edit_color = color_array[1]!!
         }
-        db.RoomDao().insertDao(Diaryroom(0, titletext, contenttext, urilist, editlist, edit_font, edit_color, line_spacing, letter_spacing, short))
+
+        if(intent.hasExtra("이동")) {
+            db.RoomDao().updateDao(Diaryroom(intent_room.id, titletext, contenttext, urilist,editlist, text_size, edit_font, edit_color, line_spacing, letter_spacing, short, dateLong, date_daytofweek, daytoweek))
+            Log.d("이동실행","이동실행")
+        }
+        else {
+            db.RoomDao().insertDao(Diaryroom(0, titletext, contenttext, urilist, editlist, text_size, edit_font, edit_color, line_spacing, letter_spacing, short, dateLong, date_daytofweek, daytoweek))
+            Log.d("이동미실행","이동미실행")
+        }
     }
     
     fun dayofweekfunction(week:Int):String{

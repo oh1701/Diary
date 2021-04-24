@@ -1,32 +1,27 @@
 package com.diary.diary
 
-import android.content.Context
 import android.content.Intent
-import android.database.Cursor
 import android.graphics.*
-import android.media.ExifInterface
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
-import android.provider.OpenableColumns
-import android.util.Base64
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
+import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.room.*
-import com.bumptech.glide.Glide
 import com.diary.diary.databinding.ActivityMainBinding
 import com.diary.recycler.Recycler_main
 import com.diary.recycler.list
 import com.google.gson.Gson
 import kotlinx.coroutines.*
-import java.io.IOException
 
 
-// 리무브 버튼은 0번째 리스트부터 하나씩 넣어가기(바이트형 이미지와 스트링형 edit도)
-// uri null 허용시키기.
+// 스플래쉬 화면 -> (비밀번호 걸려있을시) 비밀번호 -> Intent main 이동 .
+
 
 @Entity
 data class Diaryroom(//id, 날짜, 제목, 내용, 태그, 이미지uri, 에딧text
@@ -35,11 +30,15 @@ data class Diaryroom(//id, 날짜, 제목, 내용, 태그, 이미지uri, 에딧t
         @ColumnInfo(name = "content") val content: String,
         @ColumnInfo(name = "uri_string_array") val uri_string_array: List<String?>, //스트링형으로 변환.*/
         @ColumnInfo(name = "edit_string_array") val edit_string_array: List<String?>,
+        @ColumnInfo(name = "edit_size") val edit_size:Float,
         @ColumnInfo(name = "edit_font") val edit_font:String,
         @ColumnInfo(name = "edit_color") val edit_color:String,
         @ColumnInfo(name = "edit_linespacing") val linespacing:Float,
         @ColumnInfo(name = "edit_letterspacing") val letterspacing:Float,
         @ColumnInfo(name = "Shortcuts") val Shortcuts:List<String?>?,
+        @ColumnInfo(name = "dateLong") val dateLong:Long,
+        @ColumnInfo(name = "date_daytofweek") val date_daytofweek:String,
+        @ColumnInfo(name = "daytoweek") val daytoweek:String
 
 )
 class Imagelist {
@@ -55,6 +54,9 @@ class Imagelist {
 interface DiaryDao{
     @Insert //모든 것들 추가.
     suspend fun insertDao(vararg diaryroom: Diaryroom)
+
+    @Update
+    suspend fun updateDao(vararg diaryroom: Diaryroom)
 
     @Query("DELETE FROM Diaryroom") //삭제
     suspend fun DeleteDao()
@@ -73,17 +75,31 @@ abstract class RoomdiaryDB:RoomDatabase(){
     abstract fun RoomDao():DiaryDao
 }
 
+class recyclerviewmodel:ViewModel(){
+    var longclick_observe = MutableLiveData<String>()
+
+    fun longClick() = longclick_observe
+}
+
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
     var diarylist: ArrayList<list> = arrayListOf() //이거 이미지도 추가하기.
     lateinit var db: RoomdiaryDB
     lateinit var room:List<Diaryroom>
 
+    var datearray:ArrayList<Long> = arrayListOf()
+
+    companion object{
+        lateinit var viewModel:recyclerviewmodel
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        Log.d("TAG", "get 된다.")
+
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        binding.lifecycleOwner = this
+        viewModel = ViewModelProvider(this).get(recyclerviewmodel::class.java)
+        binding.recyclerviewmodel = viewModel
 
         binding.mainRecylerview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
 
@@ -92,25 +108,109 @@ class MainActivity : AppCompatActivity() {
         )
                 .build()
 
-        fun loadBitmapFromMediaStoreBy(photoUri: Uri?): Bitmap? { //이미지 uri 비트맵형식으로 변경하기
-            var image: Bitmap? = null
-            try {
-                image = if (Build.VERSION.SDK_INT > 27) { // Api 버전별 이미지 처리
-                    val source: ImageDecoder.Source =
-                            ImageDecoder.createSource(this.contentResolver, photoUri!!)
-                    ImageDecoder.decodeBitmap(source)
-                } else {
-                    MediaStore.Images.Media.getBitmap(this.contentResolver, photoUri!!)
+        CoroutineScope(Dispatchers.IO).launch { // Room DB는 mainthread에서 못가져온다.
+            CoroutineScope(Dispatchers.IO).launch {
+                var d = 0
+                if (db.RoomDao().getAll().isNotEmpty()) {
+                    room = db.RoomDao().getAll()
+
+                    for (i in room.indices) {
+                        datearray.add(room[i].dateLong)
+                    }
+
+                        for (i in datearray.indices) {
+                            for(j in i until datearray.size){
+                                if(datearray[i] > datearray[j]){
+                                    var date = datearray[i]
+                                    datearray[i] = datearray[j]
+                                    datearray[j] = date
+                                }
+                            }
+                        }
+
+                    Log.d("i는는", datearray.toString())
+
+                    for (j in datearray.size - 1 downTo 0) { // 설정한 날짜에 맞춰 최신것이 가장 위로 올라오게 만들기.
+                        for(i in room.indices){
+                            if(datearray[j] == room[i].dateLong){
+                                val id: Int = room[i].id
+                                val title: String = room[i].title
+                                var content: String = room[i].content
+                                val font:String = room[i].edit_font
+                                val uri = room[i].uri_string_array
+                                val editstr = room[i].edit_string_array
+                                val date_daytoweek = room[i].date_daytofweek
+                                val daytoweek = room[i].daytoweek
+
+                                if(editstr.isNotEmpty()){
+                                    for(e in editstr.indices) {
+                                        content += editstr[e] //Edit_array에 내용이 존재할경우 리사이클러뷰에는 내용이 모두 추가가 되어 보여짐.
+                                    }
+                                }
+                                d++
+                                diarylist.add(list(id, title, content, uri, font, date_daytoweek, daytoweek))
+
+                                Log.d("확인", "사진 갯수, $uri")
+                                Log.d("i는", "${datearray[j]}, $j 는 ${room[i]}, $i 다")
+                                break
+                            }
+                        }
+                    }
                 }
-            } catch (e: IOException) {
-                e.printStackTrace()
+
+                Log.d("확인", "모두 불러와짐, $d")
+            }.join()
+
+
+            CoroutineScope(Dispatchers.Main).launch { //Ui 관련이니 Dispachers.main 사용.
+                binding.mainRecylerview.setHasFixedSize(true)
+                binding.mainRecylerview.adapter = Recycler_main(diarylist, binding.shadowText)
             }
-            return image
         }
 
-        //db.RoomDao().DeleteDao()
+        binding.allDiary.setOnClickListener {
+            var intent = Intent(this, Content_create::class.java)
+            startActivity(intent)
+        }
 
-        CoroutineScope(Dispatchers.IO).launch { // Room DB는 mainthread에서 못가져온다.
+        binding.setting.setOnClickListener {
+            binding.drawerSetting.openDrawer(GravityCompat.START)
+        }
+
+        /*binding.mainSettingNavi.setNavigationItemSelectedListener {
+            when(it.itemId){
+                R.id.navi_shortcuts ->{}
+                R.id.navi_password -> {}
+                R.id.navi_tema_change -> {}
+                R.id.navi_dark_mode -> {}
+                R.id.navi_tag -> {}
+                R.id.navi_lock -> {}
+                R.id.google_drive ->{}
+                R.id.explanation -> {}
+                R.id.font_name -> {}
+            }
+        }*/
+        viewobserve()
+    }
+
+    override fun onBackPressed() {
+
+        if(intent.hasExtra("이동")) // 나중에 종료 팝업 만들고, 네비게이션시 네비게이션 닫게 만들기.
+            Log.d("이동함", "이동함")
+        else {
+            super.onBackPressed()
+        }
+    }
+
+    private fun viewobserve(){
+        viewModel.longclick_observe.observe(this, {
+            Toast.makeText(this, "눌려짐", Toast.LENGTH_SHORT).show()
+        })
+    }
+}
+
+/*
+*
             CoroutineScope(Dispatchers.IO).launch {
                 var d = 0
                 if (db.RoomDao().getAll().isNotEmpty()) {
@@ -126,36 +226,15 @@ class MainActivity : AppCompatActivity() {
 
                         if(editstr.isNotEmpty()){
                             for(i in editstr.indices) {
-                                content += editstr[i]
+                                content += editstr[i] //Edit_array에 내용이 존재할경우 리사이클러뷰에는 내용이 모두 추가가 되어 보여짐.
                             }
                         }
                         d++
                         diarylist.add(list(id, title, content, uri, font))
+                        Log.d("확인", "사진 갯수, $uri")
                     }
                 }
 
                 Log.d("확인", "모두 불러와짐, $d")
             }.join()
-
-
-            CoroutineScope(Dispatchers.Main).launch { //Ui 관련이니 Dispachers.main 사용.
-                binding.mainRecylerview.setHasFixedSize(true)
-                binding.mainRecylerview.adapter = Recycler_main(diarylist)
-            }
-        }
-
-        binding.allDiary.setOnClickListener {
-            var intent = Intent(this, Content_create::class.java)
-            startActivity(intent)
-        }
-    }
-
-    override fun onBackPressed() {
-
-        if(intent.hasExtra("이동")) // 나중에 종료 팝업 만들고, 네비게이션시 네비게이션 닫게 만들기.
-            Log.d("이동함", "이동함")
-        else {
-            super.onBackPressed()
-        }
-    }
-}
+* */

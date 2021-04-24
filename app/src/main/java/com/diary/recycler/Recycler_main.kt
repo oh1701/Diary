@@ -2,35 +2,21 @@ package com.diary.recycler
 
 import android.content.Context
 import android.content.Intent
-import android.content.Intent.ACTION_OPEN_DOCUMENT
-import android.graphics.Bitmap
-import android.graphics.ImageDecoder
-import android.graphics.Matrix
-import android.graphics.Typeface
-import android.media.ExifInterface
-import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.*
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.diary.diary.*
-import com.diary.diary.Content_create.Companion.metrics
-import java.io.IOException
 
-class Recycler_main(val diary_list:ArrayList<list>) :  RecyclerView.Adapter<Recycler_main.ViewHolder>(), text_font, main_recycler_view {
+//뷰모델 변수를 인자값으로 전달하고 온롱클릭시 변화시켜서 observe로 알려주기.
+
+class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText) :  RecyclerView.Adapter<Recycler_main.ViewHolder>(), text_font, main_recycler_view {
 
     lateinit var context: Context
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Recycler_main.ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.activity_recycler_main, parent, false)
@@ -59,6 +45,7 @@ class Recycler_main(val diary_list:ArrayList<list>) :  RecyclerView.Adapter<Recy
 
         if(diary_list[position].imageuri.isNotEmpty()) { //이미지 uri 존재할시.
             for(i in diary_list[position].imageuri.indices){ // when과 for 사용해서 반복작업.
+                Log.d("확인", "확인")
                 when(i) {
                     0 -> {
                         holder.photo = photoimageset(holder.photo, diary_list[position].imageuri[i])
@@ -84,6 +71,23 @@ class Recycler_main(val diary_list:ArrayList<list>) :  RecyclerView.Adapter<Recy
             intent.putExtra("이동", diary_list[position].id)
             context.startActivity(intent)
         }
+
+        holder.layout.setOnLongClickListener {
+            Log.d("온클릭", "확인") // 온롱클릭 하고 터치시 레이아웃 선택되는 이벤트. 이후 삭제버튼 누르면 삭제 다이얼로그 뜨고 확인 누를시 삭제. mvvm활용?
+            shadowText.setText("바꾸기")
+            return@setOnLongClickListener true
+        }
+
+        holder.date.text = diary_list[position].date +  diary_list[position].daytoweek
+        when(diary_list[position].daytoweek){
+            "일" -> holder.date_color.setImageResource(R.drawable.circle_sunday)
+            "월" -> holder.date_color.setImageResource(R.drawable.circle_monday)
+            "화" -> holder.date_color.setImageResource(R.drawable.circle_tuesday)
+            "수" -> holder.date_color.setImageResource(R.drawable.circle_wednesday)
+            "목" -> holder.date_color.setImageResource(R.drawable.circle_thursday)
+            "금" -> holder.date_color.setImageResource(R.drawable.circle_friday)
+            "토" -> holder.date_color.setImageResource(R.drawable.circle_saturday)
+        }
     }
 
     override fun getItemCount(): Int {
@@ -93,6 +97,7 @@ class Recycler_main(val diary_list:ArrayList<list>) :  RecyclerView.Adapter<Recy
     class ViewHolder(itemview: View) :RecyclerView.ViewHolder(itemview){
         val title = itemview.findViewById<TextView>(R.id.recycler_title)
         val content = itemview.findViewById<TextView>(R.id.recycler_text)
+        val date = itemview.findViewById<TextView>(R.id.recycler_date)
         var photo = itemview.findViewById<ImageView>(R.id.imagephoto)
         var photo2 = itemview.findViewById<ImageView>(R.id.imagephoto2)
         var photo3 = itemview.findViewById<ImageView>(R.id.imagephoto3)
@@ -104,4 +109,4 @@ class Recycler_main(val diary_list:ArrayList<list>) :  RecyclerView.Adapter<Recy
 
 
 
-class list(val id:Int, val title:String, val content:String, val imageuri:List<String?>, val font: String)
+class list(val id:Int, val title:String, val content:String, val imageuri:List<String?>, val font: String, val date:String, val daytoweek:String)
