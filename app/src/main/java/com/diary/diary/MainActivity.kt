@@ -16,6 +16,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.*
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.diary.diary.databinding.ActivityMainBinding
 import com.diary.recycler.Recycler_main
 import com.diary.recycler.list
@@ -41,9 +43,10 @@ data class Diaryroom(//id, 날짜, 제목, 내용, 태그, 이미지uri, 에딧t
         @ColumnInfo(name = "Shortcuts") val Shortcuts:List<String?>?,
         @ColumnInfo(name = "dateLong") val dateLong:Long,
         @ColumnInfo(name = "date_daytofweek") val date_daytofweek:String,
-        @ColumnInfo(name = "daytoweek") val daytoweek:String
-
+        @ColumnInfo(name = "daytoweek") val daytoweek:String,
+        @ColumnInfo(name = "taglist") val taglist:List<String>
 )
+
 class Imagelist {
     @TypeConverter
     fun uristringToJson(value: List<String?>?) = Gson().toJson(value)
@@ -62,7 +65,7 @@ interface DiaryDao{
     suspend fun updateDao(vararg diaryroom: Diaryroom)
 
     @Query("DELETE FROM Diaryroom WHERE dateLong = :dateLong") //삭제
-    suspend fun DeleteDao(dateLong:Long)
+    suspend fun DeletedateDao(dateLong:Long)
 
     @Query("SELECT * FROM Diaryroom")
     suspend fun getAll():List<Diaryroom>
@@ -94,9 +97,10 @@ class MainActivity : AppCompatActivity(), layout_remove {
     lateinit var room:List<Diaryroom>
 
     var datearray:ArrayList<Long> = arrayListOf()
-    var change = 0
+    var diary_btn_change = 0
 
     var remove_layout_checkInt:ArrayList<Int> = arrayListOf()
+    var date_layout_checkLong:ArrayList<Long> = arrayListOf()
 
     companion object{
         lateinit var viewModel:Recylcerviewmodel
@@ -111,6 +115,7 @@ class MainActivity : AppCompatActivity(), layout_remove {
         binding.recylcerviewmodel = viewModel
 
         binding.mainRecylerview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+
         db = Room.databaseBuilder(
                 applicationContext, RoomdiaryDB::class.java, "RoomDB"
         )
@@ -168,11 +173,12 @@ class MainActivity : AppCompatActivity(), layout_remove {
             CoroutineScope(Dispatchers.Main).launch { //Ui 관련이니 Dispachers.main 사용.
                 binding.mainRecylerview.setHasFixedSize(true)
                 binding.mainRecylerview.adapter = Recycler_main(diarylist, binding.shadowText)
+                binding.mainRecylerview.adapter?.notifyDataSetChanged()
             }
         }
 
         binding.allDiary.setOnClickListener {
-            if(change == 0) {
+            if(diary_btn_change == 0) {
                 var intent = Intent(this, Content_create::class.java)
                 startActivity(intent)
             }
@@ -190,25 +196,39 @@ class MainActivity : AppCompatActivity(), layout_remove {
                         }
                     }
 
+                    if(layout_remove().second!!.isNotEmpty()){
+                        date_layout_checkLong = layout_remove().second!!
+                        Log.d("데이터갯수11", date_layout_checkLong.toString())
+                    }
+
                     for(i in remove_layout_checkInt.size - 1 downTo 0){ // downto로 안하면 작은것부터 삭제 후 큰것삭제하는데, 작은것이 삭제되었을경우 사이즈가 줄어들어 큰 숫자가 안들어갈수 있어. 오류가 발생함.
                         Log.d("클릭일부", remove_layout_checkInt[i].toString())
                         Log.d("클릭일부", diarylist.toString())
                         diarylist.removeAt(remove_layout_checkInt[i])
                     }
 
+                    CoroutineScope(Dispatchers.IO).launch {
+                        for(i in date_layout_checkLong.indices){
+                            Log.d("데이터갯수22", date_layout_checkLong.toString())
+                            Log.d("없애는데이터", date_layout_checkLong[i].toString())
+                            db.RoomDao().DeletedateDao(date_layout_checkLong[i])
+                        }
+
+                        layout_remove_position_check(1024)
+                        diary_btn_change = 0
+                    }
+
                     binding.mainRecylerview.adapter?.notifyDataSetChanged()
                     Log.d("클릭전체", remove_layout_checkInt.toString())
-                }
 
-                layout_remove_position_check(1024)
-                CoroutineScope(Dispatchers.IO).launch {
 
                 }
+
+
             }
         }
 
         binding.setting.setOnClickListener {
-            binding.allDiary.setBackgroundResource(R.drawable.exit_btn)
             binding.drawerSetting.openDrawer(GravityCompat.START)
         }
 
@@ -232,8 +252,9 @@ class MainActivity : AppCompatActivity(), layout_remove {
 
         if(intent.hasExtra("이동")) // 나중에 종료 팝업 만들고, 네비게이션시 네비게이션 닫게 만들기.
             Log.d("이동함", "이동함")
-        else if(change == 1){
-            change = 0
+        else if(diary_btn_change == 1){
+            diary_btn_change = 0
+            layout_remove_position_check(1024)
         }
         else{
             super.onBackPressed()
@@ -247,7 +268,7 @@ class MainActivity : AppCompatActivity(), layout_remove {
     }
 
     private fun trash_btn(){
-        change = 1
+        diary_btn_change = 1
         binding.allDiary.setBackgroundResource(R.drawable.ic_baseline_restore_from_trash_24)
     }
 }

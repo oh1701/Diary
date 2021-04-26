@@ -15,13 +15,14 @@
     <!-- requestLegacyExternalStorage = 안드로이드 10 이상 촬영 후 강제종료 방지-->
     <application
         android:requestLegacyExternalStorage="true"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher_imsi"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_imsi"
         android:supportsRtl="true"
         android:theme="@style/Theme.Diary_project">
-
+<!-- android:allowBackup="false" 이게 true로 할시데이터 백업해준다.
+android:fullBackupContent="false"-->
         <activity
             android:name=".Content_create"
             android:windowSoftInputMode="adjustResize"

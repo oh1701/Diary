@@ -86,6 +86,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
     lateinit var binding:ActivityContentCreateBinding
     var toast: Toast? = null
+    var tag_room_array:ArrayList<String> = arrayListOf()
 
     private var uri_array:ArrayList<String> = arrayListOf() // Uri주소를 uri.parse 통해 스트링으로 받아와 roop 전달.
 
@@ -246,6 +247,14 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                             textSize = intent_room.edit_size
                         }
                     }
+                }
+
+                if(intent_room.taglist.isNotEmpty()){
+                    for(i in intent_room.taglist.indices){
+                        tag_array.add(tagline("# ", intent_room.taglist[i]))
+                        tag_room_array.add(intent_room.taglist[i])
+                    }
+                    binding.FlexRecycler.adapter?.notifyDataSetChanged()
                 }
             }
         }
@@ -787,6 +796,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
                 if (binding.etn.text.isNotEmpty()) { //값이 있으면 add, 없으면 add안함.
                     tag_array.add(tagline("# ", binding.etn.text.toString())) // 태그, 작성한 입력값을 받은 텍스트값을 매개변수로 한다.
+                    tag_room_array.add(binding.etn.text.toString()) // 룸 저장용 tagarray에 추가
                     binding.FlexRecycler.adapter?.notifyDataSetChanged() // 추가된 데이터 새로고침하여 변경
                 }
 
@@ -807,6 +817,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
                         if (binding.etn.text.isNotEmpty()) { //값이 있으면 add, 없으면 add안함.
                             tag_array.add(tagline("# ", binding.etn.text.toString())) // 태그, 작성한 입력값을 받은 텍스트값을 매개변수로 한다.
+                            tag_room_array.add(binding.etn.text.toString()) // 룸 저장용 tagarray에 추가
                             binding.FlexRecycler.adapter?.notifyDataSetChanged() // 추가된 데이터 새로고침하여 변경
 
                             binding.tagline.visibility = View.GONE
@@ -1126,6 +1137,8 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
 
     suspend fun insert_update_dao(){ // 반복되는 insertdao 부르기 위함.
+        var taglist = tag_room_array.toList()
+
         var month_string = month.toString()
         var day_string = day.toString()
         var hour_string = hour.toString()
@@ -1144,6 +1157,8 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
             second_string = "0$second"
 
         Log.d("시간은은은", "월$month_string, 일$day_string, 시$hour_string, 분$minute_string, 초$second_string")
+
+
         val urilist = uri_array.toList()
         val editlist = Edit_strarray.toList()
         val short = shortcuts.toList()
@@ -1161,11 +1176,11 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
         }
 
         if(intent.hasExtra("이동")) {
-            db.RoomDao().updateDao(Diaryroom(intent_room.id, titletext, contenttext, urilist,editlist, text_size, edit_font, edit_color, line_spacing, letter_spacing, short, dateLong, date_daytofweek, daytoweek))
+            db.RoomDao().updateDao(Diaryroom(intent_room.id, titletext, contenttext, urilist,editlist, text_size, edit_font, edit_color, line_spacing, letter_spacing, short, dateLong, date_daytofweek, daytoweek, taglist))
             Log.d("이동실행","이동실행")
         }
         else {
-            db.RoomDao().insertDao(Diaryroom(0, titletext, contenttext, urilist, editlist, text_size, edit_font, edit_color, line_spacing, letter_spacing, short, dateLong, date_daytofweek, daytoweek))
+            db.RoomDao().insertDao(Diaryroom(0, titletext, contenttext, urilist, editlist, text_size, edit_font, edit_color, line_spacing, letter_spacing, short, dateLong, date_daytofweek, daytoweek, taglist))
             Log.d("이동미실행","이동미실행")
         }
     }

@@ -53,10 +53,11 @@ interface layout_remove{ // 메인 리사이클러뷰에서 레이아웃 지우�
 
     fun layout_remove_position_check(int:Int){ // if일경우 모든 companion 변수 값 지우기.
         if(int == 1024) {
-            check.removeAll(check)
             for(i in const_layout.indices){
                 const_layout[i].setBackgroundResource(R.drawable.layout_background)
             }
+            check.removeAll(check)
+            date.removeAll(date)
             const_layout.removeAll(const_layout)
         }
         else
@@ -158,11 +159,5 @@ interface main_recycler_view{
             visibility = View.VISIBLE // 있을경우에만 visibility
         }
         return imageView
-    }
-
-    fun datecolorset(date:String){
-
-        Log.d("확인", date.toString())
-        var calencar = Calendar.getInstance()
     }
 }
