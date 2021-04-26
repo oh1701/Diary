@@ -13,9 +13,11 @@ import com.diary.diary.*
 
 //뷰모델 변수를 인자값으로 전달하고 온롱클릭시 변화시켜서 observe로 알려주기.
 
-class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText) :  RecyclerView.Adapter<Recycler_main.ViewHolder>(), text_font, main_recycler_view {
+class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText) :  RecyclerView.Adapter<Recycler_main.ViewHolder>(), text_font, main_recycler_view, layout_remove {
 
     lateinit var context: Context
+    var a = 0
+    var position_array:ArrayList<Int> = arrayListOf()
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Recycler_main.ViewHolder {
@@ -65,28 +67,68 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText) :
             }
         }
 
-        holder.layout.setOnClickListener {
-            Log.d("제목은 :", holder.title.text.toString())
-            var intent = Intent(context, Content_create::class.java)
-            intent.putExtra("이동", diary_list[position].id)
-            context.startActivity(intent)
-        }
+        holder.layout.apply {
+            setOnClickListener {
 
-        holder.layout.setOnLongClickListener {
-            Log.d("온클릭", "확인") // 온롱클릭 하고 터치시 레이아웃 선택되는 이벤트. 이후 삭제버튼 누르면 삭제 다이얼로그 뜨고 확인 누를시 삭제. mvvm활용?
-            shadowText.setText("바꾸기")
-            return@setOnLongClickListener true
+                if (a == 0 || layout_remove().first == null) {
+                    Log.d("제목은 :", holder.title.text.toString())
+                    var intent = Intent(context, Content_create::class.java)
+                    intent.putExtra("이동", diary_list[position].id)
+                    context.startActivity(intent)
+                } else {
+                    if(tag == "클릭"){ //클릭상태면
+                        holder.layout.setBackgroundResource(R.drawable.layout_background)
+                        tag = "빈값"
+                        layout_remove_position_remove(position)
+                        layout_add_or_remove(holder.layout, 1, diary_list[position].dateLong)
+                        Log.d("여기임", "여기임11")
+                    }
+                    else{
+                        holder.layout.setBackgroundResource(R.drawable.longclick_layout)
+                        tag = "클릭"
+                        a = 1
+                        layout_remove_position_check(position)
+                        layout_add_or_remove(holder.layout, 0, diary_list[position].dateLong)
+                        Log.d("클릭", position.toString())
+                        Log.d("여기임", "1414여기임")
+                    }
+                }
+            }
+
+            setOnLongClickListener {
+                // 온롱클릭 하고 터치시 레이아웃 선택되는 이벤트. 이후 삭제버튼 누르면 삭제 다이얼로그 뜨고 확인 누를시 삭제. mvvm활용?
+                shadowText.setText("") //이거를 통해서 바깥의 작성버튼 이미지를 쓰레기통 버튼으로 변경하기. 쓰레기통 버튼 눌리면 리사이클러뷰 삭제 가능으로 만들기.
+                // 롱클릭해서 이벤트 발생시 다른 레이아웃도 터치시 intent가 아닌, 선택기능으로 바뀌게 만들기.
+                
+                if(tag == "클릭"){ // 클릭 상태면
+                    holder.layout.setBackgroundResource(R.drawable.layout_background)
+                    tag = position
+                    layout_remove_position_remove(position)
+                    layout_add_or_remove(holder.layout, 1, diary_list[position].dateLong)
+                    Log.d("여기임", "여기임22")
+                }
+                else{ //클릭 상태가 아니면
+                    holder.layout.setBackgroundResource(R.drawable.longclick_layout)
+                    tag = "클릭"
+                    a = 1
+                    layout_remove_position_check(position)
+                    layout_add_or_remove(holder.layout, 0, diary_list[position].dateLong)
+                    Log.d("클릭", position.toString())
+                    Log.d("여기임", "1515여기임")
+                }
+                return@setOnLongClickListener true
+            }
         }
 
         holder.date.text = diary_list[position].date +  diary_list[position].daytoweek
         when(diary_list[position].daytoweek){
-            "일" -> holder.date_color.setImageResource(R.drawable.circle_sunday)
-            "월" -> holder.date_color.setImageResource(R.drawable.circle_monday)
-            "화" -> holder.date_color.setImageResource(R.drawable.circle_tuesday)
-            "수" -> holder.date_color.setImageResource(R.drawable.circle_wednesday)
+            "월" -> holder.date_color.setImageResource(R.drawable.circle_sunday)
+            "일" -> holder.date_color.setImageResource(R.drawable.circle_monday)
+            "토" -> holder.date_color.setImageResource(R.drawable.circle_tuesday)
+            "금" -> holder.date_color.setImageResource(R.drawable.circle_wednesday)
             "목" -> holder.date_color.setImageResource(R.drawable.circle_thursday)
-            "금" -> holder.date_color.setImageResource(R.drawable.circle_friday)
-            "토" -> holder.date_color.setImageResource(R.drawable.circle_saturday)
+            "수" -> holder.date_color.setImageResource(R.drawable.circle_friday)
+            "화" -> holder.date_color.setImageResource(R.drawable.circle_saturday)
         }
     }
 
@@ -109,4 +151,4 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText) :
 
 
 
-class list(val id:Int, val title:String, val content:String, val imageuri:List<String?>, val font: String, val date:String, val daytoweek:String)
+class list(val id:Int, val title:String, val content:String, val imageuri:List<String?>, val font: String, val date:String, val daytoweek:String, val dateLong:Long)

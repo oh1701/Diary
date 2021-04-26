@@ -8,8 +8,8 @@
 
     <data>
         <variable
-            name="recyclerviewmodel"
-            type="com.diary.diary.recyclerviewmodel" />
+            name="Recylcerviewmodel"
+            type="com.diary.diary.Recylcerviewmodel" />
 
     </data>
 <androidx.drawerlayout.widget.DrawerLayout
@@ -29,7 +29,7 @@
         android:id="@+id/shadow_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@={recyclerviewmodel.longClick}"
+        android:text="@={Recylcerviewmodel.longClick}"
         android:visibility="gone"/>
 
     <androidx.constraintlayout.widget.ConstraintLayout

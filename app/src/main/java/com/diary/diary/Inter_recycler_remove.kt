@@ -10,12 +10,14 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 import com.bumptech.glide.Glide
 import com.diary.recycler.font_list
 import java.text.DateFormat
 import java.util.*
 
-interface Inter_recycler_remove{
+interface Inter_recycler_remove{ // 폰트 지우는 리사이클러뷰.
 
     companion object{
         var companioncheck:String = "꺼짐"
@@ -41,7 +43,62 @@ interface Inter_recycler_remove{
 
 }
 
-interface text_font {
+interface layout_remove{ // 메인 리사이클러뷰에서 레이아웃 지우는 용도의 인터페이스
+
+    companion object {
+        var check: ArrayList<Int> = arrayListOf()
+        var const_layout: ArrayList<ConstraintLayout> = arrayListOf()
+        var date:ArrayList<Long> = arrayListOf()
+    }
+
+    fun layout_remove_position_check(int:Int){ // if일경우 모든 companion 변수 값 지우기.
+        if(int == 1024) {
+            check.removeAll(check)
+            for(i in const_layout.indices){
+                const_layout[i].setBackgroundResource(R.drawable.layout_background)
+            }
+            const_layout.removeAll(const_layout)
+        }
+        else
+            check.add(int)
+    }
+
+    fun layout_remove():Pair<ArrayList<Int>?, ArrayList<Long>?>{
+        return if(check.isNotEmpty())
+            Pair(check, date)
+        else
+            Pair(null, null)
+    }
+
+    fun layout_remove_position_remove(int:Int){
+        if(check.isNotEmpty()){
+            for(i in check.indices){
+                if(check[i] == int){
+                    check.removeAt(i)
+                }
+            }
+        }
+    }
+
+    fun layout_add_or_remove(layout: ConstraintLayout, int:Int, dateLong:Long){
+        if(int == 0){ // 클릭상태가 아닐경우
+            const_layout.add(layout)
+            date.add(dateLong)
+        }
+        else {
+            if(const_layout.isNotEmpty()){
+                for(i in const_layout.indices){
+                    if(const_layout[i] == layout){ //레이아웃과 동일할시 해당 배열을 삭제.
+                        const_layout.removeAt(i)
+                        date.removeAt(i)
+                    }
+                }
+            }
+        }
+    }
+}
+
+interface text_font { // 폰트 변경용 인터페이스
 
     fun inter_font_change(EditText: EditText, typeface: Typeface) {
         EditText.typeface = typeface

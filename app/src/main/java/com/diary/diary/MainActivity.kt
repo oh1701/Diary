@@ -1,17 +1,20 @@
 package com.diary.diary
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.*
 import android.os.Bundle
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.room.*
 import com.diary.diary.databinding.ActivityMainBinding
 import com.diary.recycler.Recycler_main
@@ -58,14 +61,17 @@ interface DiaryDao{
     @Update
     suspend fun updateDao(vararg diaryroom: Diaryroom)
 
-    @Query("DELETE FROM Diaryroom") //삭제
-    suspend fun DeleteDao()
+    @Query("DELETE FROM Diaryroom WHERE dateLong = :dateLong") //삭제
+    suspend fun DeleteDao(dateLong:Long)
 
     @Query("SELECT * FROM Diaryroom")
     suspend fun getAll():List<Diaryroom>
 
     @Query("SELECT * FROM Diaryroom WHERE id = :id") //동적으로 할당시 함수 파라미터에 변수 넣고, WHERE 에 :변수 로 넣기.
     suspend fun getlayoutid(id:Int):Diaryroom
+
+    @Query("SELECT * FROM Diaryroom WHERE dateLong = :dateLong")
+    suspend fun getAllfordateLong(dateLong: Long):Diaryroom
 }
 
 
@@ -75,22 +81,25 @@ abstract class RoomdiaryDB:RoomDatabase(){
     abstract fun RoomDao():DiaryDao
 }
 
-class recyclerviewmodel:ViewModel(){
+class Recylcerviewmodel:ViewModel(){
     var longclick_observe = MutableLiveData<String>()
 
     fun longClick() = longclick_observe
 }
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), layout_remove {
     lateinit var binding: ActivityMainBinding
     var diarylist: ArrayList<list> = arrayListOf() //이거 이미지도 추가하기.
     lateinit var db: RoomdiaryDB
     lateinit var room:List<Diaryroom>
 
     var datearray:ArrayList<Long> = arrayListOf()
+    var change = 0
+
+    var remove_layout_checkInt:ArrayList<Int> = arrayListOf()
 
     companion object{
-        lateinit var viewModel:recyclerviewmodel
+        lateinit var viewModel:Recylcerviewmodel
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -98,11 +107,10 @@ class MainActivity : AppCompatActivity() {
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.lifecycleOwner = this
-        viewModel = ViewModelProvider(this).get(recyclerviewmodel::class.java)
-        binding.recyclerviewmodel = viewModel
+        viewModel = ViewModelProvider(this).get(Recylcerviewmodel::class.java)
+        binding.recylcerviewmodel = viewModel
 
         binding.mainRecylerview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-
         db = Room.databaseBuilder(
                 applicationContext, RoomdiaryDB::class.java, "RoomDB"
         )
@@ -128,19 +136,16 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
 
-                    Log.d("i는는", datearray.toString())
-
-                    for (j in datearray.size - 1 downTo 0) { // 설정한 날짜에 맞춰 최신것이 가장 위로 올라오게 만들기.
-                        for(i in room.indices){
-                            if(datearray[j] == room[i].dateLong){
-                                val id: Int = room[i].id
-                                val title: String = room[i].title
-                                var content: String = room[i].content
-                                val font:String = room[i].edit_font
-                                val uri = room[i].uri_string_array
-                                val editstr = room[i].edit_string_array
-                                val date_daytoweek = room[i].date_daytofweek
-                                val daytoweek = room[i].daytoweek
+                    for (i in datearray.size - 1 downTo 0) { // 설정한 날짜에 맞춰 최신것이 가장 위로 올라오게 만들기.
+                                var date_room = db.RoomDao().getAllfordateLong(datearray[i])
+                                val id: Int = date_room.id
+                                val title: String = date_room.title
+                                var content: String = date_room.content
+                                val font:String = date_room.edit_font
+                                val uri = date_room.uri_string_array
+                                val editstr = date_room.edit_string_array
+                                val date_daytoweek = date_room.date_daytofweek
+                                val daytoweek = date_room.daytoweek
 
                                 if(editstr.isNotEmpty()){
                                     for(e in editstr.indices) {
@@ -148,13 +153,11 @@ class MainActivity : AppCompatActivity() {
                                     }
                                 }
                                 d++
-                                diarylist.add(list(id, title, content, uri, font, date_daytoweek, daytoweek))
+                                diarylist.add(list(id, title, content, uri, font, date_daytoweek, daytoweek, datearray[i]))
 
+                                Log.d("확인", "사이즈, $datearray")
                                 Log.d("확인", "사진 갯수, $uri")
-                                Log.d("i는", "${datearray[j]}, $j 는 ${room[i]}, $i 다")
-                                break
-                            }
-                        }
+                                Log.d("i는", "${datearray[i]}, $i 는 ${room[i]}, $i 다")
                     }
                 }
 
@@ -169,11 +172,43 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.allDiary.setOnClickListener {
-            var intent = Intent(this, Content_create::class.java)
-            startActivity(intent)
+            if(change == 0) {
+                var intent = Intent(this, Content_create::class.java)
+                startActivity(intent)
+            }
+            else{
+                if(layout_remove().first != null){ //내용물이 가장 큰것이 마지막 배열로 가게 정렬.
+                    remove_layout_checkInt = layout_remove().first!!
+                    for(i in 0 until remove_layout_checkInt.size){
+                        var imsi = 0
+                        for(j in remove_layout_checkInt.indices){
+                            if (remove_layout_checkInt[i] > remove_layout_checkInt[j]) {
+                                imsi = remove_layout_checkInt[j]
+                                remove_layout_checkInt[i] = remove_layout_checkInt[j]
+                                remove_layout_checkInt[j] = imsi
+                            }
+                        }
+                    }
+
+                    for(i in remove_layout_checkInt.size - 1 downTo 0){ // downto로 안하면 작은것부터 삭제 후 큰것삭제하는데, 작은것이 삭제되었을경우 사이즈가 줄어들어 큰 숫자가 안들어갈수 있어. 오류가 발생함.
+                        Log.d("클릭일부", remove_layout_checkInt[i].toString())
+                        Log.d("클릭일부", diarylist.toString())
+                        diarylist.removeAt(remove_layout_checkInt[i])
+                    }
+
+                    binding.mainRecylerview.adapter?.notifyDataSetChanged()
+                    Log.d("클릭전체", remove_layout_checkInt.toString())
+                }
+
+                layout_remove_position_check(1024)
+                CoroutineScope(Dispatchers.IO).launch {
+
+                }
+            }
         }
 
         binding.setting.setOnClickListener {
+            binding.allDiary.setBackgroundResource(R.drawable.exit_btn)
             binding.drawerSetting.openDrawer(GravityCompat.START)
         }
 
@@ -197,15 +232,23 @@ class MainActivity : AppCompatActivity() {
 
         if(intent.hasExtra("이동")) // 나중에 종료 팝업 만들고, 네비게이션시 네비게이션 닫게 만들기.
             Log.d("이동함", "이동함")
-        else {
+        else if(change == 1){
+            change = 0
+        }
+        else{
             super.onBackPressed()
         }
     }
 
     private fun viewobserve(){
         viewModel.longclick_observe.observe(this, {
-            Toast.makeText(this, "눌려짐", Toast.LENGTH_SHORT).show()
+            trash_btn()
         })
+    }
+
+    private fun trash_btn(){
+        change = 1
+        binding.allDiary.setBackgroundResource(R.drawable.ic_baseline_restore_from_trash_24)
     }
 }
 
