@@ -29,10 +29,6 @@
                     android:id="@+id/navi_tag"
                     android:title="사용한 태그"/>
 
-                <item
-                    android:id="@+id/navi_lock"
-                    android:title="일기 잠그기"/>
-
             </menu>
 
         </item>
@@ -49,8 +45,8 @@
                     android:title="사용 설명서"/>
 
                 <item
-                    android:id="@+id/font_name"
-                    android:title="사용 폰트"/>
+                    android:id="@+id/data_clear"
+                    android:title="데이터 초기화"/>
 
             </menu>
 

@@ -151,12 +151,12 @@ interface text_font { // 폰트 변경용 인터페이스
 }
 
 interface main_recycler_view{
-    fun photoimageset(imageView: ImageView, string:String?): ImageView{
+    fun photoimageset(imageView: ImageView, string:String?): ImageView{ //holder.photo 와 이미지 uri를 받아온후, 설정한 이미지를 return합니다.
         imageView.apply{
             var bitmap = string //각 순서에 맞는 imageuri를 넣어준다.
             clipToOutline = true // xml에서 설정한 drawable에 맞게 아웃라인 설정을 위해 true로 한다.
             Glide.with(context).load(Uri.parse(bitmap)).into(this) // 파라미터 값에 이미지 대입해줌.
-            visibility = View.VISIBLE // 있을경우에만 visibility
+            visibility = View.VISIBLE // 있을경우에만 visibility. 기본값은 gone입니다.
         }
         return imageView
     }

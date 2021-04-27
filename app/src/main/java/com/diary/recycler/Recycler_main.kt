@@ -31,6 +31,10 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText) :
         return position
     }
 
+    override fun setHasStableIds(hasStableIds: Boolean) {
+        super.setHasStableIds(true)
+    }
+
     override fun onBindViewHolder(holder: Recycler_main.ViewHolder, position: Int) {
 
         holder.title.apply {
@@ -50,40 +54,42 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText) :
             }
         }
 
-        if(diary_list[position].imageuri.isNotEmpty()) { //이미지 uri 존재할시.
+        holder.photo.setImageBitmap(null)
+        holder.photo2.setImageBitmap(null)
+        holder.photo3.setImageBitmap(null)
+        holder.photo4.setImageBitmap(null)
+
+        if(diary_list[position].imageuri.isNotEmpty()) { //OnBindViewHolder에서 이미지 uri 존재할시 포지션 photo에 uri를 넣어주는 코드입니다.
+            //interface를 사용합니다.
             for(i in diary_list[position].imageuri.indices){ // when과 for 사용해서 반복작업.
                 when(i) {
                     0 -> {
                         holder.photo = photoimageset(holder.photo, diary_list[position].imageuri[i])
-                        Log.d("포지션은 $position", diary_list[position].imageuri.toString())
                     }
                     1 -> {
                         holder.photo2 =  photoimageset(holder.photo2, diary_list[position].imageuri[i])
-                        Log.d("포지션은 $position", diary_list[position].imageuri.toString())
                     }
                     2 -> {
                         holder.photo3 = photoimageset(holder.photo3, diary_list[position].imageuri[i])
-                        Log.d("포지션은 $position", diary_list[position].imageuri.toString())
                     }
                     3 -> {
                         holder.photo4 =  photoimageset(holder.photo4, diary_list[position].imageuri[i])
-                        Log.d("포지션은 $position", diary_list[position].imageuri.toString())
                     }
                     else ->  break // 설정한 이미지 갯수인 4개보다 많을시, 추가 등록하지 않고 반복 멈추기.
                 }
             }
         }
-
+//
         holder.layout.apply {
             tag = "" // notify 할 시를 생각해서 기본값으로 ""를 준다.
             setOnClickListener {
-
                 if (a == 0 || layout_remove().first == null) {
                     Log.d("제목은 :", holder.title.text.toString())
                     var intent = Intent(context, Content_create::class.java)
                     intent.putExtra("이동", diary_list[position].id)
                     context.startActivity(intent)
-                } else {
+                }
+                else {
                     if(tag == "클릭"){ //클릭상태면
                         holder.layout.setBackgroundResource(R.drawable.layout_background)
                         tag = "" //태그 대신할거 생성하기.

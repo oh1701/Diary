@@ -3,32 +3,39 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.diary.diary">
 
-    <uses-permission android:name="android.permission.CAMERA" /> <!-- 카메라 기능 권한-->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- 파일 읽기 권한-->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" /> <!-- 파일 쓰기 권한-->
-    <uses-permission android:name="android.permission.MANAGE_DOCUMENTS"
+    <uses-permission android:name="android.permission.CAMERA" /> <!-- 카메라 기능 권한 -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- 파일 읽기 권한 -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" /> <!-- 파일 쓰기 권한 -->
+    <uses-permission
+        android:name="android.permission.MANAGE_DOCUMENTS"
         tools:ignore="ProtectedPermissions" />
 
-    <uses-feature android:name="android.hardware.camera" android:required="true"/> <!-- 카메라 기능 사용-->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
 
-    <!-- requestLegacyExternalStorage = 안드로이드 10 이상 촬영 후 강제종료 방지-->
     <application
-        android:requestLegacyExternalStorage="true"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher_imsi"
         android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_imsi"
         android:supportsRtl="true"
         android:theme="@style/Theme.Diary_project">
-<!-- android:allowBackup="false" 이게 true로 할시데이터 백업해준다.
-android:fullBackupContent="false"-->
+        <activity android:name=".password"></activity>
+        <activity android:name=".font_license" />
+        <!--
+android:allowBackup="false" 이게 true로 할시데이터 백업해준다.
+android:fullBackupContent="false"
+        -->
         <activity
             android:name=".Content_create"
-            android:windowSoftInputMode="adjustResize"
-            android:screenOrientation="portrait"/>
-
-        <activity android:name=".MainActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".MainActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -36,20 +43,16 @@ android:fullBackupContent="false"-->
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
+
         <provider
-            android:authorities="com.diary.diary.fileprovider"
             android:name="androidx.core.content.FileProvider"
+            android:authorities="com.diary.diary.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
-
-            <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"/>
-
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
         </provider>
-        <!--photoURI에서 사용함. 카메라 제한 풀어주는것-->
-
-
     </application>
 
 </manifest>

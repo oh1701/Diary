@@ -17,13 +17,14 @@
     tools:context=".MainActivity"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/drawer_setting">
+    android:id="@+id/drawer_setting"
+    android:background="#E8E8E8">
+
 <LinearLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:weightSum="10"
-    android:background="#E8E8E8">
+    android:weightSum="10">
 
     <EditText
         android:id="@+id/shadow_text"
@@ -82,15 +83,11 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1.0"/>
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="8.3">
+        android:layout_weight="8.3"
+        android:layout_marginTop="20dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="0dp"

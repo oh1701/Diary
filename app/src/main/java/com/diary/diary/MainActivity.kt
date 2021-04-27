@@ -160,7 +160,6 @@ class MainActivity : AppCompatActivity(), layout_remove {
                                 d++
                                 diarylist.add(list(id, title, content, uri, font, date_daytoweek, daytoweek, datearray[i]))
 
-                                Log.d("확인", "사이즈, $datearray")
                                 Log.d("확인", "사진 갯수, $uri")
                                 Log.d("i는", "${datearray[i]}, $i 는 ${room[i]}, $i 다")
                     }
@@ -174,6 +173,7 @@ class MainActivity : AppCompatActivity(), layout_remove {
                 binding.mainRecylerview.setHasFixedSize(true)
                 binding.mainRecylerview.adapter = Recycler_main(diarylist, binding.shadowText)
                 binding.mainRecylerview.adapter?.notifyDataSetChanged()
+                Log.d("사이즈", diarylist.size.toString())
             }
         }
 
@@ -183,9 +183,10 @@ class MainActivity : AppCompatActivity(), layout_remove {
                 startActivity(intent)
             }
             else{
-                if(layout_remove().first != null){ //내용물이 가장 큰것이 마지막 배열로 가게 정렬.
-                    remove_layout_checkInt = layout_remove().first!!
-                    for(i in 0 until remove_layout_checkInt.size){
+                if(layout_remove().first != null){ //내용물이 가장 큰것이 마지막 배열로 가게 정렬
+                    // .
+                    remove_layout_checkInt = layout_remove().first!!  //인터페이스에서 return ArrayList<Int> 입니다.
+                    for(i in 0 until remove_layout_checkInt.size){ // 포지션값의 크기에 따라 작은것 -> 큰것순으로 정렬하는 코드입니다.
                         var imsi = 0
                         for(j in remove_layout_checkInt.indices){
                             if (remove_layout_checkInt[i] > remove_layout_checkInt[j]) {
@@ -196,35 +197,31 @@ class MainActivity : AppCompatActivity(), layout_remove {
                         }
                     }
 
-                    if(layout_remove().second!!.isNotEmpty()){
+                    if(layout_remove().second!!.isNotEmpty()){ //Room과 관련있어 리사이클러뷰와는 크게 상관없는 코드입니다.
                         date_layout_checkLong = layout_remove().second!!
                         Log.d("데이터갯수11", date_layout_checkLong.toString())
                     }
 
-                    for(i in remove_layout_checkInt.size - 1 downTo 0){ // downto로 안하면 작은것부터 삭제 후 큰것삭제하는데, 작은것이 삭제되었을경우 사이즈가 줄어들어 큰 숫자가 안들어갈수 있어. 오류가 발생함.
-                        Log.d("클릭일부", remove_layout_checkInt[i].toString())
-                        Log.d("클릭일부", diarylist.toString())
-                        diarylist.removeAt(remove_layout_checkInt[i])
+                    for(i in remove_layout_checkInt.size - 1 downTo 0){ // downto로 안하면 작은것부터 삭제 후 큰것삭제하는데, 작은것이 삭제되었을경우 사이즈가 줄어들어 큰 숫자가 안들어가지는 상황이 있어. 오류가 발생함.
+                        diarylist.removeAt(remove_layout_checkInt[i]) // remove_layout_checkInt는 아이템 롱클릭시 받아와지는 포지션값.
+                        binding.mainRecylerview.adapter?.notifyItemRemoved(remove_layout_checkInt[i])
+                        binding.mainRecylerview.adapter?.notifyItemRangeChanged(remove_layout_checkInt[i], diarylist.size)
+                        binding.mainRecylerview.adapter?.notifyDataSetChanged()
+                        Log.d("삭제파일은", remove_layout_checkInt[i].toString())
                     }
 
-                    CoroutineScope(Dispatchers.IO).launch {
+                    CoroutineScope(Dispatchers.IO).launch {// 이건 상관없는 코드입니다.
                         for(i in date_layout_checkLong.indices){
                             Log.d("데이터갯수22", date_layout_checkLong.toString())
                             Log.d("없애는데이터", date_layout_checkLong[i].toString())
                             db.RoomDao().DeletedateDao(date_layout_checkLong[i])
                         }
-
-                        layout_remove_position_check(1024)
+                        layout_remove_position_check(1024)// 이건 상관없는 코드입니다.
+                        Log.d("실행됨", "실행")
                         diary_btn_change = 0
                     }
 
-                    binding.mainRecylerview.adapter?.notifyDataSetChanged()
-                    Log.d("클릭전체", remove_layout_checkInt.toString())
-
-
                 }
-
-
             }
         }
 
@@ -232,19 +229,27 @@ class MainActivity : AppCompatActivity(), layout_remove {
             binding.drawerSetting.openDrawer(GravityCompat.START)
         }
 
-        /*binding.mainSettingNavi.setNavigationItemSelectedListener {
+        binding.mainSettingNavi.setNavigationItemSelectedListener {
             when(it.itemId){
-                R.id.navi_shortcuts ->{}
-                R.id.navi_password -> {}
-                R.id.navi_tema_change -> {}
-                R.id.navi_dark_mode -> {}
-                R.id.navi_tag -> {}
-                R.id.navi_lock -> {}
-                R.id.google_drive ->{}
-                R.id.explanation -> {}
-                R.id.font_name -> {}
+                R.id.navi_shortcuts ->{false}
+                R.id.navi_password -> {
+                    var intent = Intent(this, password::class.java)
+                    intent.putExtra("비밀번호 설정", "비밀번호 설정")
+                    startActivity(intent)
+                return@setNavigationItemSelectedListener true}
+                R.id.navi_tema_change ->{false}
+                R.id.navi_dark_mode -> {
+                    binding.drawerSetting.setBackgroundColor(Color.parseColor("#F5201F1F"))
+                    return@setNavigationItemSelectedListener true
+                }
+                R.id.navi_tag ->{false}
+                R.id.google_drive ->{false}
+                R.id.explanation -> {false}
+                R.id.data_clear-> {false}
+                else ->{false}
             }
-        }*/
+        }
+
         viewobserve()
     }
 
@@ -272,33 +277,3 @@ class MainActivity : AppCompatActivity(), layout_remove {
         binding.allDiary.setBackgroundResource(R.drawable.ic_baseline_restore_from_trash_24)
     }
 }
-
-/*
-*
-            CoroutineScope(Dispatchers.IO).launch {
-                var d = 0
-                if (db.RoomDao().getAll().isNotEmpty()) {
-                    room = db.RoomDao().getAll()
-
-                    for (i in room.size - 1 downTo 0) {
-                        val id: Int = room[i].id
-                        val title: String = room[i].title
-                        var content: String = room[i].content
-                        val font:String = room[i].edit_font
-                        val uri = room[i].uri_string_array
-                        val editstr = room[i].edit_string_array
-
-                        if(editstr.isNotEmpty()){
-                            for(i in editstr.indices) {
-                                content += editstr[i] //Edit_array에 내용이 존재할경우 리사이클러뷰에는 내용이 모두 추가가 되어 보여짐.
-                            }
-                        }
-                        d++
-                        diarylist.add(list(id, title, content, uri, font))
-                        Log.d("확인", "사진 갯수, $uri")
-                    }
-                }
-
-                Log.d("확인", "모두 불러와짐, $d")
-            }.join()
-* */
