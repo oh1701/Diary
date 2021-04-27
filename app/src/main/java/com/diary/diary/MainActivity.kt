@@ -101,6 +101,7 @@ class MainActivity : AppCompatActivity(), layout_remove {
 
     var remove_layout_checkInt:ArrayList<Int> = arrayListOf()
     var date_layout_checkLong:ArrayList<Long> = arrayListOf()
+    var taglist_array:ArrayList<String> = arrayListOf()
 
     companion object{
         lateinit var viewModel:Recylcerviewmodel
@@ -129,7 +130,13 @@ class MainActivity : AppCompatActivity(), layout_remove {
 
                     for (i in room.indices) {
                         datearray.add(room[i].dateLong)
+                        if(room[i].taglist.isNotEmpty()) {
+                            for (j in room[i].taglist.indices) {
+                                taglist_array.add(room[i].taglist[j])
+                            }
+                        }
                     }
+
 
                         for (i in datearray.indices) {
                             for(j in i until datearray.size){
@@ -184,20 +191,22 @@ class MainActivity : AppCompatActivity(), layout_remove {
             }
             else{
                 if(layout_remove().first != null){ //내용물이 가장 큰것이 마지막 배열로 가게 정렬
-                    // .
                     remove_layout_checkInt = layout_remove().first!!  //인터페이스에서 return ArrayList<Int> 입니다.
-                    for(i in 0 until remove_layout_checkInt.size){ // 포지션값의 크기에 따라 작은것 -> 큰것순으로 정렬하는 코드입니다.
+                    for(i in 0 until remove_layout_checkInt.size){ // 포지션값의 크기에 따라 작은것 -> 큰것순으로 정렬하는 코드
                         var imsi = 0
-                        for(j in remove_layout_checkInt.indices){
+                        for(j in i until remove_layout_checkInt.size){
                             if (remove_layout_checkInt[i] > remove_layout_checkInt[j]) {
                                 imsi = remove_layout_checkInt[j]
-                                remove_layout_checkInt[i] = remove_layout_checkInt[j]
-                                remove_layout_checkInt[j] = imsi
+                                remove_layout_checkInt[j] = remove_layout_checkInt[i]
+                                remove_layout_checkInt[i] = imsi
+                                Log.d("사이즈정렬중 i", remove_layout_checkInt[i].toString())
+                                Log.d("사이즈정렬중 j", remove_layout_checkInt[j].toString())
                             }
                         }
+                        Log.d("사이즈정렬후", remove_layout_checkInt.toString())
                     }
 
-                    if(layout_remove().second!!.isNotEmpty()){ //Room과 관련있어 리사이클러뷰와는 크게 상관없는 코드입니다.
+                    if(layout_remove().second!!.isNotEmpty()){
                         date_layout_checkLong = layout_remove().second!!
                         Log.d("데이터갯수11", date_layout_checkLong.toString())
                     }
@@ -206,17 +215,18 @@ class MainActivity : AppCompatActivity(), layout_remove {
                         diarylist.removeAt(remove_layout_checkInt[i]) // remove_layout_checkInt는 아이템 롱클릭시 받아와지는 포지션값.
                         binding.mainRecylerview.adapter?.notifyItemRemoved(remove_layout_checkInt[i])
                         binding.mainRecylerview.adapter?.notifyItemRangeChanged(remove_layout_checkInt[i], diarylist.size)
-                        binding.mainRecylerview.adapter?.notifyDataSetChanged()
-                        Log.d("삭제파일은", remove_layout_checkInt[i].toString())
+                        Log.d("사이즈삭제파일은", remove_layout_checkInt[i].toString())
                     }
 
-                    CoroutineScope(Dispatchers.IO).launch {// 이건 상관없는 코드입니다.
+                    binding.mainRecylerview.adapter?.notifyDataSetChanged()
+
+                    CoroutineScope(Dispatchers.IO).launch {
                         for(i in date_layout_checkLong.indices){
                             Log.d("데이터갯수22", date_layout_checkLong.toString())
                             Log.d("없애는데이터", date_layout_checkLong[i].toString())
                             db.RoomDao().DeletedateDao(date_layout_checkLong[i])
                         }
-                        layout_remove_position_check(1024)// 이건 상관없는 코드입니다.
+                        layout_remove_position_check(1024)
                         Log.d("실행됨", "실행")
                         diary_btn_change = 0
                     }
@@ -231,21 +241,23 @@ class MainActivity : AppCompatActivity(), layout_remove {
 
         binding.mainSettingNavi.setNavigationItemSelectedListener {
             when(it.itemId){
-                R.id.navi_shortcuts ->{false}
-                R.id.navi_password -> {
+                R.id.navi_shortcuts ->{
+                return@setNavigationItemSelectedListener true}
+                R.id.navi_diary_lock -> {
                     var intent = Intent(this, password::class.java)
                     intent.putExtra("비밀번호 설정", "비밀번호 설정")
                     startActivity(intent)
                 return@setNavigationItemSelectedListener true}
-                R.id.navi_tema_change ->{false}
-                R.id.navi_dark_mode -> {
-                    binding.drawerSetting.setBackgroundColor(Color.parseColor("#F5201F1F"))
+                R.id.navi_tema_change -> { //배경을 바꾸면 다크모드 토글버튼 터치못하게, 다크모드시 배경 토글버튼 터치 못하게하기.
                     return@setNavigationItemSelectedListener true
                 }
-                R.id.navi_tag ->{false}
-                R.id.google_drive ->{false}
-                R.id.explanation -> {false}
-                R.id.data_clear-> {false}
+                R.id.navi_tag ->{
+                    var intent = Intent(this, tag_setting::class.java)
+                    intent.putExtra("태그 설정", taglist_array)
+                    startActivity(intent)
+                    return@setNavigationItemSelectedListener true}
+                R.id.navi_data ->{false}
+                R.id.explanation -> {false} //이미지들 스크린샷찍어서 설명하기.
                 else ->{false}
             }
         }

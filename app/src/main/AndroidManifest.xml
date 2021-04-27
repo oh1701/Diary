@@ -24,7 +24,10 @@
         android:roundIcon="@mipmap/ic_launcher_imsi"
         android:supportsRtl="true"
         android:theme="@style/Theme.Diary_project">
-        <activity android:name=".password"></activity>
+        <activity android:name=".tag_setting"></activity>
+        <activity android:name=".data_remove_add" />
+        <activity android:name=".short_cuts" />
+        <activity android:name=".password" />
         <activity android:name=".font_license" />
         <!--
 android:allowBackup="false" 이게 true로 할시데이터 백업해준다.

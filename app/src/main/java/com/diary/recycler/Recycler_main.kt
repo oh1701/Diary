@@ -31,11 +31,14 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText) :
         return position
     }
 
-    override fun setHasStableIds(hasStableIds: Boolean) {
-        super.setHasStableIds(true)
-    }
-
     override fun onBindViewHolder(holder: Recycler_main.ViewHolder, position: Int) {
+        holder.photo.setImageBitmap(null)
+        holder.photo2.setImageBitmap(null)
+        holder.photo3.setImageBitmap(null)
+        holder.photo4.setImageBitmap(null)
+        holder.date.setText(null)
+        holder.title.setText(null)
+        holder.content.setText(null)
 
         holder.title.apply {
             text = diary_list[position].title
@@ -53,11 +56,6 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText) :
                 visibility = View.VISIBLE
             }
         }
-
-        holder.photo.setImageBitmap(null)
-        holder.photo2.setImageBitmap(null)
-        holder.photo3.setImageBitmap(null)
-        holder.photo4.setImageBitmap(null)
 
         if(diary_list[position].imageuri.isNotEmpty()) { //OnBindViewHolder에서 이미지 uri 존재할시 포지션 photo에 uri를 넣어주는 코드입니다.
             //interface를 사용합니다.

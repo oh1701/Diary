@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".tag_setting"
+    android:orientation="vertical"
+    android:weightSum="16"
+    android:background="#EDEDED">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="15">
+
+        <LinearLayout
+            android:id="@+id/shortcuts_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintWidth_percent="0.9"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:background="@drawable/layout_white"
+            android:layout_marginTop="10dp">
+
+            <TextView
+                android:id="@+id/tag_size"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="15dp"
+                android:autoSizeMaxTextSize="18sp"
+                android:autoSizeMinTextSize="16sp"
+                android:autoSizeTextType="uniform"
+                android:gravity="center"
+                android:text="현재까지 작성한 태그의 갯수 : ?"
+                android:textSize="18sp"
+                android:typeface="serif" />
+
+        </LinearLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/tag_setting_recycler"
+
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+
+            app:layout_constraintWidth_percent="0.9"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/shortcuts_layout"
+
+            android:layout_marginTop="15dp"/>
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</LinearLayout>

@@ -11,46 +11,29 @@
             <menu>
                 <item
                     android:id="@+id/navi_shortcuts"
-                    android:title="단축키 설정"/>
+                    android:title="단축키" />
 
                <item
-                    android:id="@+id/navi_password"
-                    android:title="비밀번호 등록"/>
+                    android:id="@+id/navi_diary_lock"
+                    android:title="일기 잠그기"/>
 
                 <item
                     android:id="@+id/navi_tema_change"
-                    android:title="배경색 지정"/>
-
-                <item
-                    android:id="@+id/navi_dark_mode"
-                    android:title="다크모드"/>
+                    android:title="배경 및 다크 모드"/>
 
                 <item
                     android:id="@+id/navi_tag"
                     android:title="사용한 태그"/>
 
-            </menu>
-
-        </item>
-        <item
-            android:id="@+id/navi_data"
-            android:title="[ 기타 ]">
-            <menu>
                 <item
-                    android:id="@+id/google_drive"
-                    android:title="데이터 백업 / 복원"/>
+                    android:id="@+id/navi_data"
+                    android:title="데이터"/>
 
                 <item
                     android:id="@+id/explanation"
                     android:title="사용 설명서"/>
 
-                <item
-                    android:id="@+id/data_clear"
-                    android:title="데이터 초기화"/>
-
             </menu>
-
-
         </item>
     </group>
 
