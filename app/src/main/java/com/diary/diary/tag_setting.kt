@@ -6,12 +6,15 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.diary.diary.databinding.ActivityShortCutsBinding
 import com.diary.diary.databinding.ActivityTagSettingBinding
 
 class tag_setting : AppCompatActivity() {
     lateinit var binding:ActivityTagSettingBinding
+    var tag_array:ArrayList<taglist> = arrayListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,12 +25,15 @@ class tag_setting : AppCompatActivity() {
         if(!dd.isNullOrEmpty()) {
             for (i in dd.indices){
                 Log.d("태그는", dd[i].toString())
+                tag_array.add(taglist(dd[i].toString()))
             }
         }
 
-        binding.tagSize.setText("현재까지 작성한 태그의 갯수 : ${dd?.size}")
 
-        binding.tagSettingRecycler
+        binding.tagSize.setText("현재까지 작성한 태그의 갯수 : ${dd?.size}")
+        binding.tagSettingRecycler.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        binding.tagSettingRecycler.setHasFixedSize(true)
+        binding.tagSettingRecycler.adapter = tagRecycler(tag_array)
     }
 }
 
@@ -39,6 +45,7 @@ class tagRecycler(val tagsettinglist:ArrayList<taglist>): RecyclerView.Adapter<t
     }
 
     override fun onBindViewHolder(holder: tagRecycler.ViewHolder, position: Int) {
+        holder.tag.setText("# ${tagsettinglist[position].dd}")
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -50,7 +57,7 @@ class tagRecycler(val tagsettinglist:ArrayList<taglist>): RecyclerView.Adapter<t
     }
 
     class ViewHolder(itemView: View):RecyclerView.ViewHolder(itemView){
-
+        var tag = itemView.findViewById<TextView>(R.id.tag_text_recycler)
     }
 }
 

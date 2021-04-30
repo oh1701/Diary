@@ -1,5 +1,6 @@
 package com.diary.diary
 
+import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.*
@@ -23,6 +24,8 @@ import com.diary.recycler.Recycler_main
 import com.diary.recycler.list
 import com.google.gson.Gson
 import kotlinx.coroutines.*
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 // 스플래쉬 화면 -> (비밀번호 걸려있을시) 비밀번호 -> Intent main 이동 .
@@ -103,6 +106,18 @@ class MainActivity : AppCompatActivity(), layout_remove {
     var date_layout_checkLong:ArrayList<Long> = arrayListOf()
     var taglist_array:ArrayList<String> = arrayListOf()
 
+    val cal = Calendar.getInstance()
+
+    var calendar_year = cal.get(Calendar.YEAR)
+    var calendar_month = cal.get(Calendar.MONTH) + 1
+    var monthstring = calendar_month.toString()
+
+    var year_save = 0
+    var month_save = 0
+    var day_save = 0
+    var search_calendar_min:Long = 1
+    var search_calendar_max:Long = 1
+
     companion object{
         lateinit var viewModel:Recylcerviewmodel
     }
@@ -115,12 +130,32 @@ class MainActivity : AppCompatActivity(), layout_remove {
         viewModel = ViewModelProvider(this).get(Recylcerviewmodel::class.java)
         binding.recylcerviewmodel = viewModel
 
+        var two_year = calendar_year.toString().substring(2)
         binding.mainRecylerview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        binding.maintitle.setText("${two_year}년 ${calendar_month}월의 추억")
 
         db = Room.databaseBuilder(
                 applicationContext, RoomdiaryDB::class.java, "RoomDB"
         )
                 .build()
+
+        if(calendar_month < 10)
+            monthstring = "0$calendar_month"
+
+        coroutine()
+        alldiary()
+        setting()
+        viewobserve()
+        titlecalendar()
+    }
+
+    private fun coroutine(){
+
+        search_calendar_min = "${calendar_year}${monthstring}00000000".toLong()
+        search_calendar_max = "${calendar_year}${monthstring}99999999".toLong()
+
+        Log.d("서치", search_calendar_min.toString())
+        Log.d("서치", search_calendar_max.toString())
 
         CoroutineScope(Dispatchers.IO).launch { // Room DB는 mainthread에서 못가져온다.
             CoroutineScope(Dispatchers.IO).launch {
@@ -138,37 +173,46 @@ class MainActivity : AppCompatActivity(), layout_remove {
                     }
 
 
-                        for (i in datearray.indices) {
-                            for(j in i until datearray.size){
-                                if(datearray[i] > datearray[j]){
-                                    var date = datearray[i]
-                                    datearray[i] = datearray[j]
-                                    datearray[j] = date
-                                }
+                    for (i in datearray.indices) {
+                        for (j in i until datearray.size) {
+                            if (datearray[i] > datearray[j]) {
+                                var date = datearray[i]
+                                datearray[i] = datearray[j]
+                                datearray[j] = date
                             }
                         }
+                    }
 
+                    for(i in datearray.indices){
+                        if(datearray[i] in search_calendar_min..search_calendar_max){
+                            continue
+                        }
+                        else{
+                            datearray.removeAt(i)
+                        }
+                    }
+
+                    Log.d("서치데이트", datearray.toString())
                     for (i in datearray.size - 1 downTo 0) { // 설정한 날짜에 맞춰 최신것이 가장 위로 올라오게 만들기.
-                                var date_room = db.RoomDao().getAllfordateLong(datearray[i])
-                                val id: Int = date_room.id
-                                val title: String = date_room.title
-                                var content: String = date_room.content
-                                val font:String = date_room.edit_font
-                                val uri = date_room.uri_string_array
-                                val editstr = date_room.edit_string_array
-                                val date_daytoweek = date_room.date_daytofweek
-                                val daytoweek = date_room.daytoweek
+                        var date_room = db.RoomDao().getAllfordateLong(datearray[i])
+                        val id: Int = date_room.id
+                        val title: String = date_room.title
+                        var content: String = date_room.content
+                        val font:String = date_room.edit_font
+                        val uri = date_room.uri_string_array
+                        val editstr = date_room.edit_string_array
+                        val date_daytoweek = date_room.date_daytofweek
+                        val daytoweek = date_room.daytoweek
 
-                                if(editstr.isNotEmpty()){
-                                    for(e in editstr.indices) {
-                                        content += editstr[e] //Edit_array에 내용이 존재할경우 리사이클러뷰에는 내용이 모두 추가가 되어 보여짐.
-                                    }
-                                }
-                                d++
-                                diarylist.add(list(id, title, content, uri, font, date_daytoweek, daytoweek, datearray[i]))
+                        if(editstr.isNotEmpty()){
+                            for(e in editstr.indices) {
+                                content += editstr[e] //Edit_array에 내용이 존재할경우 리사이클러뷰에는 내용이 모두 추가가 되어 보여짐.
+                            }
+                        }
+                        d++
+                        diarylist.add(list(id, title, content, uri, font, date_daytoweek, daytoweek, datearray[i]))
 
-                                Log.d("확인", "사진 갯수, $uri")
-                                Log.d("i는", "${datearray[i]}, $i 는 ${room[i]}, $i 다")
+                        Log.d("확인", "사진 갯수, $uri")
                     }
                 }
 
@@ -183,7 +227,85 @@ class MainActivity : AppCompatActivity(), layout_remove {
                 Log.d("사이즈", diarylist.size.toString())
             }
         }
+    }
 
+    private fun titlecalendar(){
+        binding.maintitle.setOnClickListener {
+            val today = GregorianCalendar()
+            val year: Int = if (year_save == 0) {
+                today.get(Calendar.YEAR)
+            } else {
+                year_save
+            }
+            val month: Int = if(month_save == 0){
+                today.get(Calendar.MONTH)
+            }
+            else{
+                month_save
+            }
+            val date: Int = if(day_save == 0) {
+                today.get(Calendar.DATE)
+            }
+            else{
+                day_save
+            }
+
+            val dlg = DatePickerDialog(this, object : DatePickerDialog.OnDateSetListener {
+                override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
+                    year_save = year
+                    month_save = month
+                    day_save = dayOfMonth
+
+                    calendar_year = year
+                    calendar_month = month + 1
+
+                    Log.d("서치선택", calendar_year.toString())
+                    Log.d("서치선택", calendar_month.toString())
+
+                    var two_year = year.toString().substring(2)
+                    binding.maintitle.setText("${two_year}년 ${month + 1}월의 추억")
+
+                    diarylist.removeAll(diarylist)
+                    binding.mainRecylerview.adapter?.notifyItemRangeRemoved(0, diarylist.size)
+                    binding.mainRecylerview.adapter?.notifyDataSetChanged()
+                    coroutine()
+                }
+            }, year, month, date)
+            dlg.show()
+
+        }
+    }
+
+    private fun setting(){
+        binding.setting.setOnClickListener {
+            binding.drawerSetting.openDrawer(GravityCompat.START)
+        }
+
+        binding.mainSettingNavi.setNavigationItemSelectedListener {
+            when(it.itemId){
+                R.id.navi_shortcuts ->{
+                    return@setNavigationItemSelectedListener true}
+                R.id.navi_diary_lock -> {
+                    var intent = Intent(this, password::class.java)
+                    intent.putExtra("비밀번호 설정", "비밀번호 설정")
+                    startActivity(intent)
+                    return@setNavigationItemSelectedListener true}
+                R.id.navi_tema_change -> { //배경을 바꾸면 다크모드 토글버튼 터치못하게, 다크모드시 배경 토글버튼 터치 못하게하기.
+                    return@setNavigationItemSelectedListener true
+                }
+                R.id.navi_tag ->{
+                    var intent = Intent(this, tag_setting::class.java)
+                    intent.putExtra("태그 설정", taglist_array)
+                    startActivity(intent)
+                    return@setNavigationItemSelectedListener true}
+                R.id.navi_data ->{false}
+                R.id.explanation -> {false} //이미지들 스크린샷찍어서 설명하기.
+                else ->{false}
+            }
+        }
+    }
+
+    private fun alldiary(){
         binding.allDiary.setOnClickListener {
             if(diary_btn_change == 0) {
                 var intent = Intent(this, Content_create::class.java)
@@ -234,35 +356,6 @@ class MainActivity : AppCompatActivity(), layout_remove {
                 }
             }
         }
-
-        binding.setting.setOnClickListener {
-            binding.drawerSetting.openDrawer(GravityCompat.START)
-        }
-
-        binding.mainSettingNavi.setNavigationItemSelectedListener {
-            when(it.itemId){
-                R.id.navi_shortcuts ->{
-                return@setNavigationItemSelectedListener true}
-                R.id.navi_diary_lock -> {
-                    var intent = Intent(this, password::class.java)
-                    intent.putExtra("비밀번호 설정", "비밀번호 설정")
-                    startActivity(intent)
-                return@setNavigationItemSelectedListener true}
-                R.id.navi_tema_change -> { //배경을 바꾸면 다크모드 토글버튼 터치못하게, 다크모드시 배경 토글버튼 터치 못하게하기.
-                    return@setNavigationItemSelectedListener true
-                }
-                R.id.navi_tag ->{
-                    var intent = Intent(this, tag_setting::class.java)
-                    intent.putExtra("태그 설정", taglist_array)
-                    startActivity(intent)
-                    return@setNavigationItemSelectedListener true}
-                R.id.navi_data ->{false}
-                R.id.explanation -> {false} //이미지들 스크린샷찍어서 설명하기.
-                else ->{false}
-            }
-        }
-
-        viewobserve()
     }
 
     override fun onBackPressed() {
