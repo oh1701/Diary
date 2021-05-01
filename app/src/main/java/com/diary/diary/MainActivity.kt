@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.*
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -95,31 +96,32 @@ class Recylcerviewmodel:ViewModel(){
 
 class MainActivity : AppCompatActivity(), layout_remove {
     lateinit var binding: ActivityMainBinding
-    var diarylist: ArrayList<list> = arrayListOf() //이거 이미지도 추가하기.
+    var diarylist: ArrayList<list> = arrayListOf() //이미지도 추가하기.
     lateinit var db: RoomdiaryDB
     lateinit var room:List<Diaryroom>
 
-    var datearray:ArrayList<Long> = arrayListOf()
+    var datearray:ArrayList<Long> = arrayListOf() // 날짜 저장용
+    
     var diary_btn_change = 0
 
     var remove_layout_checkInt:ArrayList<Int> = arrayListOf()
     var date_layout_checkLong:ArrayList<Long> = arrayListOf()
     var taglist_array:ArrayList<String> = arrayListOf()
 
-    val cal = Calendar.getInstance()
-
-    var calendar_year = cal.get(Calendar.YEAR)
-    var calendar_month = cal.get(Calendar.MONTH) + 1
-    var monthstring = calendar_month.toString()
-
-    var year_save = 0
-    var month_save = 0
-    var day_save = 0
-    var search_calendar_min:Long = 1
-    var search_calendar_max:Long = 1
-
     companion object{
         lateinit var viewModel:Recylcerviewmodel
+
+        val cal = Calendar.getInstance() // 날짜
+
+        var calendar_year = cal.get(Calendar.YEAR)
+        var calendar_month = cal.get(Calendar.MONTH) + 1
+        var monthstring = calendar_month.toString()
+
+        var year_save = 0
+        var month_save = 0
+        var day_save = 0
+        var search_calendar_min:Long = 1
+        var search_calendar_max:Long = 1
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -150,12 +152,14 @@ class MainActivity : AppCompatActivity(), layout_remove {
     }
 
     private fun coroutine(){
+        if(calendar_month < 10)
+            monthstring = "0$calendar_month"
 
         search_calendar_min = "${calendar_year}${monthstring}00000000".toLong()
         search_calendar_max = "${calendar_year}${monthstring}99999999".toLong()
 
-        Log.d("서치", search_calendar_min.toString())
-        Log.d("서치", search_calendar_max.toString())
+        Log.d("날짜", search_calendar_max.toString())
+        Log.d("날짜", search_calendar_min.toString())
 
         CoroutineScope(Dispatchers.IO).launch { // Room DB는 mainthread에서 못가져온다.
             CoroutineScope(Dispatchers.IO).launch {
@@ -165,13 +169,12 @@ class MainActivity : AppCompatActivity(), layout_remove {
 
                     for (i in room.indices) {
                         datearray.add(room[i].dateLong)
-                        if(room[i].taglist.isNotEmpty()) {
+                        if (room[i].taglist.isNotEmpty()) {
                             for (j in room[i].taglist.indices) {
                                 taglist_array.add(room[i].taglist[j])
                             }
                         }
                     }
-
 
                     for (i in datearray.indices) {
                         for (j in i until datearray.size) {
@@ -183,36 +186,45 @@ class MainActivity : AppCompatActivity(), layout_remove {
                         }
                     }
 
-                    for(i in datearray.indices){
-                        if(datearray[i] in search_calendar_min..search_calendar_max){
+                    for (i in datearray.size-1 downTo 0) {
+                        if (datearray[i] in search_calendar_min..search_calendar_max) {
                             continue
-                        }
-                        else{
+                        } else {
                             datearray.removeAt(i)
                         }
                     }
 
-                    Log.d("서치데이트", datearray.toString())
-                    for (i in datearray.size - 1 downTo 0) { // 설정한 날짜에 맞춰 최신것이 가장 위로 올라오게 만들기.
-                        var date_room = db.RoomDao().getAllfordateLong(datearray[i])
-                        val id: Int = date_room.id
-                        val title: String = date_room.title
-                        var content: String = date_room.content
-                        val font:String = date_room.edit_font
-                        val uri = date_room.uri_string_array
-                        val editstr = date_room.edit_string_array
-                        val date_daytoweek = date_room.date_daytofweek
-                        val daytoweek = date_room.daytoweek
+                    if (datearray.isNotEmpty()) {
+                        for (i in datearray.size - 1 downTo 0) { // 설정한 날짜에 맞춰 최신것이 가장 위로 올라오게 만들기.
+                            var date_room = db.RoomDao().getAllfordateLong(datearray[i])
+                            val id: Int = date_room.id
+                            val title: String = date_room.title
+                            var content: String = date_room.content
+                            val font: String = date_room.edit_font
+                            val uri = date_room.uri_string_array
+                            val editstr = date_room.edit_string_array
+                            val date_daytoweek = date_room.date_daytofweek
+                            val daytoweek = date_room.daytoweek
 
-                        if(editstr.isNotEmpty()){
-                            for(e in editstr.indices) {
-                                content += editstr[e] //Edit_array에 내용이 존재할경우 리사이클러뷰에는 내용이 모두 추가가 되어 보여짐.
+                            if (editstr.isNotEmpty()) {
+                                for (e in editstr.indices) {
+                                    content += editstr[e] //Edit_array에 내용이 존재할경우 리사이클러뷰에는 내용이 모두 추가가 되어 보여짐.
+                                }
                             }
+                            d++
+                            diarylist.add(list(id, title, content, uri, font, date_daytoweek, daytoweek, datearray[i]))
+                            Log.d("확인", "사진 갯수, $uri")
                         }
-                        d++
-                        diarylist.add(list(id, title, content, uri, font, date_daytoweek, daytoweek, datearray[i]))
-
-                        Log.d("확인", "사진 갯수, $uri")
+                        CoroutineScope(Dispatchers.Main).launch {
+                            binding.noSearch.setText("$monthstring 월의 내용이 존재하지 않습니다.")
+                            binding.noSearch.visibility = View.GONE
+                        }
+                    }
+                    else{
+                        CoroutineScope(Dispatchers.Main).launch {
+                            binding.noSearch.setText("$monthstring 월의 내용이 존재하지 않습니다.")
+                            binding.noSearch.visibility = View.VISIBLE
+                        }
                     }
                 }
 
@@ -252,6 +264,7 @@ class MainActivity : AppCompatActivity(), layout_remove {
 
             val dlg = DatePickerDialog(this, object : DatePickerDialog.OnDateSetListener {
                 override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
+
                     year_save = year
                     month_save = month
                     day_save = dayOfMonth
@@ -266,6 +279,7 @@ class MainActivity : AppCompatActivity(), layout_remove {
                     binding.maintitle.setText("${two_year}년 ${month + 1}월의 추억")
 
                     diarylist.removeAll(diarylist)
+                    datearray.removeAll(datearray)
                     binding.mainRecylerview.adapter?.notifyItemRangeRemoved(0, diarylist.size)
                     binding.mainRecylerview.adapter?.notifyDataSetChanged()
                     coroutine()

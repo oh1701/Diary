@@ -1,6 +1,7 @@
 package com.diary.diary
 
 import android.R.attr
+import android.app.DatePickerDialog
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
@@ -122,9 +123,9 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
     val cal = Calendar.getInstance()
 
-    val year = cal.get(Calendar.YEAR)
-    val month = cal.get(Calendar.MONTH) + 1
-    val day = cal.get(Calendar.DATE)
+    var year = cal.get(Calendar.YEAR)
+    var month = cal.get(Calendar.MONTH) + 1
+    var day = cal.get(Calendar.DATE)
     val dayOfWeek = cal.get(Calendar.DAY_OF_WEEK)
 
     val hour = cal.get(Calendar.HOUR_OF_DAY)
@@ -183,8 +184,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
         binding.FlexRecycler.setHasFixedSize(true)
         binding.FlexRecycler.adapter = Recycler_tag(tag_array)
 
-        val nowday = LocalDate.now()
-        binding.contentDate.text = nowday.toString()
+        binding.contentDate.setText("${year}년, ${month}월 ${day}일")
 
         recy = binding.FlexRecycler
         metrics = resources.displayMetrics
@@ -1133,6 +1133,25 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                 startActivity(intent)
             }
         } //x 버튼 적용 끝
+        
+        binding.contentDate.setOnClickListener {
+            val today = GregorianCalendar()
+            val year: Int = today.get(Calendar.YEAR)
+            val month: Int = today.get(Calendar.MONTH)
+            val date: Int = today.get(Calendar.DATE)
+
+            val dlg = DatePickerDialog(this, object : DatePickerDialog.OnDateSetListener {
+                override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
+                    binding.contentDate.setText("${year}년, ${month + 1}월 ${dayOfMonth}일")
+
+                    this@Content_create.year = year
+                    this@Content_create.month = month + 1
+                    this@Content_create.day = dayOfMonth
+                }
+            }, year, month, date)
+            dlg.show()
+
+        }
     }
 
 
