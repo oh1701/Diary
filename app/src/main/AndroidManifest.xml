@@ -11,6 +11,7 @@
     <uses-permission
         android:name="android.permission.MANAGE_DOCUMENTS"
         tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.VIBRATE"/>
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -28,7 +29,6 @@
         <activity android:name=".data_remove_add" />
         <activity android:name=".short_cuts" />
         <activity android:name=".password" />
-        <activity android:name=".font_license" />
         <!--
 android:allowBackup="false" 이게 true로 할시데이터 백업해준다.
 android:fullBackupContent="false"

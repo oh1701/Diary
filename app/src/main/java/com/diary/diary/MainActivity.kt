@@ -1,11 +1,14 @@
 package com.diary.diary
 
+import android.app.AlertDialog
 import android.app.DatePickerDialog
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.*
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -280,6 +283,7 @@ class MainActivity : AppCompatActivity(), layout_remove {
 
                     diarylist.removeAll(diarylist)
                     datearray.removeAll(datearray)
+                    taglist_array.removeAll(taglist_array)
                     binding.mainRecylerview.adapter?.notifyItemRangeRemoved(0, diarylist.size)
                     binding.mainRecylerview.adapter?.notifyDataSetChanged()
                     coroutine()
@@ -305,14 +309,18 @@ class MainActivity : AppCompatActivity(), layout_remove {
                     startActivity(intent)
                     return@setNavigationItemSelectedListener true}
                 R.id.navi_tema_change -> { //배경을 바꾸면 다크모드 토글버튼 터치못하게, 다크모드시 배경 토글버튼 터치 못하게하기.
-                    return@setNavigationItemSelectedListener true
+                    //혹은 하나 터치시 자동으로 다른것 풀리게 만들기.
+                        return@setNavigationItemSelectedListener true
+
                 }
                 R.id.navi_tag ->{
                     var intent = Intent(this, tag_setting::class.java)
                     intent.putExtra("태그 설정", taglist_array)
                     startActivity(intent)
                     return@setNavigationItemSelectedListener true}
-                R.id.navi_data ->{false}
+                R.id.navi_data ->{false
+                //intent로 액티비티 만든곳에 구글 드라이브 복원 및 백업 구현하고 데이터 초기화 누를시 모든 리사이클러뷰, room 데이터 삭제시키기.
+                }
                 R.id.explanation -> {false} //이미지들 스크린샷찍어서 설명하기.
                 else ->{false}
             }

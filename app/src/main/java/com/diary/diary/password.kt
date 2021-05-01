@@ -1,7 +1,10 @@
 package com.diary.diary
 
+import android.content.Context
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Vibrator
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
@@ -80,9 +83,9 @@ class password : AppCompatActivity() {
                     3 -> binding.passImage3.setBackgroundResource(R.drawable.password_noinput)
                     4 -> binding.passImage4.setBackgroundResource(R.drawable.password_noinput)
                 }
-                if(passwordarray.size < 4)
+                if(passwordarray.size < 4 && passwordarray.size != 0)
                     passwordarray.removeAt(passwordarray.size - 1)
-                else if(intent.hasExtra("비밀번호 설정")) {
+                else if(intent.hasExtra("비밀번호 설정") && password_check_array.size != 0) {
                         when (password_check_array.size) {
                             1 -> binding.passImage1.setBackgroundResource(R.drawable.password_noinput)
                             2 -> binding.passImage2.setBackgroundResource(R.drawable.password_noinput)
@@ -126,6 +129,7 @@ class password : AppCompatActivity() {
     }
 
     fun password_check(int:Int){
+        var vibrator:Vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         if(password_check_array.size < 4) {
             password_check_array.add(int)
             when(password_check_array.size){
@@ -139,13 +143,23 @@ class password : AppCompatActivity() {
         if(password_check_array.size == 4) {
             for (i in passwordarray.indices) {
                 if (password_check_array[i] != passwordarray[i]) {
-                    if(toast == null)
-                        toast = Toast.makeText(this, "비밀번호가 다릅니다.", Toast.LENGTH_SHORT)
+                    if(toast == null) {
+                        toast = Toast.makeText(this, "비밀번호가 일치하지 않습니다.", Toast.LENGTH_SHORT)
+                        vibrator.vibrate(500)
+                    }
                     else {
                         toast!!.cancel()
-                        toast = Toast.makeText(this, "비밀번호가 다릅니다.", Toast.LENGTH_SHORT)
+                        toast = Toast.makeText(this, "비밀번호가 일치하지 않습니다.", Toast.LENGTH_SHORT)
+                        vibrator.vibrate(500)
                     }
                     toast!!.show()
+                    binding.passImage1.setBackgroundResource(R.drawable.password_noinput)
+                    binding.passImage2.setBackgroundResource(R.drawable.password_noinput)
+                    binding.passImage3.setBackgroundResource(R.drawable.password_noinput)
+                    binding.passImage4.setBackgroundResource(R.drawable.password_noinput)
+                    password_check_array.removeAll(password_check_array)
+                    binding.passwordCheck.setText("비밀번호를 다시 입력해주세요.")
+                    binding.passwordCheck.setTextColor(Color.parseColor("#0E4181"))
                     break
                 }
                 else{
