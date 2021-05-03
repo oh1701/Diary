@@ -386,7 +386,9 @@
 
                             android:textColorHint="#858585"
                             android:textSize="14sp"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            android:autoSizeTextType="uniform"
+                            android:autoSizeMaxTextSize="14sp"/>
                     </LinearLayout>
 
                 </LinearLayout>

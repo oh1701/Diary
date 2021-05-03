@@ -9,11 +9,13 @@ import android.graphics.*
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.GravityCompat
+import androidx.databinding.BindingAdapter
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -51,7 +53,8 @@ data class Diaryroom(//id, 날짜, 제목, 내용, 태그, 이미지uri, 에딧t
         @ColumnInfo(name = "dateLong") val dateLong:Long,
         @ColumnInfo(name = "date_daytofweek") val date_daytofweek:String,
         @ColumnInfo(name = "daytoweek") val daytoweek:String,
-        @ColumnInfo(name = "taglist") val taglist:List<String>
+        @ColumnInfo(name = "taglist") val taglist:List<String>,
+        @ColumnInfo(name = "allcontent") val allcontent:String
 )
 
 class Imagelist {
@@ -93,17 +96,30 @@ abstract class RoomdiaryDB:RoomDatabase(){
 
 class Recylcerviewmodel:ViewModel(){
     var longclick_observe = MutableLiveData<String>()
+    var titleClick = MutableLiveData<String>()
+    var settingClick = MutableLiveData<String>()
+    var alldiaryClick = MutableLiveData<String>()
 
     fun longClick() = longclick_observe
+    fun titleClick() {
+        titleClick.value = ""
+    }
+
+    fun settingClick(){
+        settingClick.value = ""
+    }
+
+    fun alldiaryClick(){
+        alldiaryClick.value = ""
+    }
 }
 
 class MainActivity : AppCompatActivity(), layout_remove {
     lateinit var binding: ActivityMainBinding
-    var diarylist: ArrayList<list> = arrayListOf() //이미지도 추가하기.
     lateinit var db: RoomdiaryDB
-    lateinit var room:List<Diaryroom>
 
     var datearray:ArrayList<Long> = arrayListOf() // 날짜 저장용
+    var diarylist: ArrayList<list> = arrayListOf() //이미지도 추가하기.
     
     var diary_btn_change = 0
 
@@ -113,6 +129,7 @@ class MainActivity : AppCompatActivity(), layout_remove {
 
     companion object{
         lateinit var viewModel:Recylcerviewmodel
+        lateinit var room:List<Diaryroom>
 
         val cal = Calendar.getInstance() // 날짜
 
@@ -125,6 +142,8 @@ class MainActivity : AppCompatActivity(), layout_remove {
         var day_save = 0
         var search_calendar_min:Long = 1
         var search_calendar_max:Long = 1
+
+        var roomcheck = false
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -147,11 +166,60 @@ class MainActivity : AppCompatActivity(), layout_remove {
         if(calendar_month < 10)
             monthstring = "0$calendar_month"
 
+        binding.searchDiary.setOnClickListener {
+            if(diary_btn_change == 0) {
+                var intent = Intent(this, search_diary::class.java)
+                startActivity(intent)
+            }
+            else{
+                    if(layout_remove().first != null){ //내용물이 가장 큰것이 마지막 배열로 가게 정렬
+                        remove_layout_checkInt = layout_remove().first!!  //인터페이스에서 return ArrayList<Int> 입니다.
+                        for(i in 0 until remove_layout_checkInt.size){ // 포지션값의 크기에 따라 작은것 -> 큰것순으로 정렬하는 코드
+                            var imsi = 0
+                            for(j in i until remove_layout_checkInt.size){
+                                if (remove_layout_checkInt[i] > remove_layout_checkInt[j]) {
+                                    imsi = remove_layout_checkInt[j]
+                                    remove_layout_checkInt[j] = remove_layout_checkInt[i]
+                                    remove_layout_checkInt[i] = imsi
+                                    Log.d("사이즈정렬중 i", remove_layout_checkInt[i].toString())
+                                    Log.d("사이즈정렬중 j", remove_layout_checkInt[j].toString())
+                                }
+                            }
+                            Log.d("사이즈정렬후", remove_layout_checkInt.toString())
+                        }
+
+                        if(layout_remove().second!!.isNotEmpty()){
+                            date_layout_checkLong = layout_remove().second!!
+                            Log.d("데이터갯수11", date_layout_checkLong.toString())
+                        }
+
+                        for(i in remove_layout_checkInt.size - 1 downTo 0){ // downto로 안하면 작은것부터 삭제 후 큰것삭제하는데, 작은것이 삭제되었을경우 사이즈가 줄어들어 큰 숫자가 안들어가지는 상황이 있어. 오류가 발생함.
+                            diarylist.removeAt(remove_layout_checkInt[i]) // remove_layout_checkInt는 아이템 롱클릭시 받아와지는 포지션값.
+                            binding.mainRecylerview.adapter?.notifyItemRemoved(remove_layout_checkInt[i])
+                            binding.mainRecylerview.adapter?.notifyItemRangeChanged(remove_layout_checkInt[i], diarylist.size)
+                            Log.d("사이즈삭제파일은", remove_layout_checkInt[i].toString())
+                        }
+
+                        binding.mainRecylerview.adapter?.notifyDataSetChanged()
+
+                        CoroutineScope(Dispatchers.IO).launch {
+                            for(i in date_layout_checkLong.indices){
+                                Log.d("데이터갯수22", date_layout_checkLong.toString())
+                                Log.d("없애는데이터", date_layout_checkLong[i].toString())
+                                db.RoomDao().DeletedateDao(date_layout_checkLong[i])
+                            }
+                            layout_remove_position_check(1024)
+                            Log.d("실행됨", "실행")
+                            diary_btn_change = 0
+                        }
+
+                    }
+            }
+        }
         coroutine()
         alldiary()
         setting()
         viewobserve()
-        titlecalendar()
     }
 
     private fun coroutine(){
@@ -168,6 +236,7 @@ class MainActivity : AppCompatActivity(), layout_remove {
             CoroutineScope(Dispatchers.IO).launch {
                 var d = 0
                 if (db.RoomDao().getAll().isNotEmpty()) {
+                    roomcheck = true
                     room = db.RoomDao().getAll()
 
                     for (i in room.indices) {
@@ -219,13 +288,13 @@ class MainActivity : AppCompatActivity(), layout_remove {
                             Log.d("확인", "사진 갯수, $uri")
                         }
                         CoroutineScope(Dispatchers.Main).launch {
-                            binding.noSearch.setText("$monthstring 월의 내용이 존재하지 않습니다.")
+                            binding.noSearch.setText("$monthstring 월의 일기가 존재하지 않습니다.")
                             binding.noSearch.visibility = View.GONE
                         }
                     }
                     else{
                         CoroutineScope(Dispatchers.Main).launch {
-                            binding.noSearch.setText("$monthstring 월의 내용이 존재하지 않습니다.")
+                            binding.noSearch.setText("$monthstring 월의 일기가 존재하지 않습니다.")
                             binding.noSearch.visibility = View.VISIBLE
                         }
                     }
@@ -237,15 +306,72 @@ class MainActivity : AppCompatActivity(), layout_remove {
 
             CoroutineScope(Dispatchers.Main).launch { //Ui 관련이니 Dispachers.main 사용.
                 binding.mainRecylerview.setHasFixedSize(true)
-                binding.mainRecylerview.adapter = Recycler_main(diarylist, binding.shadowText)
+                binding.mainRecylerview.adapter = Recycler_main(diarylist, binding.shadowText, "main")
                 binding.mainRecylerview.adapter?.notifyDataSetChanged()
                 Log.d("사이즈", diarylist.size.toString())
             }
         }
     }
 
-    private fun titlecalendar(){
-        binding.maintitle.setOnClickListener {
+    private fun setting(){
+        binding.mainSettingNavi.setNavigationItemSelectedListener {
+            when(it.itemId){
+                R.id.navi_shortcuts ->{
+                    return@setNavigationItemSelectedListener true}
+                R.id.navi_diary_lock -> {
+                    var intent = Intent(this, password::class.java)
+                    intent.putExtra("비밀번호 설정", "비밀번호 설정")
+                    startActivity(intent)
+                    return@setNavigationItemSelectedListener true}
+                R.id.navi_tema_change -> { //배경을 바꾸면 다크모드 토글버튼 터치못하게, 다크모드시 배경 토글버튼 터치 못하게하기.
+                    //혹은 하나 터치시 자동으로 다른것 풀리게 만들기.
+                        return@setNavigationItemSelectedListener true
+
+                }
+                R.id.navi_tag ->{
+                    var intent = Intent(this, tag_setting::class.java)
+                    intent.putExtra("태그 설정", taglist_array)
+                    startActivity(intent)
+                    return@setNavigationItemSelectedListener true}
+                R.id.navi_data ->{false
+                //intent로 액티비티 만든곳에 구글 드라이브 복원 및 백업 구현하고 데이터 초기화 누를시 모든 리사이클러뷰, room 데이터 삭제시키기.
+                }
+                R.id.explanation -> {false} //이미지들 스크린샷찍어서 설명하기.
+                else ->{false}
+            }
+        }
+    }
+
+    private fun alldiary(){
+        binding.allDiary.setOnTouchListener { v, event ->
+            if(event.action == MotionEvent.ACTION_DOWN) // 버튼에 손을 올렸을 경우
+                binding.allDiary.setBackgroundResource(R.drawable.create_diary_color)
+            else if(event.action == MotionEvent.ACTION_UP){ // 버튼에서 손을 뗏을 경우
+                binding.allDiary.setBackgroundResource(R.drawable.btn_on)
+            }
+            return@setOnTouchListener false
+        }
+    }
+
+    override fun onBackPressed() {
+
+        if(intent.hasExtra("이동")) // 나중에 종료 팝업 만들고, 네비게이션시 네비게이션 닫게 만들기.
+            Log.d("이동함", "이동함")
+        else if(diary_btn_change == 1){
+            diary_btn_change = 0
+            layout_remove_position_check(1024)
+        }
+        else{
+            super.onBackPressed()
+        }
+    }
+
+    private fun viewobserve(){
+        viewModel.longclick_observe.observe(this, {
+            trash_btn()
+        })
+
+        viewModel.titleClick.observe(this, {
             val today = GregorianCalendar()
             val year: Int = if (year_save == 0) {
                 today.get(Calendar.YEAR)
@@ -290,117 +416,20 @@ class MainActivity : AppCompatActivity(), layout_remove {
                 }
             }, year, month, date)
             dlg.show()
+        })
 
-        }
-    }
+        viewModel.settingClick.observe(this, {
+                binding.drawerSetting.openDrawer(GravityCompat.START)
+        })
 
-    private fun setting(){
-        binding.setting.setOnClickListener {
-            binding.drawerSetting.openDrawer(GravityCompat.START)
-        }
-
-        binding.mainSettingNavi.setNavigationItemSelectedListener {
-            when(it.itemId){
-                R.id.navi_shortcuts ->{
-                    return@setNavigationItemSelectedListener true}
-                R.id.navi_diary_lock -> {
-                    var intent = Intent(this, password::class.java)
-                    intent.putExtra("비밀번호 설정", "비밀번호 설정")
-                    startActivity(intent)
-                    return@setNavigationItemSelectedListener true}
-                R.id.navi_tema_change -> { //배경을 바꾸면 다크모드 토글버튼 터치못하게, 다크모드시 배경 토글버튼 터치 못하게하기.
-                    //혹은 하나 터치시 자동으로 다른것 풀리게 만들기.
-                        return@setNavigationItemSelectedListener true
-
-                }
-                R.id.navi_tag ->{
-                    var intent = Intent(this, tag_setting::class.java)
-                    intent.putExtra("태그 설정", taglist_array)
-                    startActivity(intent)
-                    return@setNavigationItemSelectedListener true}
-                R.id.navi_data ->{false
-                //intent로 액티비티 만든곳에 구글 드라이브 복원 및 백업 구현하고 데이터 초기화 누를시 모든 리사이클러뷰, room 데이터 삭제시키기.
-                }
-                R.id.explanation -> {false} //이미지들 스크린샷찍어서 설명하기.
-                else ->{false}
-            }
-        }
-    }
-
-    private fun alldiary(){
-        binding.allDiary.setOnClickListener {
-            if(diary_btn_change == 0) {
+        viewModel.alldiaryClick.observe(this, {
                 var intent = Intent(this, Content_create::class.java)
                 startActivity(intent)
-            }
-            else{
-                if(layout_remove().first != null){ //내용물이 가장 큰것이 마지막 배열로 가게 정렬
-                    remove_layout_checkInt = layout_remove().first!!  //인터페이스에서 return ArrayList<Int> 입니다.
-                    for(i in 0 until remove_layout_checkInt.size){ // 포지션값의 크기에 따라 작은것 -> 큰것순으로 정렬하는 코드
-                        var imsi = 0
-                        for(j in i until remove_layout_checkInt.size){
-                            if (remove_layout_checkInt[i] > remove_layout_checkInt[j]) {
-                                imsi = remove_layout_checkInt[j]
-                                remove_layout_checkInt[j] = remove_layout_checkInt[i]
-                                remove_layout_checkInt[i] = imsi
-                                Log.d("사이즈정렬중 i", remove_layout_checkInt[i].toString())
-                                Log.d("사이즈정렬중 j", remove_layout_checkInt[j].toString())
-                            }
-                        }
-                        Log.d("사이즈정렬후", remove_layout_checkInt.toString())
-                    }
-
-                    if(layout_remove().second!!.isNotEmpty()){
-                        date_layout_checkLong = layout_remove().second!!
-                        Log.d("데이터갯수11", date_layout_checkLong.toString())
-                    }
-
-                    for(i in remove_layout_checkInt.size - 1 downTo 0){ // downto로 안하면 작은것부터 삭제 후 큰것삭제하는데, 작은것이 삭제되었을경우 사이즈가 줄어들어 큰 숫자가 안들어가지는 상황이 있어. 오류가 발생함.
-                        diarylist.removeAt(remove_layout_checkInt[i]) // remove_layout_checkInt는 아이템 롱클릭시 받아와지는 포지션값.
-                        binding.mainRecylerview.adapter?.notifyItemRemoved(remove_layout_checkInt[i])
-                        binding.mainRecylerview.adapter?.notifyItemRangeChanged(remove_layout_checkInt[i], diarylist.size)
-                        Log.d("사이즈삭제파일은", remove_layout_checkInt[i].toString())
-                    }
-
-                    binding.mainRecylerview.adapter?.notifyDataSetChanged()
-
-                    CoroutineScope(Dispatchers.IO).launch {
-                        for(i in date_layout_checkLong.indices){
-                            Log.d("데이터갯수22", date_layout_checkLong.toString())
-                            Log.d("없애는데이터", date_layout_checkLong[i].toString())
-                            db.RoomDao().DeletedateDao(date_layout_checkLong[i])
-                        }
-                        layout_remove_position_check(1024)
-                        Log.d("실행됨", "실행")
-                        diary_btn_change = 0
-                    }
-
-                }
-            }
-        }
-    }
-
-    override fun onBackPressed() {
-
-        if(intent.hasExtra("이동")) // 나중에 종료 팝업 만들고, 네비게이션시 네비게이션 닫게 만들기.
-            Log.d("이동함", "이동함")
-        else if(diary_btn_change == 1){
-            diary_btn_change = 0
-            layout_remove_position_check(1024)
-        }
-        else{
-            super.onBackPressed()
-        }
-    }
-
-    private fun viewobserve(){
-        viewModel.longclick_observe.observe(this, {
-            trash_btn()
         })
     }
 
     private fun trash_btn(){
         diary_btn_change = 1
-        binding.allDiary.setBackgroundResource(R.drawable.ic_baseline_restore_from_trash_24)
+        binding.searchDiary.setImageResource(R.drawable.ic_baseline_restore_from_whitetrash_24)
     }
 }

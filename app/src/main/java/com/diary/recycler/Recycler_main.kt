@@ -14,7 +14,7 @@ import com.diary.diary.*
 
 //뷰모델 변수를 인자값으로 전달하고 온롱클릭시 변화시켜서 observe로 알려주기.
 
-class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText) :  RecyclerView.Adapter<Recycler_main.ViewHolder>(), text_font, main_recycler_view, layout_remove {
+class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, val check:String) :  RecyclerView.Adapter<Recycler_main.ViewHolder>(), text_font, main_recycler_view, layout_remove {
 
     lateinit var context: Context
     var a = 0
@@ -57,8 +57,7 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText) :
             }
         }
 
-        if(diary_list[position].imageuri.isNotEmpty()) { //OnBindViewHolder에서 이미지 uri 존재할시 포지션 photo에 uri를 넣어주는 코드입니다.
-            //interface를 사용합니다.
+        if(diary_list[position].imageuri.isNotEmpty()) { //OnBindViewHolder에서 이미지 uri 존재할시 포지션 photo에 uri를 넣어주는 코드
             for(i in diary_list[position].imageuri.indices){ // when과 for 사용해서 반복작업.
                 when(i) {
                     0 -> {
@@ -79,54 +78,61 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText) :
         }
 //
         holder.layout.apply {
-            tag = "" // notify 할 시를 생각해서 기본값으로 ""를 준다.
-            setOnClickListener {
-                if (a == 0 || layout_remove().first == null) {
-                    Log.d("제목은 :", holder.title.text.toString())
-                    var intent = Intent(context, Content_create::class.java)
-                    intent.putExtra("이동", diary_list[position].id)
-                    context.startActivity(intent)
+
+            if(check == "main") { //사용하는 것이 main부분이면
+                tag = "" // notify 할 시를 생각해서 기본값으로 ""를 준다.
+                setOnClickListener {
+                    if (a == 0 || layout_remove().first == null) {
+                        Log.d("제목은 :", holder.title.text.toString())
+                        var intent = Intent(context, Content_create::class.java)
+                        intent.putExtra("이동", diary_list[position].id)
+                        context.startActivity(intent)
+                    } else {
+                        if (tag == "클릭") { //클릭상태면
+                            holder.layout.setBackgroundResource(R.drawable.layout_background)
+                            tag = "" //태그 대신할거 생성하기.
+                            layout_remove_position_remove(position)
+                            layout_add_or_remove(holder.layout, 1, diary_list[position].dateLong)
+                            Log.d("여기임", "여기임11")
+                        } else {
+                            holder.layout.setBackgroundResource(R.drawable.longclick_layout)
+                            tag = "클릭"
+                            a = 1
+                            layout_remove_position_check(position)
+                            layout_add_or_remove(holder.layout, 0, diary_list[position].dateLong)
+                            Log.d("클릭", position.toString())
+                            Log.d("여기임", "1414여기임")
+                        }
+                    }
                 }
-                else {
-                    if(tag == "클릭"){ //클릭상태면
+
+                setOnLongClickListener { // 온롱클릭 하고 터치시 레이아웃 선택되는 이벤트. 이후 삭제버튼 누르면 삭제 다이얼로그 뜨고 확인 누를시 삭제. mvvm활용해서 간편하게.
+                    shadowText.setText("")
+
+                    if (tag == "클릭") { // 클릭 상태면
                         holder.layout.setBackgroundResource(R.drawable.layout_background)
-                        tag = "" //태그 대신할거 생성하기.
+                        tag = ""
                         layout_remove_position_remove(position)
                         layout_add_or_remove(holder.layout, 1, diary_list[position].dateLong)
-                        Log.d("여기임", "여기임11")
-                    }
-                    else{
+                        Log.d("여기임", "여기임22")
+                    } else { //클릭 상태가 아니면
                         holder.layout.setBackgroundResource(R.drawable.longclick_layout)
                         tag = "클릭"
                         a = 1
                         layout_remove_position_check(position)
                         layout_add_or_remove(holder.layout, 0, diary_list[position].dateLong)
                         Log.d("클릭", position.toString())
-                        Log.d("여기임", "1414여기임")
+                        Log.d("여기임", "1515여기임")
                     }
+                    return@setOnLongClickListener true
                 }
             }
-
-            setOnLongClickListener { // 온롱클릭 하고 터치시 레이아웃 선택되는 이벤트. 이후 삭제버튼 누르면 삭제 다이얼로그 뜨고 확인 누를시 삭제. mvvm활용해서 간편하게.
-                shadowText.setText("")
-                
-                if(tag == "클릭"){ // 클릭 상태면
-                    holder.layout.setBackgroundResource(R.drawable.layout_background)
-                    tag = ""
-                    layout_remove_position_remove(position)
-                    layout_add_or_remove(holder.layout, 1, diary_list[position].dateLong)
-                    Log.d("여기임", "여기임22")
+            else{ // 사용하는 부분이 search 부분이면.
+                setOnClickListener {
+                    var intent = Intent(context, Content_create::class.java)
+                    intent.putExtra("이동", diary_list[position].id)
+                    context.startActivity(intent)
                 }
-                else{ //클릭 상태가 아니면
-                    holder.layout.setBackgroundResource(R.drawable.longclick_layout)
-                    tag = "클릭"
-                    a = 1
-                    layout_remove_position_check(position)
-                    layout_add_or_remove(holder.layout, 0, diary_list[position].dateLong)
-                    Log.d("클릭", position.toString())
-                    Log.d("여기임", "1515여기임")
-                }
-                return@setOnLongClickListener true
             }
         }
 

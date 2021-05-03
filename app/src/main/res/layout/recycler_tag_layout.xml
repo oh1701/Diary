@@ -41,7 +41,8 @@
                 android:text="# "
                 android:textColor="#DD0C0C"
 
-                android:textSize="14sp"
+                android:autoSizeTextType="uniform"
+                android:autoSizeMaxTextSize="14sp"
                 android:textStyle="bold"
 
                 app:layout_constraintLeft_toLeftOf="parent"
@@ -59,7 +60,8 @@
 
                 android:gravity="center_vertical"
                 android:text="1414"
-                android:textSize="14sp"
+                android:autoSizeTextType="uniform"
+                android:autoSizeMaxTextSize="14sp"
                 android:textStyle="bold"
 
                 android:textColor="#615D5D"

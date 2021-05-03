@@ -435,10 +435,10 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                     //binding.createtext.setText(s.toString())
-                    if(s.toString().contains("@내 폰트@", true)){ //
+                   /* if(s.toString().contains("@내 폰트@", true)){ //
                         edittx.setText(s.toString().replace("@내 폰트@", ""))
                         edittx.clearFocus()
-                    }
+                    }*/
                 }
 
                 override fun afterTextChanged(s: Editable?) {
@@ -580,7 +580,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                 if(intent.hasExtra("이동")) {
                     text.text = "현재 내용으로 변경 하시겠습니까?"
                     permission_positive_btn.text = "변경"
-                    permission_negative_btn.text = "변경 안함"
+                    permission_negative_btn.text = "안함"
                 }
                 else {
                     text.text = "현재 기록되어 있는 내용이 존재합니다. 저장하시겠습니까?"
@@ -1189,17 +1189,23 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
         val daytoweek = dayofweekfunction(dayOfWeek)
         Log.d("요일은", date_daytofweek.toString())
 
+
+        var allcontent = contenttext
+        for(i in editlist.indices){
+            allcontent += editlist[i]
+        }
+
         if (color_array.isNotEmpty()) {
             if (color_array[1] != null)
                 edit_color = color_array[1]!!
         }
 
         if(intent.hasExtra("이동")) {
-            db.RoomDao().updateDao(Diaryroom(intent_room.id, titletext, contenttext, urilist,editlist, text_size, edit_font, edit_color, line_spacing, letter_spacing, short, dateLong, date_daytofweek, daytoweek, taglist))
+            db.RoomDao().updateDao(Diaryroom(intent_room.id, titletext, contenttext, urilist,editlist, text_size, edit_font, edit_color, line_spacing, letter_spacing, short, dateLong, date_daytofweek, daytoweek, taglist, allcontent))
             Log.d("이동실행","이동실행")
         }
         else {
-            db.RoomDao().insertDao(Diaryroom(0, titletext, contenttext, urilist, editlist, text_size, edit_font, edit_color, line_spacing, letter_spacing, short, dateLong, date_daytofweek, daytoweek, taglist))
+            db.RoomDao().insertDao(Diaryroom(0, titletext, contenttext, urilist, editlist, text_size, edit_font, edit_color, line_spacing, letter_spacing, short, dateLong, date_daytofweek, daytoweek, taglist, allcontent))
             Log.d("이동미실행","이동미실행")
         }
     }
