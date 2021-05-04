@@ -20,6 +20,7 @@
             android:typeface="serif"
             android:text="04.23 금"
             android:textSize="14sp"
+
             app:layout_constraintLeft_toRightOf="@id/date_color"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toTopOf="@id/line_view"/>

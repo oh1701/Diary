@@ -13,7 +13,8 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".search_diary">
+    tools:context=".search_diary"
+    android:background="#E8E8E8">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/title_layout"
@@ -65,6 +66,7 @@
         android:layout_height="0dp"
 
         app:layout_constraintWidth_percent="0.9"
+        android:layout_marginTop="15dp"
         app:layout_constraintTop_toBottomOf="@id/title_layout"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -74,19 +76,44 @@
             android:id="@+id/search_count"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="최근 사용한 태그"
+            android:typeface="serif"
+            android:textColor="@color/black"
+
+            android:textSize="16sp"
 
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            android:visibility="gone"/>
+            app:layout_constraintRight_toRightOf="parent"/>
 
         <!-- 리사이클러뷰 하나 더 만들어서 최근 사용한 태그 표출하기. 태그 리사이클러뷰로 표출하기.-->
+
+        <com.google.android.flexbox.FlexboxLayout
+            android:id="@+id/flex_tag_recycler"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:alignContent="stretch"
+            app:alignItems="stretch"
+            app:flexDirection="row"
+
+            app:flexWrap="wrap"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/search_count">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/search_tag_recyclerview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </com.google.android.flexbox.FlexboxLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/search_recyclerview"
         android:layout_width="match_parent"
         android:layout_height="0dp"
 
-        app:layout_constraintTop_toBottomOf="@id/search_count"/>
+        app:layout_constraintTop_toBottomOf="@id/search_count"
+        app:layout_constraintLeft_toLeftOf="parent"/>
 
         <EditText
             android:id="@+id/aaaaaa"

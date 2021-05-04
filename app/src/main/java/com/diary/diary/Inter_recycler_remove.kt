@@ -76,6 +76,8 @@ interface layout_remove{ // 메인 리사이클러뷰에서 레이아웃 지우�
             for(i in check.indices){
                 if(check[i] == int){
                     check.removeAt(i)
+                    Log.d("체크", i.toString())
+                    break
                 }
             }
         }
@@ -92,6 +94,7 @@ interface layout_remove{ // 메인 리사이클러뷰에서 레이아웃 지우�
                     if(const_layout[i] == layout){ //레이아웃과 동일할시 해당 배열을 삭제.
                         const_layout.removeAt(i)
                         date.removeAt(i)
+                        break
                     }
                 }
             }

@@ -41,7 +41,7 @@ android:fullBackupContent="false"
         <activity
             android:name=".Content_create"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustPan" />
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait">

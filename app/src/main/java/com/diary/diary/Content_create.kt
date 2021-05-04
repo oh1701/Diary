@@ -182,7 +182,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                 FlexWrap.WRAP
         ) //가로정렬, 꽉차면 다음칸으로 넘어가게 만듬.
         binding.FlexRecycler.setHasFixedSize(true)
-        binding.FlexRecycler.adapter = Recycler_tag(tag_array)
+        binding.FlexRecycler.adapter = Recycler_tag(tag_array, null)
 
         binding.contentDate.setText("${year}년, ${month}월 ${day}일")
 
@@ -610,7 +610,10 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
                 permission_negative_btn.setOnClickListener {
                     dialog.dismiss()
-                    startActivity(Intent(this, MainActivity::class.java))
+
+                    val intent = Intent(context, MainActivity::class.java)
+                    intent.putExtra("이동", "이동")
+                    startActivity(intent)
                 }
 
                 var lp = WindowManager.LayoutParams()

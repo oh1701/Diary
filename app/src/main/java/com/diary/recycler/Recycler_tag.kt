@@ -9,15 +9,15 @@ import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
 import com.diary.diary.Inter_recycler_remove
 import com.diary.diary.R
+import com.diary.diary.search_diary
 
-class Recycler_tag(val tagline:ArrayList<tagline>): RecyclerView.Adapter<Recycler_tag.ViewHolder>(), Inter_recycler_remove {
+class Recycler_tag(val tagline:ArrayList<tagline>, var edit:EditText?): RecyclerView.Adapter<Recycler_tag.ViewHolder>(), Inter_recycler_remove {
     lateinit var context:Context
     var change = 1
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Recycler_tag.ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.recycler_tag_layout, parent, false)
         context = parent.context
-
         return ViewHolder(view)
     }
 
@@ -31,12 +31,17 @@ class Recycler_tag(val tagline:ArrayList<tagline>): RecyclerView.Adapter<Recycle
 
         holder.tag_tag.text = tagline[position].tag_tag
         holder.tag_content.text = tagline[position].tag_content
-        holder.cancel.setOnClickListener { //visibility를 mvvm패턴으로 확인한다.
+        holder.cancel.setOnClickListener {
             if(trash_get() == 2) {
                 recycler_remove(position)
             }
         }
 
+        holder.layout.setOnClickListener {
+            if(edit != null){
+                edit!!.setText("#${tagline[position].tag_content}")
+            }
+        }
         Log.d("화악인", position.toString())
 
         //태그 버튼 누르면 나타나는 휴지통 버튼. 태그 상태에서 휴지통 버튼 눌렀을 때, 삭제하고 싶은 태그버튼 누르면 삭제.

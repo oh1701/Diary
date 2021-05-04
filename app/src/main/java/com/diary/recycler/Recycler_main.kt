@@ -93,7 +93,6 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, v
                             tag = "" //태그 대신할거 생성하기.
                             layout_remove_position_remove(position)
                             layout_add_or_remove(holder.layout, 1, diary_list[position].dateLong)
-                            Log.d("여기임", "여기임11")
                         } else {
                             holder.layout.setBackgroundResource(R.drawable.longclick_layout)
                             tag = "클릭"
@@ -101,7 +100,6 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, v
                             layout_remove_position_check(position)
                             layout_add_or_remove(holder.layout, 0, diary_list[position].dateLong)
                             Log.d("클릭", position.toString())
-                            Log.d("여기임", "1414여기임")
                         }
                     }
                 }
@@ -114,7 +112,6 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, v
                         tag = ""
                         layout_remove_position_remove(position)
                         layout_add_or_remove(holder.layout, 1, diary_list[position].dateLong)
-                        Log.d("여기임", "여기임22")
                     } else { //클릭 상태가 아니면
                         holder.layout.setBackgroundResource(R.drawable.longclick_layout)
                         tag = "클릭"
@@ -122,7 +119,6 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, v
                         layout_remove_position_check(position)
                         layout_add_or_remove(holder.layout, 0, diary_list[position].dateLong)
                         Log.d("클릭", position.toString())
-                        Log.d("여기임", "1515여기임")
                     }
                     return@setOnLongClickListener true
                 }
