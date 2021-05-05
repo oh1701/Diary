@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.diary.diary.databinding.ActivityShortCutsBinding
 import com.diary.diary.databinding.ActivityTagSettingBinding
 
 class tag_setting : AppCompatActivity() {

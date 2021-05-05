@@ -49,8 +49,18 @@ interface layout_remove{ // 메인 리사이클러뷰에서 레이아웃 지우�
         var check: ArrayList<Int> = arrayListOf()
         var const_layout: ArrayList<ConstraintLayout> = arrayListOf()
         var date:ArrayList<Long> = arrayListOf()
+        var darkmodecheck = ""
     }
 
+    fun darkmodesetting(string:String){
+        darkmodecheck = string
+    }
+    fun darkmode():String?{
+        return if(darkmodecheck == "다크모드")
+            "다크모드"
+        else
+            null
+    }
     fun layout_remove_position_check(int:Int){ // if일경우 모든 companion 변수 값 지우기.
         if(int == 1024) {
             for(i in const_layout.indices){

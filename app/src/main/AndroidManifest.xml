@@ -30,7 +30,7 @@
             android:windowSoftInputMode="adjustPan"></activity>
         <activity android:name=".tag_setting"
             android:screenOrientation="portrait" />
-        <activity android:name=".short_cuts"
+        <activity android:name=".Setting"
             android:screenOrientation="portrait" />
         <activity android:name=".password"
             android:screenOrientation="portrait"/>

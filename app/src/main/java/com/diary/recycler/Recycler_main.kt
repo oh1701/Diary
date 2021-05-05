@@ -2,6 +2,8 @@ package com.diary.recycler
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.diary.diary.*
 
@@ -43,11 +46,21 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, v
         holder.title.apply {
             text = diary_list[position].title
             typeface = inter_roomdata_stringToFont(diary_list[position].font, context)
+            if(darkmode() == "다크모드")
+                setTextColor(Color.WHITE)
+            else
+                setTextColor(Color.BLACK)
+
         }
 
         holder.content.apply {
             text = diary_list[position].content
             typeface = inter_roomdata_stringToFont(diary_list[position].font, context)
+            if(darkmode() == "다크모드")
+                setTextColor(Color.WHITE)
+            else
+                setTextColor(Color.parseColor("#5A5858"))
+
             if(diary_list[position].content.isEmpty()) {
                 visibility = View.GONE
                 Log.d("불러진 곳", "$position")
@@ -78,6 +91,10 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, v
         }
 //
         holder.layout.apply {
+            if(darkmode() == "다크모드")
+                setBackgroundResource(R.drawable.darkmode_layout)
+            else
+                setBackgroundResource(R.drawable.layout_background)
 
             if(check == "main") { //사용하는 것이 main부분이면
                 tag = "" // notify 할 시를 생각해서 기본값으로 ""를 준다.
@@ -132,7 +149,13 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, v
             }
         }
 
-        holder.date.text = diary_list[position].date +  diary_list[position].daytoweek
+        holder.date.apply {
+           text = diary_list[position].date + diary_list[position].daytoweek
+            if(darkmode() == "다크모드")
+                setTextColor(Color.WHITE)
+            else
+                setTextColor(Color.BLACK)
+        }
         when(diary_list[position].daytoweek){
             "월" -> holder.date_color.setImageResource(R.drawable.circle_sunday)
             "일" -> holder.date_color.setImageResource(R.drawable.circle_monday)

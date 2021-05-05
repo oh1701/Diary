@@ -6,6 +6,7 @@ import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.*
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -145,9 +146,10 @@ class MainActivity : AppCompatActivity(), layout_remove {
 
         var roomcheck = false
     }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        Log.d("사이클", "크리에잇")
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.lifecycleOwner = this
@@ -212,16 +214,88 @@ class MainActivity : AppCompatActivity(), layout_remove {
                             Log.d("실행됨", "실행")
                             diary_btn_change = 0
                         }
-
                     }
             }
         }
         coroutine()
         alldiary()
-        setting()
         viewobserve()
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        if(Setting.a == 222){ // 뒤로가기로 설정창에서 다크모드 같은것 설정 후 나왔을 경우 대비.
+            binding.maintitle.setTextColor(Color.parseColor("#FB9909"))
+            binding.mainTopLayout.setBackgroundColor(Color.parseColor("#F5201F1F"))
+            //binding.mainTopLayout.setBackgroundColor(Color.parseColor("#F5201F1F"))
+            darkmodesetting("다크모드")
+            binding.mainRecylerview.adapter?.notifyDataSetChanged()
+        }
+    }
+
+    private fun viewobserve(){
+        viewModel.longclick_observe.observe(this, {
+            trash_btn()
+        })
+
+        viewModel.titleClick.observe(this, {
+            val today = GregorianCalendar()
+            val year: Int = if (year_save == 0) {
+                today.get(Calendar.YEAR)
+            } else {
+                year_save
+            }
+            val month: Int = if(month_save == 0){
+                today.get(Calendar.MONTH)
+            }
+            else{
+                month_save
+            }
+            val date: Int = if(day_save == 0) {
+                today.get(Calendar.DATE)
+            }
+            else{
+                day_save
+            }
+
+            val dlg = DatePickerDialog(this, object : DatePickerDialog.OnDateSetListener {
+                override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
+
+                    year_save = year
+                    month_save = month
+                    day_save = dayOfMonth
+
+                    calendar_year = year
+                    calendar_month = month + 1
+
+                    Log.d("서치선택", calendar_year.toString())
+                    Log.d("서치선택", calendar_month.toString())
+
+                    var two_year = year.toString().substring(2)
+                    binding.maintitle.setText("${two_year}년 ${month + 1}월의 추억")
+
+                    diarylist.removeAll(diarylist)
+                    datearray.removeAll(datearray)
+                    taglist_array.removeAll(taglist_array)
+                    binding.mainRecylerview.adapter?.notifyItemRangeRemoved(0, diarylist.size)
+                    binding.mainRecylerview.adapter?.notifyDataSetChanged()
+                    coroutine()
+                }
+            }, year, month, date)
+            dlg.show()
+        })
+
+        viewModel.settingClick.observe(this, {
+            startActivity(Intent(this, Setting::class.java))
+        })
+
+        viewModel.alldiaryClick.observe(this, {
+            var intent = Intent(this, Content_create::class.java)
+            startActivity(intent)
+        })
+    }
+    
     private fun coroutine(){
         if(calendar_month < 10)
             monthstring = "0$calendar_month"
@@ -312,36 +386,17 @@ class MainActivity : AppCompatActivity(), layout_remove {
             }
         }
     }
-
-    private fun setting(){
-        binding.mainSettingNavi.setNavigationItemSelectedListener {
-            when(it.itemId){
-                R.id.navi_shortcuts ->{
-                    return@setNavigationItemSelectedListener true}
-                R.id.navi_diary_lock -> {
+/*
+* intent로 액티비티 만든곳에 구글 드라이브 복원 및 백업 구현하고 데이터 초기화 누를시 모든 리사이클러뷰, room 데이터 삭제시키기.
+* /이미지들 스크린샷찍어서 설명하기.
                     var intent = Intent(this, password::class.java)
                     intent.putExtra("비밀번호 설정", "비밀번호 설정")
                     startActivity(intent)
-                    return@setNavigationItemSelectedListener true}
-                R.id.navi_tema_change -> { //배경을 바꾸면 다크모드 토글버튼 터치못하게, 다크모드시 배경 토글버튼 터치 못하게하기.
-                    //혹은 하나 터치시 자동으로 다른것 풀리게 만들기.
-                        return@setNavigationItemSelectedListener true
-
-                }
-                R.id.navi_tag ->{
+                    *
                     var intent = Intent(this, tag_setting::class.java)
                     intent.putExtra("태그 설정", taglist_array)
                     startActivity(intent)
-                    return@setNavigationItemSelectedListener true}
-                R.id.navi_data ->{false
-                //intent로 액티비티 만든곳에 구글 드라이브 복원 및 백업 구현하고 데이터 초기화 누를시 모든 리사이클러뷰, room 데이터 삭제시키기.
-                }
-                R.id.explanation -> {false} //이미지들 스크린샷찍어서 설명하기.
-                else ->{false}
-            }
-        }
-    }
-
+* */
     private fun alldiary(){
         binding.allDiary.setOnTouchListener { v, event ->
             if(event.action == MotionEvent.ACTION_DOWN) // 버튼에 손을 올렸을 경우
@@ -364,68 +419,6 @@ class MainActivity : AppCompatActivity(), layout_remove {
         else{
             super.onBackPressed()
         }
-    }
-
-    private fun viewobserve(){
-        viewModel.longclick_observe.observe(this, {
-            trash_btn()
-        })
-
-        viewModel.titleClick.observe(this, {
-            val today = GregorianCalendar()
-            val year: Int = if (year_save == 0) {
-                today.get(Calendar.YEAR)
-            } else {
-                year_save
-            }
-            val month: Int = if(month_save == 0){
-                today.get(Calendar.MONTH)
-            }
-            else{
-                month_save
-            }
-            val date: Int = if(day_save == 0) {
-                today.get(Calendar.DATE)
-            }
-            else{
-                day_save
-            }
-
-            val dlg = DatePickerDialog(this, object : DatePickerDialog.OnDateSetListener {
-                override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
-
-                    year_save = year
-                    month_save = month
-                    day_save = dayOfMonth
-
-                    calendar_year = year
-                    calendar_month = month + 1
-
-                    Log.d("서치선택", calendar_year.toString())
-                    Log.d("서치선택", calendar_month.toString())
-
-                    var two_year = year.toString().substring(2)
-                    binding.maintitle.setText("${two_year}년 ${month + 1}월의 추억")
-
-                    diarylist.removeAll(diarylist)
-                    datearray.removeAll(datearray)
-                    taglist_array.removeAll(taglist_array)
-                    binding.mainRecylerview.adapter?.notifyItemRangeRemoved(0, diarylist.size)
-                    binding.mainRecylerview.adapter?.notifyDataSetChanged()
-                    coroutine()
-                }
-            }, year, month, date)
-            dlg.show()
-        })
-
-        viewModel.settingClick.observe(this, {
-                binding.drawerSetting.openDrawer(GravityCompat.START)
-        })
-
-        viewModel.alldiaryClick.observe(this, {
-                var intent = Intent(this, Content_create::class.java)
-                startActivity(intent)
-        })
     }
 
     private fun trash_btn(){
