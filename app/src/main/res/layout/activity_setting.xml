@@ -48,7 +48,7 @@
                     android:padding="10dp"
                     android:text="설정 메뉴"
                     android:textColor="@color/black"
-                    android:textSize="20sp"
+                    android:textSize="20dp"
                     android:textStyle="bold"
                     android:typeface="serif" />
             </LinearLayout>
@@ -61,7 +61,7 @@
                 android:text="시스템 설정"
                 android:layout_marginTop="20dp"
                 android:typeface="serif"
-                android:textSize="14sp" />
+                android:textSize="14dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -81,7 +81,7 @@
                         android:layout_height="wrap_content"
                         android:text="노트 배경 설정"
                         android:textColor="@color/black"
-                        android:textSize="14sp"
+                        android:textSize="14dp"
                         android:typeface="serif"
 
                         app:layout_constraintLeft_toLeftOf="parent"
@@ -120,7 +120,7 @@
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        android:textSize="14sp" />
+                        android:textSize="14dp" />
 
                     <ImageView
                         android:layout_width="wrap_content"
@@ -151,7 +151,7 @@
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        android:textSize="14sp" />
+                        android:textSize="14dp" />
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/lock_switch"
@@ -186,7 +186,7 @@
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        android:textSize="14sp" />
+                        android:textSize="14dp" />
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/dark_switch"
@@ -212,7 +212,7 @@
                 android:text="단축키 설정"
                 android:layout_marginTop="20dp"
                 android:typeface="serif"
-                android:textSize="14sp" />
+                android:textSize="14dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -232,7 +232,7 @@
                     android:layout_height="wrap_content"
                     android:text="단축키 추가"
                     android:textColor="@color/black"
-                    android:textSize="14sp"
+                    android:textSize="14dp"
                     android:typeface="serif"
 
                     app:layout_constraintLeft_toLeftOf="parent"
@@ -270,7 +270,7 @@
                 android:text="사용자 편의"
                 android:layout_marginTop="20dp"
                 android:typeface="serif"
-                android:textSize="14sp" />
+                android:textSize="14dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -291,7 +291,7 @@
                         android:layout_height="wrap_content"
                         android:text="사용한 태그"
                         android:textColor="@color/black"
-                        android:textSize="14sp"
+                        android:textSize="14dp"
                         android:typeface="serif"
 
                         app:layout_constraintLeft_toLeftOf="parent"
@@ -323,7 +323,7 @@
                         android:layout_height="wrap_content"
                         android:text="원데이 다이어리 사용 설명서"
                         android:textColor="@color/black"
-                        android:textSize="14sp"
+                        android:textSize="14dp"
                         android:typeface="serif"
 
                         app:layout_constraintLeft_toLeftOf="parent"
@@ -353,7 +353,7 @@
                         android:layout_height="wrap_content"
                         android:text="현재까지 작성한 일기는 i개 입니다."
                         android:textColor="@color/black"
-                        android:textSize="14sp"
+                        android:textSize="14dp"
                         android:typeface="serif"
 
                         app:layout_constraintLeft_toLeftOf="parent"

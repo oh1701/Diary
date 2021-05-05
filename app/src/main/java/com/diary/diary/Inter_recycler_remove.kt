@@ -50,6 +50,7 @@ interface layout_remove{ // 메인 리사이클러뷰에서 레이아웃 지우�
         var const_layout: ArrayList<ConstraintLayout> = arrayListOf()
         var date:ArrayList<Long> = arrayListOf()
         var darkmodecheck = ""
+        private var tagarray:ArrayList<Int> = arrayListOf()
     }
 
     fun darkmodesetting(string:String){
@@ -69,6 +70,7 @@ interface layout_remove{ // 메인 리사이클러뷰에서 레이아웃 지우�
             check.removeAll(check)
             date.removeAll(date)
             const_layout.removeAll(const_layout)
+            tagarray.removeAll(tagarray)
         }
         else
             check.add(int)
@@ -79,6 +81,20 @@ interface layout_remove{ // 메인 리사이클러뷰에서 레이아웃 지우�
             Pair(check, date)
         else
             Pair(null, null)
+    }
+
+    fun tag_get(position:Int):String?{
+        var a:String? = null
+        if(tagarray.isNotEmpty()){
+            for(i in tagarray.indices){
+                if(tagarray[i] == position){
+                    a = "클릭"
+                    Log.d("체코", i.toString())
+                    break
+                }
+            }
+        }
+        return a
     }
 
     fun layout_remove_position_remove(int:Int){
@@ -93,10 +109,11 @@ interface layout_remove{ // 메인 리사이클러뷰에서 레이아웃 지우�
         }
     }
 
-    fun layout_add_or_remove(layout: ConstraintLayout, int:Int, dateLong:Long){
+    fun layout_add_or_remove(layout: ConstraintLayout, int:Int, dateLong:Long, tagposition:Int){
         if(int == 0){ // 클릭상태가 아닐경우
             const_layout.add(layout)
             date.add(dateLong)
+            tagarray.add(tagposition)
         }
         else {
             if(const_layout.isNotEmpty()){
@@ -104,6 +121,7 @@ interface layout_remove{ // 메인 리사이클러뷰에서 레이아웃 지우�
                     if(const_layout[i] == layout){ //레이아웃과 동일할시 해당 배열을 삭제.
                         const_layout.removeAt(i)
                         date.removeAt(i)
+                        tagarray.removeAt(i)
                         break
                     }
                 }

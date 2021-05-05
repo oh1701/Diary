@@ -53,10 +53,7 @@
                 android:layout_height="match_parent"
                 android:layout_marginLeft="10dp"
                 android:layout_marginRight="10dp"
-                android:autoSizeMaxTextSize="22sp"
-                android:autoSizeMinTextSize="18sp"
-
-                android:autoSizeTextType="uniform"
+                android:textSize="22dp"
 
                 android:background="@android:color/transparent"
                 android:fontFamily="@font/mapoflower"

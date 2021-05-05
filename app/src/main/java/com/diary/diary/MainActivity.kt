@@ -227,8 +227,8 @@ class MainActivity : AppCompatActivity(), layout_remove {
 
         if(Setting.a == 222){ // 뒤로가기로 설정창에서 다크모드 같은것 설정 후 나왔을 경우 대비.
             binding.maintitle.setTextColor(Color.parseColor("#FB9909"))
-            binding.mainTopLayout.setBackgroundColor(Color.parseColor("#F5201F1F"))
-            //binding.mainTopLayout.setBackgroundColor(Color.parseColor("#F5201F1F"))
+            binding.maintitleLayout.setBackgroundColor(Color.parseColor("#201F1F"))
+            binding.mainTopLayout.setBackgroundColor(Color.parseColor("#201F1F"))
             darkmodesetting("다크모드")
             binding.mainRecylerview.adapter?.notifyDataSetChanged()
         }
@@ -423,6 +423,7 @@ class MainActivity : AppCompatActivity(), layout_remove {
 
     private fun trash_btn(){
         diary_btn_change = 1
+        Log.d("실행" , "실행ㅇ유ㅠ유")
         binding.searchDiary.setImageResource(R.drawable.ic_baseline_restore_from_whitetrash_24)
     }
 }

@@ -21,7 +21,6 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, v
 
     lateinit var context: Context
     var a = 0
-    var position_array:ArrayList<Int> = arrayListOf()
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Recycler_main.ViewHolder {
@@ -30,15 +29,28 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, v
         return ViewHolder(view)
     }
 
-    override fun getItemViewType(position: Int): Int { //이거로 이미지 재활용문제가 해결되었음.
+    override fun getItemViewType(position: Int): Int {
         return position
     }
 
     override fun onBindViewHolder(holder: Recycler_main.ViewHolder, position: Int) {
-        holder.photo.setImageBitmap(null)
-        holder.photo2.setImageBitmap(null)
-        holder.photo3.setImageBitmap(null)
-        holder.photo4.setImageBitmap(null)
+        holder.photo.apply{
+            holder.photo.setImageBitmap(null)
+            visibility = View.GONE
+        } //초기화 안해주면 이상하게 나옴. 이유 모르겠음.
+        holder.photo2.apply{
+            holder.photo2.setImageBitmap(null)
+            visibility = View.GONE
+        }
+        holder.photo3.apply{
+            holder.photo3.setImageBitmap(null)
+            visibility = View.GONE
+        }
+        holder.photo4.apply{
+            holder.photo4.setImageBitmap(null)
+            visibility = View.GONE
+        }
+
         holder.date.setText(null)
         holder.title.setText(null)
         holder.content.setText(null)
@@ -89,53 +101,94 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, v
                 }
             }
         }
-//
+
         holder.layout.apply {
-            if(darkmode() == "다크모드")
-                setBackgroundResource(R.drawable.darkmode_layout)
+
+            if(darkmode() == "다크모드" && tag == null || tag == "")
+                holder.layout.setBackgroundResource(R.drawable.darkmode_layout)
             else
-                setBackgroundResource(R.drawable.layout_background)
+                holder.layout.setBackgroundResource(R.drawable.layout_background)
+
 
             if(check == "main") { //사용하는 것이 main부분이면
-                tag = "" // notify 할 시를 생각해서 기본값으로 ""를 준다.
                 setOnClickListener {
+                    if(tag_get(position) == "클릭") //태그를 통해 삭제 선택을 하였는지 확인한다.
+                        tag = "클릭"
+                    else if(tag_get(position) == null)
+                        tag = ""
+
                     if (a == 0 || layout_remove().first == null) {
                         Log.d("제목은 :", holder.title.text.toString())
                         var intent = Intent(context, Content_create::class.java)
                         intent.putExtra("이동", diary_list[position].id)
                         context.startActivity(intent)
                     } else {
-                        if (tag == "클릭") { //클릭상태면
-                            holder.layout.setBackgroundResource(R.drawable.layout_background)
-                            tag = "" //태그 대신할거 생성하기.
-                            layout_remove_position_remove(position)
-                            layout_add_or_remove(holder.layout, 1, diary_list[position].dateLong)
-                        } else {
-                            holder.layout.setBackgroundResource(R.drawable.longclick_layout)
-                            tag = "클릭"
-                            a = 1
-                            layout_remove_position_check(position)
-                            layout_add_or_remove(holder.layout, 0, diary_list[position].dateLong)
-                            Log.d("클릭", position.toString())
+                        if(darkmode() == "다크모드") { //다크모드일시
+                            if (tag == "클릭") { //클릭 상태
+                                Log.d("클릭", "클릭상태")
+                                holder.layout.setBackgroundResource(R.drawable.darkmode_layout)
+                                layout_remove_position_remove(position)
+                                layout_add_or_remove(holder.layout, 1, diary_list[position].dateLong, position)
+                            } else {
+                                Log.d("클릭", "미클릭상태")
+                                holder.layout.setBackgroundResource(R.drawable.layout_background)
+                                a = 1
+                                layout_remove_position_check(position)
+                                layout_add_or_remove(holder.layout, 0, diary_list[position].dateLong, position)
+                                Log.d("클릭", position.toString())
+                            }
+                        }
+                        else if(darkmode() == null){ //기본모드
+                            if (tag == "클릭") { //클릭
+                                holder.layout.setBackgroundResource(R.drawable.layout_background)
+                                layout_remove_position_remove(position)
+                                layout_add_or_remove(holder.layout, 1, diary_list[position].dateLong, position)
+                            } else {
+                                holder.layout.setBackgroundResource(R.drawable.longclick_layout)
+                                a = 1
+                                layout_remove_position_check(position)
+                                layout_add_or_remove(holder.layout, 0, diary_list[position].dateLong, position)
+                                Log.d("클릭", position.toString())
+                            }
                         }
                     }
                 }
 
-                setOnLongClickListener { // 온롱클릭 하고 터치시 레이아웃 선택되는 이벤트. 이후 삭제버튼 누르면 삭제 다이얼로그 뜨고 확인 누를시 삭제. mvvm활용해서 간편하게.
+                setOnLongClickListener { // 온롱클릭 하고 터치시 레이아웃 선택되는 이벤트.
                     shadowText.setText("")
 
-                    if (tag == "클릭") { // 클릭 상태면
-                        holder.layout.setBackgroundResource(R.drawable.layout_background)
-                        tag = ""
-                        layout_remove_position_remove(position)
-                        layout_add_or_remove(holder.layout, 1, diary_list[position].dateLong)
-                    } else { //클릭 상태가 아니면
-                        holder.layout.setBackgroundResource(R.drawable.longclick_layout)
+                    if(tag_get(position) == "클릭")
                         tag = "클릭"
-                        a = 1
-                        layout_remove_position_check(position)
-                        layout_add_or_remove(holder.layout, 0, diary_list[position].dateLong)
-                        Log.d("클릭", position.toString())
+                    else if(tag_get(position) == null)
+                        tag = ""
+
+                    if(darkmode() == "다크모드"){ //다크모드
+                        if (tag == "클릭") { // 클릭 상태면
+                            Log.d("클릭", "클릭상태")
+                            holder.layout.setBackgroundResource(R.drawable.darkmode_layout)
+                            layout_remove_position_remove(position)
+                            layout_add_or_remove(holder.layout, 1, diary_list[position].dateLong, position)
+                        } else { //클릭 상태가 아니면
+                            Log.d("클릭", "미클릭상태")
+                            holder.layout.setBackgroundResource(R.drawable.layout_background)
+                            a = 1
+                            layout_remove_position_check(position)
+                            layout_add_or_remove(holder.layout, 0, diary_list[position].dateLong, position)
+                            Log.d("클릭", position.toString())
+                        }
+                    }
+                    else if(darkmode() == null){ //기본 모드
+                        if (tag == "클릭") { // 클릭 상태면
+                            holder.layout.setBackgroundResource(R.drawable.layout_background)
+                            layout_remove_position_remove(position)
+                            layout_add_or_remove(holder.layout, 1, diary_list[position].dateLong, position)
+                        } else { //클릭 상태가 아니면
+                            holder.layout.setBackgroundResource(R.drawable.longclick_layout)
+                            a = 1
+                            layout_remove_position_check(position)
+                            layout_add_or_remove(holder.layout, 0, diary_list[position].dateLong, position)
+                            Log.d("클릭", position.toString())
+                        }
                     }
                     return@setOnLongClickListener true
                 }
