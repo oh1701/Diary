@@ -35,7 +35,7 @@ class Setting : AppCompatActivity() {
         shortviewmodel = ViewModelProvider(this).get(Shortviewmodel::class.java)
         binding.lifecycleOwner = this
         binding.setting = shortviewmodel
-        
+
         observe()
     }
     

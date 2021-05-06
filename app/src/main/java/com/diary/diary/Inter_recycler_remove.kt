@@ -89,7 +89,6 @@ interface layout_remove{ // 메인 리사이클러뷰에서 레이아웃 지우�
             for(i in tagarray.indices){
                 if(tagarray[i] == position){
                     a = "클릭"
-                    Log.d("체코", i.toString())
                     break
                 }
             }
@@ -127,6 +126,14 @@ interface layout_remove{ // 메인 리사이클러뷰에서 레이아웃 지우�
                 }
             }
         }
+    }
+
+    fun removeAll(){
+        check.removeAll(check)
+        date.removeAll(date)
+        const_layout.removeAll(const_layout)
+        tagarray.removeAll(tagarray)
+        darkmodecheck = ""
     }
 }
 

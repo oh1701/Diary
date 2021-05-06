@@ -121,14 +121,15 @@ class MainActivity : AppCompatActivity(), layout_remove {
 
     var datearray:ArrayList<Long> = arrayListOf() // 날짜 저장용
     var diarylist: ArrayList<list> = arrayListOf() //이미지도 추가하기.
-    
-    var diary_btn_change = 0
+
 
     var remove_layout_checkInt:ArrayList<Int> = arrayListOf()
     var date_layout_checkLong:ArrayList<Long> = arrayListOf()
     var taglist_array:ArrayList<String> = arrayListOf()
 
     companion object{
+        var diary_btn_change = 0
+
         lateinit var viewModel:Recylcerviewmodel
         lateinit var room:List<Diaryroom>
 
@@ -168,62 +169,23 @@ class MainActivity : AppCompatActivity(), layout_remove {
         if(calendar_month < 10)
             monthstring = "0$calendar_month"
 
+
         binding.searchDiary.setOnClickListener {
-            if(diary_btn_change == 0) {
                 var intent = Intent(this, search_diary::class.java)
                 startActivity(intent)
-            }
-            else{
-                    if(layout_remove().first != null){ //내용물이 가장 큰것이 마지막 배열로 가게 정렬
-                        remove_layout_checkInt = layout_remove().first!!  //인터페이스에서 return ArrayList<Int> 입니다.
-                        for(i in 0 until remove_layout_checkInt.size){ // 포지션값의 크기에 따라 작은것 -> 큰것순으로 정렬하는 코드
-                            var imsi = 0
-                            for(j in i until remove_layout_checkInt.size){
-                                if (remove_layout_checkInt[i] > remove_layout_checkInt[j]) {
-                                    imsi = remove_layout_checkInt[j]
-                                    remove_layout_checkInt[j] = remove_layout_checkInt[i]
-                                    remove_layout_checkInt[i] = imsi
-                                    Log.d("사이즈정렬중 i", remove_layout_checkInt[i].toString())
-                                    Log.d("사이즈정렬중 j", remove_layout_checkInt[j].toString())
-                                }
-                            }
-                            Log.d("사이즈정렬후", remove_layout_checkInt.toString())
-                        }
-
-                        if(layout_remove().second!!.isNotEmpty()){
-                            date_layout_checkLong = layout_remove().second!!
-                            Log.d("데이터갯수11", date_layout_checkLong.toString())
-                        }
-
-                        for(i in remove_layout_checkInt.size - 1 downTo 0){ // downto로 안하면 작은것부터 삭제 후 큰것삭제하는데, 작은것이 삭제되었을경우 사이즈가 줄어들어 큰 숫자가 안들어가지는 상황이 있어. 오류가 발생함.
-                            diarylist.removeAt(remove_layout_checkInt[i]) // remove_layout_checkInt는 아이템 롱클릭시 받아와지는 포지션값.
-                            binding.mainRecylerview.adapter?.notifyItemRemoved(remove_layout_checkInt[i])
-                            binding.mainRecylerview.adapter?.notifyItemRangeChanged(remove_layout_checkInt[i], diarylist.size)
-                            Log.d("사이즈삭제파일은", remove_layout_checkInt[i].toString())
-                        }
-
-                        binding.mainRecylerview.adapter?.notifyDataSetChanged()
-
-                        CoroutineScope(Dispatchers.IO).launch {
-                            for(i in date_layout_checkLong.indices){
-                                Log.d("데이터갯수22", date_layout_checkLong.toString())
-                                Log.d("없애는데이터", date_layout_checkLong[i].toString())
-                                db.RoomDao().DeletedateDao(date_layout_checkLong[i])
-                            }
-                            layout_remove_position_check(1024)
-                            Log.d("실행됨", "실행")
-                            diary_btn_change = 0
-                        }
-                    }
-            }
+                diary_btn_change = 0
+                removeAll()
+                binding.mainRecylerview.adapter?.notifyDataSetChanged()
         }
-        coroutine()
-        alldiary()
-        viewobserve()
+
+        viewobserve() // 여기에 놓지 않고, onresume에 하면 observe들이 중복호출된다.
     }
 
     override fun onResume() {
         super.onResume()
+
+        coroutine()
+        alldiary()
 
         if(Setting.a == 222){ // 뒤로가기로 설정창에서 다크모드 같은것 설정 후 나왔을 경우 대비.
             binding.maintitle.setTextColor(Color.parseColor("#FB9909"))
@@ -288,11 +250,61 @@ class MainActivity : AppCompatActivity(), layout_remove {
 
         viewModel.settingClick.observe(this, {
             startActivity(Intent(this, Setting::class.java))
+            diary_btn_change = 0
+            removeAll()
+            binding.mainRecylerview.adapter?.notifyDataSetChanged()
         })
 
         viewModel.alldiaryClick.observe(this, {
-            var intent = Intent(this, Content_create::class.java)
-            startActivity(intent)
+            if (diary_btn_change == 0) {
+                var intent = Intent(this, Content_create::class.java)
+                startActivity(intent)
+                removeAll()
+            } else {// 여기에 다이얼로그로 삭제 하냐는 질문 만들고 if else로 나눠서 layout_remove ~~ 연결시키기.
+                if (layout_remove().first != null) { //내용물이 가장 큰것이 마지막 배열로 가게 정렬
+                    remove_layout_checkInt = layout_remove().first!!  //인터페이스에서 return ArrayList<Int> 입니다.
+                    for (i in 0 until remove_layout_checkInt.size) { // 포지션값의 크기에 따라 작은것 -> 큰것순으로 정렬하는 코드
+                        var imsi = 0
+                        for (j in i until remove_layout_checkInt.size) {
+                            if (remove_layout_checkInt[i] > remove_layout_checkInt[j]) {
+                                imsi = remove_layout_checkInt[j]
+                                remove_layout_checkInt[j] = remove_layout_checkInt[i]
+                                remove_layout_checkInt[i] = imsi
+                                Log.d("사이즈정렬중 i", remove_layout_checkInt[i].toString())
+                                Log.d("사이즈정렬중 j", remove_layout_checkInt[j].toString())
+                            }
+                        }
+                        Log.d("사이즈정렬후", remove_layout_checkInt.toString())
+                    }
+
+                    if (layout_remove().second!!.isNotEmpty()) {
+                        date_layout_checkLong = layout_remove().second!!
+                        Log.d("데이터갯수11", date_layout_checkLong.toString())
+                    }
+
+                    for (i in remove_layout_checkInt.size - 1 downTo 0) { // downto로 안하면 작은것부터 삭제 후 큰것삭제하는데, 작은것이 삭제되었을경우 사이즈가 줄어들어 큰 숫자가 안들어가지는 상황이 있어. 오류가 발생함.
+                        diarylist.removeAt(remove_layout_checkInt[i]) // remove_layout_checkInt는 아이템 롱클릭시 받아와지는 포지션값.
+                        binding.mainRecylerview.adapter?.notifyItemRemoved(remove_layout_checkInt[i])
+                        binding.mainRecylerview.adapter?.notifyItemRangeChanged(remove_layout_checkInt[i], diarylist.size)
+                        Log.d("사이즈삭제파일은", remove_layout_checkInt[i].toString())
+                    }
+
+                    binding.mainRecylerview.adapter?.notifyDataSetChanged()
+
+                    CoroutineScope(Dispatchers.IO).launch {
+                        for (i in date_layout_checkLong.indices) {
+                            Log.d("데이터갯수22", date_layout_checkLong.toString())
+                            Log.d("없애는데이터", date_layout_checkLong[i].toString())
+                            db.RoomDao().DeletedateDao(date_layout_checkLong[i])
+                        }
+                        layout_remove_position_check(1024)
+                        Log.d("실행됨", "실행")
+                        diary_btn_change = 0
+                    }
+
+                    binding.allDiary.setImageResource(R.drawable.ic_baseline_create_24)
+                }
+            }
         })
     }
     
@@ -409,13 +421,13 @@ class MainActivity : AppCompatActivity(), layout_remove {
     }
 
     override fun onBackPressed() {
-
-        if(intent.hasExtra("이동")) // 나중에 종료 팝업 만들고, 네비게이션시 네비게이션 닫게 만들기.
-            Log.d("이동함", "이동함")
-        else if(diary_btn_change == 1){
+        if(diary_btn_change == 1){ // 레이아웃 삭제 이벤트중일시.
             diary_btn_change = 0
             layout_remove_position_check(1024)
+            binding.allDiary.setImageResource(R.drawable.ic_baseline_create_24)
         }
+        else if(intent.hasExtra("이동")) // 나중에 종료 팝업 만들고, 네비게이션시 네비게이션 닫게 만들기.
+            Log.d("이동함", "이동함")
         else{
             super.onBackPressed()
         }
@@ -423,7 +435,7 @@ class MainActivity : AppCompatActivity(), layout_remove {
 
     private fun trash_btn(){
         diary_btn_change = 1
-        Log.d("실행" , "실행ㅇ유ㅠ유")
-        binding.searchDiary.setImageResource(R.drawable.ic_baseline_restore_from_whitetrash_24)
+        binding.allDiary.setImageResource(R.drawable.ic_baseline_restore_from_trash_24)
+        //setting 부분 arrow Left로 변경후 클릭시 모든 상태 원상태로 만들기. diarybtn 0, layout 모두 초기화 등.
     }
 }

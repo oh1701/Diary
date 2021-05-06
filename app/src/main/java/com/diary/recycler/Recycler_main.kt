@@ -103,8 +103,7 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, v
         }
 
         holder.layout.apply {
-
-            if(darkmode() == "다크모드" && tag == null || tag == "")
+            if(darkmode() == "다크모드" && tag == null)
                 holder.layout.setBackgroundResource(R.drawable.darkmode_layout)
             else
                 holder.layout.setBackgroundResource(R.drawable.layout_background)
@@ -115,9 +114,9 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, v
                     if(tag_get(position) == "클릭") //태그를 통해 삭제 선택을 하였는지 확인한다.
                         tag = "클릭"
                     else if(tag_get(position) == null)
-                        tag = ""
+                        tag = "1414"
 
-                    if (a == 0 || layout_remove().first == null) {
+                    if (a == 0 || layout_remove().first == null && MainActivity.diary_btn_change == 0) {
                         Log.d("제목은 :", holder.title.text.toString())
                         var intent = Intent(context, Content_create::class.java)
                         intent.putExtra("이동", diary_list[position].id)
@@ -125,12 +124,12 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, v
                     } else {
                         if(darkmode() == "다크모드") { //다크모드일시
                             if (tag == "클릭") { //클릭 상태
-                                Log.d("클릭", "클릭상태")
+                                Log.d("다크클릭 태그", tag.toString())
                                 holder.layout.setBackgroundResource(R.drawable.darkmode_layout)
                                 layout_remove_position_remove(position)
                                 layout_add_or_remove(holder.layout, 1, diary_list[position].dateLong, position)
                             } else {
-                                Log.d("클릭", "미클릭상태")
+                                Log.d("다크미클릭 태그", tag.toString())
                                 holder.layout.setBackgroundResource(R.drawable.layout_background)
                                 a = 1
                                 layout_remove_position_check(position)
@@ -140,10 +139,12 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, v
                         }
                         else if(darkmode() == null){ //기본모드
                             if (tag == "클릭") { //클릭
+                                Log.d("기본클릭 태그", tag.toString())
                                 holder.layout.setBackgroundResource(R.drawable.layout_background)
                                 layout_remove_position_remove(position)
                                 layout_add_or_remove(holder.layout, 1, diary_list[position].dateLong, position)
                             } else {
+                                Log.d("기본미클릭 태그", tag.toString())
                                 holder.layout.setBackgroundResource(R.drawable.longclick_layout)
                                 a = 1
                                 layout_remove_position_check(position)
@@ -160,16 +161,14 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, v
                     if(tag_get(position) == "클릭")
                         tag = "클릭"
                     else if(tag_get(position) == null)
-                        tag = ""
+                        tag = "1414"
 
                     if(darkmode() == "다크모드"){ //다크모드
                         if (tag == "클릭") { // 클릭 상태면
-                            Log.d("클릭", "클릭상태")
                             holder.layout.setBackgroundResource(R.drawable.darkmode_layout)
                             layout_remove_position_remove(position)
                             layout_add_or_remove(holder.layout, 1, diary_list[position].dateLong, position)
                         } else { //클릭 상태가 아니면
-                            Log.d("클릭", "미클릭상태")
                             holder.layout.setBackgroundResource(R.drawable.layout_background)
                             a = 1
                             layout_remove_position_check(position)
