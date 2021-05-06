@@ -27,6 +27,12 @@ import com.google.android.flexbox.FlexboxLayoutManager
 
 class SearchViewModel:ViewModel(){
     var tag_edit_search = MutableLiveData<String>()
+    var back = MutableLiveData<String>()
+
+    fun backClick(){
+        back.value = ""
+    }
+
 }
 
 class search_diary : AppCompatActivity() {
@@ -128,6 +134,9 @@ class search_diary : AppCompatActivity() {
             }
         })
 
+        viewModel.back.observe(this, {
+            onBackPressed()
+        })
     }
 
     private fun Any.startsWith(string:String):Boolean{

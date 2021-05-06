@@ -32,8 +32,15 @@
             android:screenOrientation="portrait" />
         <activity android:name=".Setting"
             android:screenOrientation="portrait" />
+
         <activity android:name=".password"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <!--
 android:allowBackup="false" 이게 true로 할시데이터 백업해준다.
 android:fullBackupContent="false"
@@ -45,11 +52,6 @@ android:fullBackupContent="false"
         <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
 
         <provider

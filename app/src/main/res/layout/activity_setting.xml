@@ -6,7 +6,7 @@
     <data>
         <variable
             name="setting"
-            type="com.diary.diary.Shortviewmodel" />
+            type="com.diary.diary.SettingViewmodel" />
     </data>
 
 <LinearLayout
@@ -40,7 +40,6 @@
                 android:layout_marginTop="5dp">
 
                 <TextView
-                    android:id="@+id/diary_count"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"
@@ -159,6 +158,7 @@
                         android:layout_height="30dp"
                         android:src="@drawable/ic_baseline_keyboard_arrow_right_24"
 
+                        android:onClick="@{() -> setting.diarylockclick()}"
                         app:layout_constraintRight_toRightOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintTop_toTopOf="parent"/>
@@ -349,6 +349,7 @@
                     android:padding="12dp">
 
                     <TextView
+                        android:id="@+id/diary_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="현재까지 작성한 일기는 i개 입니다."

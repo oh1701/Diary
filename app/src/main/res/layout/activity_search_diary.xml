@@ -55,6 +55,7 @@
             android:src="@drawable/ic_baseline_arrow_back_24"
             android:background="@android:color/transparent"
 
+            android:onClick="@{() -> search.backClick()}"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>

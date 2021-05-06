@@ -101,6 +101,7 @@ class Recylcerviewmodel:ViewModel(){
     var settingClick = MutableLiveData<String>()
     var alldiaryClick = MutableLiveData<String>()
 
+
     fun longClick() = longclick_observe
     fun titleClick() {
         titleClick.value = ""
@@ -187,11 +188,18 @@ class MainActivity : AppCompatActivity(), layout_remove {
         coroutine()
         alldiary()
 
-        if(Setting.a == 222){ // 뒤로가기로 설정창에서 다크모드 같은것 설정 후 나왔을 경우 대비.
+        if(Setting.darkmodechagend == "ON"){ // 뒤로가기로 설정창에서 다크모드 같은것 설정 후 나왔을 경우 대비.
             binding.maintitle.setTextColor(Color.parseColor("#FB9909"))
             binding.maintitleLayout.setBackgroundColor(Color.parseColor("#201F1F"))
             binding.mainTopLayout.setBackgroundColor(Color.parseColor("#201F1F"))
             darkmodesetting("다크모드")
+            binding.mainRecylerview.adapter?.notifyDataSetChanged()
+        }
+        else if(Setting.darkmodechagend == "OFF"){
+            binding.maintitle.setTextColor(Color.WHITE)
+            binding.maintitleLayout.setBackgroundColor(Color.parseColor("#F5201F1F"))
+            binding.mainTopLayout.setBackgroundColor(Color.parseColor("#E8E8E8"))
+            darkmodesetting("기본")
             binding.mainRecylerview.adapter?.notifyDataSetChanged()
         }
     }
@@ -398,17 +406,6 @@ class MainActivity : AppCompatActivity(), layout_remove {
             }
         }
     }
-/*
-* intent로 액티비티 만든곳에 구글 드라이브 복원 및 백업 구현하고 데이터 초기화 누를시 모든 리사이클러뷰, room 데이터 삭제시키기.
-* /이미지들 스크린샷찍어서 설명하기.
-                    var intent = Intent(this, password::class.java)
-                    intent.putExtra("비밀번호 설정", "비밀번호 설정")
-                    startActivity(intent)
-                    *
-                    var intent = Intent(this, tag_setting::class.java)
-                    intent.putExtra("태그 설정", taglist_array)
-                    startActivity(intent)
-* */
     private fun alldiary(){
         binding.allDiary.setOnTouchListener { v, event ->
             if(event.action == MotionEvent.ACTION_DOWN) // 버튼에 손을 올렸을 경우
@@ -426,8 +423,9 @@ class MainActivity : AppCompatActivity(), layout_remove {
             layout_remove_position_check(1024)
             binding.allDiary.setImageResource(R.drawable.ic_baseline_create_24)
         }
-        else if(intent.hasExtra("이동")) // 나중에 종료 팝업 만들고, 네비게이션시 네비게이션 닫게 만들기.
-            Log.d("이동함", "이동함")
+        else if(intent.hasExtra("이동") || intent.hasExtra("비밀번호ON")) { // content_create, 비밀번호 상태에서 메인으로 넘어왔을때, 그 상황으로 안돌아가기 위함임. 다이얼로그로 종료버튼 만들기.
+            Toast.makeText(this, "종료되었음", Toast.LENGTH_SHORT).show()
+        }
         else{
             super.onBackPressed()
         }
