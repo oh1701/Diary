@@ -33,10 +33,6 @@ class password : AppCompatActivity() {
 
         sharedPreferences = getSharedPreferences("LOCK_PASSWORD", 0)
 
-        if(sharedPreferences.getString("PASSWORD", "").toString().isEmpty()) {
-            startActivity(Intent(this, MainActivity::class.java))
-        }
-
 
         binding.password0.setOnClickListener {
             password_add(0)
@@ -115,6 +111,7 @@ class password : AppCompatActivity() {
     }
 
     fun password_add(int: Int) {
+        var vibrator: Vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         if (intent.hasExtra("비밀번호 설정")) {
             if (password.length == 4) {
                 password_check(int)
@@ -155,6 +152,24 @@ class password : AppCompatActivity() {
                 intent.putExtra("비밀번호ON", "비밀번호ON")
                 startActivity(intent)
             }
+            else if(password.length == 4 && password != sharedPreferences.getString("PASSWORD", "").toString()){
+                if (toast == null) {
+                    toast = Toast.makeText(this, "비밀번호가 일치하지 않습니다.", Toast.LENGTH_SHORT)
+                    vibrator.vibrate(300)
+                } else {
+                    toast!!.cancel()
+                    toast = Toast.makeText(this, "비밀번호가 일치하지 않습니다.", Toast.LENGTH_SHORT)
+                    vibrator.vibrate(300)
+                }
+                toast!!.show()
+                binding.passImage1.setBackgroundResource(R.drawable.password_noinput)
+                binding.passImage2.setBackgroundResource(R.drawable.password_noinput)
+                binding.passImage3.setBackgroundResource(R.drawable.password_noinput)
+                binding.passImage4.setBackgroundResource(R.drawable.password_noinput)
+                password = ""
+                binding.passwordCheck.setText("비밀번호를 다시 입력해주세요.")
+                binding.passwordCheck.setTextColor(Color.parseColor("#0E4181"))
+            }
         }
     }
 
@@ -191,7 +206,8 @@ class password : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "실행행", Toast.LENGTH_SHORT).show()
                 val editor = sharedPreferences.edit()
-                editor.putString("PASSWORD", password)
+                editor.putString("PASSWORD", password) //비밀번호 설정함
+                editor.putString("LOCK_CHECK", "ON") //LOCK ON으로 변경함.
                 editor.apply()
 
                 Log.d("패스워드확인", sharedPreferences.getString("PASSWORD", "").toString())
