@@ -76,45 +76,9 @@
                 android:orientation="vertical">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/note_background_setting"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="20dp"
-                    android:layout_marginRight="20dp"
-                    android:padding="12dp">
-
-                    <TextView
-                        android:id="@+id/note_background"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="노트 배경 설정"
-                        android:textColor="@color/black"
-                        android:textSize="14dp"
-                        android:typeface="serif"
-
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent"/>
-
-                    <ImageView
-                        android:id="@+id/image1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="30dp"
-                        android:src="@drawable/ic_baseline_keyboard_arrow_right_24"
-
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"/>
-
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-                <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/data_backup_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/layout_gray_top"
                     android:layout_marginLeft="20dp"
                     android:layout_marginRight="20dp"
                     android:onClick="@{() -> setting.datadriveClick()}"
@@ -144,6 +108,79 @@
                         app:layout_constraintTop_toTopOf="parent"/>
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/password_change_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/layout_gray_top"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginRight="20dp"
+
+                    android:onClick="@{() -> setting.passchangeClick()}"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:id="@+id/password_change"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="비밀번호 변경"
+                        android:textColor="@color/black"
+                        android:textSize="14dp"
+                        android:typeface="serif"
+
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"/>
+
+                    <ImageView
+                        android:id="@+id/image1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="30dp"
+                        android:src="@drawable/ic_baseline_keyboard_arrow_right_24"
+
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"/>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/password_hint_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/layout_gray_top"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginRight="20dp"
+
+                    android:onClick="@{() -> setting.passwordhintClick()}"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:id="@+id/password_hint"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="비밀번호 힌트 입력"
+                        android:textColor="@color/black"
+                        android:textSize="14dp"
+                        android:typeface="serif"
+
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"/>
+
+                    <ImageView
+                        android:id="@+id/password_hint_image"
+                        android:layout_width="wrap_content"
+                        android:layout_height="30dp"
+                        android:src="@drawable/ic_baseline_keyboard_arrow_right_24"
+
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"/>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/diary_lock_layout"
                     android:layout_width="match_parent"
@@ -241,6 +278,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp"
+
+                android:onClick="@{() -> setting.shortcutsClick()}"
                 android:padding="12dp">
 
                 <TextView
@@ -258,6 +297,40 @@
 
                 <ImageView
                     android:id="@+id/image3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="30dp"
+                    android:src="@drawable/ic_baseline_keyboard_arrow_right_24"
+
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/my_shortcut_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/layout_gray_top"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:padding="12dp">
+
+                <TextView
+                    android:id="@+id/my_shortcut"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="내 단축키"
+                    android:textColor="@color/black"
+                    android:textSize="14dp"
+                    android:typeface="serif"
+
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+                <ImageView
+                    android:id="@+id/image4"
                     android:layout_width="wrap_content"
                     android:layout_height="30dp"
                     android:src="@drawable/ic_baseline_keyboard_arrow_right_24"
@@ -319,7 +392,7 @@
                         app:layout_constraintBottom_toBottomOf="parent"/>
 
                     <ImageView
-                        android:id="@+id/image4"
+                        android:id="@+id/image5"
                         android:layout_width="wrap_content"
                         android:layout_height="30dp"
                         android:src="@drawable/ic_baseline_keyboard_arrow_right_24"
@@ -353,7 +426,7 @@
                         app:layout_constraintBottom_toBottomOf="parent"/>
 
                     <ImageView
-                        android:id="@+id/image5"
+                        android:id="@+id/image6"
                         android:layout_width="wrap_content"
                         android:layout_height="30dp"
                         android:src="@drawable/ic_baseline_keyboard_arrow_right_24"

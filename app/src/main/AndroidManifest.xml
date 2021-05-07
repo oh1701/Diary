@@ -25,7 +25,9 @@
         android:roundIcon="@mipmap/ic_launcher_imsi"
         android:supportsRtl="true"
         android:theme="@style/Theme.Diary_project">
-        <activity android:name=".Splash"
+        <activity android:name=".Shortcuts"></activity>
+        <activity
+            android:name=".Splash"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -38,6 +40,9 @@
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan" />
         <activity
+            android:name=".Passwordhint"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".tag_setting"
             android:screenOrientation="portrait" />
         <activity
@@ -45,7 +50,7 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".password"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <!--
 android:allowBackup="false" 이게 true로 할시데이터 백업해준다.
 android:fullBackupContent="false"
@@ -56,7 +61,7 @@ android:fullBackupContent="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

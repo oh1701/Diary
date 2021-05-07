@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Vibrator
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
@@ -21,6 +22,7 @@ class password : AppCompatActivity() {
     var password_check: String = ""
     var aa = 0
     var toast: Toast? = null
+    var passwordchange = "확인안됨"
 
     companion object {
         lateinit var sharedPreferences: SharedPreferences
@@ -75,7 +77,7 @@ class password : AppCompatActivity() {
                     binding.passImage2.setBackgroundResource(R.drawable.password_noinput)
                     binding.passImage3.setBackgroundResource(R.drawable.password_noinput)
                     binding.passImage4.setBackgroundResource(R.drawable.password_noinput)
-                } else if (intent.hasExtra("비밀번호 설정")) {
+                } else if (intent.hasExtra("비밀번호 설정") || intent.hasExtra("비밀번호 변경")) {
                     password_check = ""
                     binding.passImage1.setBackgroundResource(R.drawable.password_noinput)
                     binding.passImage2.setBackgroundResource(R.drawable.password_noinput)
@@ -96,7 +98,7 @@ class password : AppCompatActivity() {
                 if (password.length < 4 && password.isNotEmpty())
                     password = password.substring(0, password.length - 1)
 
-                else if (intent.hasExtra("비밀번호 설정") && password_check.isNotEmpty()) {
+                else if (intent.hasExtra("비밀번호 설정") || intent.hasExtra("비밀번호 변경") && password_check.isNotEmpty()) {
                     when (password_check.length) {
                         1 -> binding.passImage1.setBackgroundResource(R.drawable.password_noinput)
                         2 -> binding.passImage2.setBackgroundResource(R.drawable.password_noinput)
@@ -108,11 +110,15 @@ class password : AppCompatActivity() {
                 }
             }
         }
+
+        if(intent.hasExtra("비밀번호 변경"))
+            binding.passwordCheck.setText("현재 사용중인 비밀번호를 입력하세요.")
+
     }
 
     fun password_add(int: Int) {
         var vibrator: Vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        if (intent.hasExtra("비밀번호 설정")) {
+        if (intent.hasExtra("비밀번호 설정") || passwordchange == "확인") {
             if (password.length == 4) {
                 password_check(int)
             }
@@ -134,6 +140,40 @@ class password : AppCompatActivity() {
                 binding.passImage4.setBackgroundResource(R.drawable.password_noinput)
                 binding.passwordCheck.setText("비밀번호를 한번 더 입력해주세요.")
                 aa = 1
+            }
+        }
+        else if(intent.hasExtra("비밀번호 변경") && passwordchange == "확인안됨"){
+            if (password.length < 4) {
+                binding.passwordCheck.setText("현재 사용중인 비밀번호를 입력하세요.")
+                password += int.toString()
+                when (password.length) {
+                    1 -> binding.passImage1.setBackgroundResource(R.drawable.password_input)
+                    2 -> binding.passImage2.setBackgroundResource(R.drawable.password_input)
+                    3 -> binding.passImage3.setBackgroundResource(R.drawable.password_input)
+                    4 -> binding.passImage4.setBackgroundResource(R.drawable.password_input)
+                }
+            }
+
+            if (password.length == 4 && password == sharedPreferences.getString("PASSWORD", "").toString()){
+                passwordchange = "확인"
+                password = ""
+                binding.passImage1.setBackgroundResource(R.drawable.password_noinput)
+                binding.passImage2.setBackgroundResource(R.drawable.password_noinput)
+                binding.passImage3.setBackgroundResource(R.drawable.password_noinput)
+                binding.passImage4.setBackgroundResource(R.drawable.password_noinput)
+                binding.passwordCheck.setText("새로 변경할 비밀번호를 입력하세요.")
+            }
+            else if(password.length == 4 && password != sharedPreferences.getString("PASSWORD", "").toString()){
+                password = ""
+                binding.passImage1.setBackgroundResource(R.drawable.password_noinput)
+                binding.passImage2.setBackgroundResource(R.drawable.password_noinput)
+                binding.passImage3.setBackgroundResource(R.drawable.password_noinput)
+                binding.passImage4.setBackgroundResource(R.drawable.password_noinput)
+                vibrator.vibrate(300)
+                if(sharedPreferences.getString("PASSWORD_HINT", "").toString().isNotEmpty())
+                    binding.passwordCheck.setText("비밀번호가 일치하지 않습니다. \n힌트 : ${sharedPreferences.getString("PASSWORD_HINT", "").toString()}")
+                else
+                    binding.passwordCheck.setText("비밀번호가 일치하지 않습니다.")
             }
         }
         else{
@@ -167,7 +207,10 @@ class password : AppCompatActivity() {
                 binding.passImage3.setBackgroundResource(R.drawable.password_noinput)
                 binding.passImage4.setBackgroundResource(R.drawable.password_noinput)
                 password = ""
-                binding.passwordCheck.setText("비밀번호를 다시 입력해주세요.")
+                if(sharedPreferences.getString("PASSWORD_HINT", "").toString().isNotEmpty())
+                    binding.passwordCheck.setText("비밀번호가 일치하지 않습니다. \n\n비밀번호 힌트 : ${sharedPreferences.getString("PASSWORD_HINT", "").toString()}")
+                else
+                    binding.passwordCheck.setText("비밀번호가 일치하지 않습니다.")
                 binding.passwordCheck.setTextColor(Color.parseColor("#0E4181"))
             }
         }
@@ -204,13 +247,14 @@ class password : AppCompatActivity() {
                 binding.passwordCheck.setText("비밀번호를 다시 입력해주세요.")
                 binding.passwordCheck.setTextColor(Color.parseColor("#0E4181"))
             } else {
-                Toast.makeText(this, "실행행", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "비밀번호 변경 완료", Toast.LENGTH_SHORT).show()
                 val editor = sharedPreferences.edit()
                 editor.putString("PASSWORD", password) //비밀번호 설정함
                 editor.putString("LOCK_CHECK", "ON") //LOCK ON으로 변경함.
                 editor.apply()
 
                 Log.d("패스워드확인", sharedPreferences.getString("PASSWORD", "").toString())
+                finish()
                 //비밀번호를 저장시키고. 잃어버렸을 경우를 대비한 힌트 다이얼로그 생성하기.
             }
         }

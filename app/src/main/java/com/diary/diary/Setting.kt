@@ -1,5 +1,7 @@
 package com.diary.diary
 
+import android.app.AlertDialog
+import android.app.Dialog
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
@@ -7,6 +9,7 @@ import android.graphics.drawable.GradientDrawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
@@ -20,7 +23,8 @@ class SettingViewmodel: ViewModel(){
     var diarylock = MutableLiveData<String>()
     var datadrive = MutableLiveData<String>()
 
-    var noteback = MutableLiveData<String>()
+    var passwordchange = MutableLiveData<String>()
+    var passwordhint =MutableLiveData<String>()
     var shortcuts = MutableLiveData<String>()
     var usedtag = MutableLiveData<String>()
     var diary_instruction = MutableLiveData<String>()
@@ -41,11 +45,24 @@ class SettingViewmodel: ViewModel(){
     fun backClick(){
         backbtn.value = "CLICK"
     }
+
+    fun passchangeClick(){
+        passwordchange.value = "CLICK"
+    }
+
+    fun passwordhintClick(){
+        passwordhint.value = "CLICK"
+    }
+
+    fun shortcutsClick(){
+        shortcuts.value = "CLICK"
+    }
 }
 class Setting : AppCompatActivity() {
     lateinit var binding:ActivitySettingBinding
     lateinit var settingviewmodel: SettingViewmodel
     lateinit var sharedPreferences:SharedPreferences
+    var toast: Toast? = null
 
     companion object{
         var darkmodechagend = "OFF"
@@ -138,11 +155,39 @@ class Setting : AppCompatActivity() {
         })
 
         settingviewmodel.datadrive.observe(this, {
-            Toast.makeText(this, "밥", Toast.LENGTH_SHORT).show()
+            toast = when (toast) {
+                null -> Toast.makeText(this, "준비중인 기능입니다.", Toast.LENGTH_SHORT)
+                else -> {
+                    toast!!.cancel()
+                    Toast.makeText(this, "준비중인 기능입니다.", Toast.LENGTH_SHORT)
+                }
+            }
+            toast!!.show()
         })
 
         settingviewmodel.backbtn.observe(this, {
             intentMain()
+        })
+        
+        settingviewmodel.passwordchange.observe(this, {
+            if (sharedPreferences.getString("PASSWORD", "").toString().isEmpty()) {
+                var intent = Intent(this, password::class.java)
+                intent.putExtra("비밀번호 설정", "비밀번호 설정")
+                startActivity(intent)
+            }
+            else{
+                var intent = Intent(this, password::class.java)
+                intent.putExtra("비밀번호 변경", "비밀번호 변경")
+                startActivity(intent)
+            }
+        })
+
+        settingviewmodel.passwordhint.observe(this, {
+                startActivity(Intent(this, Passwordhint::class.java))
+        })
+
+        settingviewmodel.shortcuts.observe(this, {
+            startActivity(Intent(this, Shortcuts::class.java))
         })
     }
 
@@ -157,7 +202,7 @@ class Setting : AppCompatActivity() {
         darkmodechagend = "ON"
         binding.settingMainLayout.setBackgroundColor(Color.parseColor("#272626"))
         binding.settingMenu.setTextColor(Color.parseColor("#FB9909"))
-        binding.noteBackground.setTextColor(Color.WHITE)
+        binding.passwordChange.setTextColor(Color.WHITE)
         binding.dataBackup.setTextColor(Color.WHITE)
         binding.diaryLock.setTextColor(Color.WHITE)
         binding.darkmode.setTextColor(Color.WHITE)
@@ -165,6 +210,8 @@ class Setting : AppCompatActivity() {
         binding.usedTag.setTextColor(Color.WHITE)
         binding.diaryInstruction.setTextColor(Color.WHITE)
         binding.diaryCount.setTextColor(Color.WHITE)
+        binding.myShortcut.setTextColor(Color.WHITE)
+        binding.passwordHint.setTextColor(Color.WHITE)
         binding.backArrow.setImageResource(R.drawable.darkmode_backarrow)
 
         binding.image1.setImageResource(R.drawable.darkmode_arrowright)
@@ -172,6 +219,8 @@ class Setting : AppCompatActivity() {
         binding.image3.setImageResource(R.drawable.darkmode_arrowright)
         binding.image4.setImageResource(R.drawable.darkmode_arrowright)
         binding.image5.setImageResource(R.drawable.darkmode_arrowright)
+        binding.image6.setImageResource(R.drawable.darkmode_arrowright)
+        binding.passwordHintImage.setImageResource(R.drawable.darkmode_arrowright)
 
         binding.systemSetting.setTextColor(Color.WHITE)
         binding.userConvinence.setTextColor(Color.WHITE)
@@ -183,12 +232,15 @@ class Setting : AppCompatActivity() {
         darkmodechagend = "OFF"
         binding.settingMainLayout.setBackgroundColor(Color.parseColor("#E8E8E8"))
         binding.settingMenu.setTextColor(Color.BLACK)
-        binding.noteBackground.setTextColor(Color.BLACK)
+        binding.passwordChange.setTextColor(Color.BLACK)
         binding.dataBackup.setTextColor(Color.BLACK)
         binding.diaryLock.setTextColor(Color.BLACK)
         binding.darkmode.setTextColor(Color.BLACK)
         binding.shortcut.setTextColor(Color.BLACK)
         binding.usedTag.setTextColor(Color.BLACK)
+        binding.myShortcut.setTextColor(Color.BLACK)
+        binding.passwordHint.setTextColor(Color.BLACK)
+
         binding.diaryInstruction.setTextColor(Color.BLACK)
         binding.diaryCount.setTextColor(Color.BLACK)
         binding.backArrow.setImageResource(R.drawable.ic_baseline_arrow_back_24)
@@ -198,6 +250,8 @@ class Setting : AppCompatActivity() {
         binding.image3.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
         binding.image4.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
         binding.image5.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
+        binding.image6.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
+        binding.passwordHintImage.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
 
         binding.systemSetting.setTextColor(Color.BLACK)
         binding.userConvinence.setTextColor(Color.BLACK)
