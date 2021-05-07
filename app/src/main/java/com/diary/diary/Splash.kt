@@ -22,6 +22,7 @@ class Splash : AppCompatActivity() {
             }
             else {
                 var intent = Intent(context, password::class.java)
+                intent.putExtra("이동", "이동")
                 startActivity(intent)
             }
         }

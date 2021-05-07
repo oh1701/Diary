@@ -1,5 +1,8 @@
 package com.diary.diary
 
+import android.content.Intent
+import android.content.SharedPreferences
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
@@ -35,13 +38,14 @@ class SearchViewModel:ViewModel(){
 
 }
 
-class search_diary : AppCompatActivity() {
+class search_diary : AppCompatActivity(), layout_remove {
 
     lateinit var binding:ActivitySearchDiaryBinding
     lateinit var viewModel:SearchViewModel
     var searchlist:ArrayList<list> = arrayListOf()
     var recenttag:ArrayList<tagline> = arrayListOf()
     var dd = 0
+    lateinit var sharedPreferences: SharedPreferences
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search_diary)
@@ -50,6 +54,16 @@ class search_diary : AppCompatActivity() {
         viewModel = ViewModelProvider(this).get(SearchViewModel::class.java)
         binding.lifecycleOwner = this
         binding.search = viewModel
+        sharedPreferences = getSharedPreferences("LOCK_PASSWORD", 0)
+
+        if(sharedPreferences.getString("DARK_MODE", "").toString() == "ON"){ // 뒤로가기로 설정창에서 다크모드 같은것 설정 후 나왔을 경우 대비.
+            binding.searchAllLayout.setBackgroundColor(Color.parseColor("#272626"))
+            binding.searchEdit.setTextColor(Color.WHITE)
+            binding.searchEdit.setHintTextColor(Color.WHITE)
+            binding.searchCount.setTextColor(Color.WHITE)
+            binding.backArrow.setImageResource(R.drawable.darkmode_backarrow)
+            darkmodesetting("다크모드")
+        }
 
         binding.searchRecyclerview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         binding.searchTagRecyclerview.layoutManager = FlexboxLayoutManager(this, FlexDirection.ROW, FlexWrap.WRAP) //가로정렬, 꽉차면 다음칸으로 넘어가게 만듬.
@@ -137,6 +151,12 @@ class search_diary : AppCompatActivity() {
         viewModel.back.observe(this, {
             onBackPressed()
         })
+    }
+
+    override fun onBackPressed() {
+        var intent = Intent(this, MainActivity::class.java)
+        intent.putExtra("이동", "이동")
+        startActivity(intent)
     }
 
     private fun Any.startsWith(string:String):Boolean{

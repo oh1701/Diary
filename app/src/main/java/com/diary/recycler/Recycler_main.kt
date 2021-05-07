@@ -51,12 +51,16 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, v
             visibility = View.GONE
         }
 
-        holder.date.setText(null)
-        holder.title.setText(null)
-        holder.content.setText(null)
+        holder.date.text = null
+        holder.title.text = null
+        holder.content.text = null
 
         holder.title.apply {
-            text = diary_list[position].title
+            if(diary_list[position].title.isNotEmpty())
+                text = diary_list[position].title
+            else
+                text = "제목없음"
+
             typeface = inter_roomdata_stringToFont(diary_list[position].font, context)
             if(darkmode() == "다크모드")
                 setTextColor(Color.WHITE)

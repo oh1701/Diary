@@ -123,7 +123,6 @@ class MainActivity : AppCompatActivity(), layout_remove {
     var datearray:ArrayList<Long> = arrayListOf() // 날짜 저장용
     var diarylist: ArrayList<list> = arrayListOf() //이미지도 추가하기.
 
-
     var remove_layout_checkInt:ArrayList<Int> = arrayListOf()
     var date_layout_checkLong:ArrayList<Long> = arrayListOf()
     var taglist_array:ArrayList<String> = arrayListOf()
@@ -180,22 +179,23 @@ class MainActivity : AppCompatActivity(), layout_remove {
         }
 
         viewobserve() // 여기에 놓지 않고, onresume에 하면 observe들이 중복호출된다.
+        coroutine()
+        alldiary()
     }
 
     override fun onResume() {
         super.onResume()
 
-        coroutine()
-        alldiary()
+        var sharedPreferences = getSharedPreferences("LOCK_PASSWORD", 0)
 
-        if(Setting.darkmodechagend == "ON"){ // 뒤로가기로 설정창에서 다크모드 같은것 설정 후 나왔을 경우 대비.
+        if(sharedPreferences.getString("DARK_MODE", "").toString() == "ON"){ // 뒤로가기로 설정창에서 다크모드 같은것 설정 후 나왔을 경우 대비.
             binding.maintitle.setTextColor(Color.parseColor("#FB9909"))
-            binding.maintitleLayout.setBackgroundColor(Color.parseColor("#201F1F"))
-            binding.mainTopLayout.setBackgroundColor(Color.parseColor("#201F1F"))
+            binding.maintitleLayout.setBackgroundColor(Color.parseColor("#272626"))
+            binding.mainTopLayout.setBackgroundColor(Color.parseColor("#272626"))
             darkmodesetting("다크모드")
             binding.mainRecylerview.adapter?.notifyDataSetChanged()
         }
-        else if(Setting.darkmodechagend == "OFF"){
+        else if(sharedPreferences.getString("DARK_MODE", "").toString() == "OFF"){
             binding.maintitle.setTextColor(Color.WHITE)
             binding.maintitleLayout.setBackgroundColor(Color.parseColor("#F5201F1F"))
             binding.mainTopLayout.setBackgroundColor(Color.parseColor("#E8E8E8"))

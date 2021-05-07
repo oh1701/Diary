@@ -20,7 +20,7 @@
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher_imsi"
-        android:label="@string/app_name"
+        android:label="DD Diary"
         android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_imsi"
         android:supportsRtl="true"

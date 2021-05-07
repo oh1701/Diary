@@ -2,9 +2,13 @@ package com.diary.diary
 
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -14,12 +18,13 @@ import com.diary.diary.databinding.ActivitySettingBinding
 class SettingViewmodel: ViewModel(){
     var darkmode = MutableLiveData<String>()
     var diarylock = MutableLiveData<String>()
-
     var datadrive = MutableLiveData<String>()
+
     var noteback = MutableLiveData<String>()
     var shortcuts = MutableLiveData<String>()
     var usedtag = MutableLiveData<String>()
     var diary_instruction = MutableLiveData<String>()
+    var backbtn = MutableLiveData<String>()
 
     fun darkClick(){
         darkmode.value = "CHECK"
@@ -27,6 +32,14 @@ class SettingViewmodel: ViewModel(){
 
     fun diarylockclick(){
         diarylock.value = "CHECK"
+    }
+
+    fun datadriveClick(){
+        datadrive.value = "CLICK"
+    }
+
+    fun backClick(){
+        backbtn.value = "CLICK"
     }
 }
 class Setting : AppCompatActivity() {
@@ -49,14 +62,23 @@ class Setting : AppCompatActivity() {
         binding.lifecycleOwner = this
         binding.setting = settingviewmodel
 
-        binding.diaryCount.setText("현재까지 작성한 일기는 ${MainActivity.room.size}개 입니다.")
+        if(MainActivity.roomcheck)
+            binding.diaryCount.setText("현재까지 작성한 일기는 ${MainActivity.room.size}개 입니다.")
+
 
         if(sharedPreferences.getString("LOCK_CHECK", "").toString().isNotEmpty())
             diarylock = sharedPreferences.getString("LOCK_CHECK", "").toString()
 
+        if(sharedPreferences.getString("DARK_MODE", "").toString().isNotEmpty())
+            darkmodechagend = sharedPreferences.getString("DARK_MODE", "").toString()
+
         when(darkmodechagend){
-            "ON" -> binding.darkSwitch.isChecked = true
-            "OFF" -> binding.darkSwitch.isChecked = false
+            "ON" -> {
+                darkON()
+            }
+            "OFF" -> {
+                darkOFF()
+            }
         }
 
         when(diarylock){
@@ -66,48 +88,120 @@ class Setting : AppCompatActivity() {
         observe()
     }
 
-    fun observe(){
+    override fun onBackPressed() {
+        intentMain()
+    }
+
+    fun observe() {
         val editor = sharedPreferences.edit()
 
-        settingviewmodel.darkmode.observe(this, {
-            when(darkmodechagend){
+        settingviewmodel.darkmode.observe(this, { //다크모드
+            when (darkmodechagend) {
                 "ON" -> {
-                    darkmodechagend = "OFF"
-                    binding.darkSwitch.isChecked = false
+                    editor.putString("DARK_MODE", "OFF")
+                    editor.apply()
+                    darkOFF()
+                    Log.d("실행11", "실행11")
                 }
                 "OFF" -> {
-                    darkmodechagend = "ON"
-                    binding.darkSwitch.isChecked = true
+                    editor.putString("DARK_MODE", "ON")
+                    editor.apply()
+                    darkON()
+                    Log.d("실행22", "실행22")
                 }
             }
         })
 
-        settingviewmodel.diarylock.observe(this, {
-            when(diarylock){
+        settingviewmodel.diarylock.observe(this, { //일기 잠금
+            when (diarylock) {
                 "ON" -> {
-                    editor.putString("LOCK_CHECK", "OFF")
                     diarylock = "OFF"
+                    editor.putString("LOCK_CHECK", "OFF")
                     editor.apply()
                     binding.lockSwitch.isChecked = false
                     Log.d("후후", sharedPreferences.getString("LOCK_CHECK", "").toString())
                 }
-                "OFF" ->{
-                    if(sharedPreferences.getString("PASSWORD", "").toString().isEmpty()) { //비밀번호 설정이 안되어있을 경우
+                "OFF" -> {
+                    if (sharedPreferences.getString("PASSWORD", "").toString().isEmpty()) { //비밀번호 설정이 안되어있을 경우
                         var intent = Intent(this, password::class.java)
                         intent.putExtra("비밀번호 설정", "비밀번호 설정")
                         startActivity(intent)
-                    }
-                    else{ //비밀번호 설정되어있으면.
-                        editor.putString("LOCK_CHECK", "ON")
+                    } else { //비밀번호 설정되어있으면.
                         diarylock = "ON"
+                        editor.putString("LOCK_CHECK", "ON")
                         editor.apply()
                         binding.lockSwitch.isChecked = true
-                        Log.d("후후", sharedPreferences.getString("LOCK_CHECK", "").toString())
                     }
                     //비밀번호 설정 되어있는지 확인, 안되어있으면 설정하고 ON으로 넘어가기.
                 }
             }
         })
+
+        settingviewmodel.datadrive.observe(this, {
+            Toast.makeText(this, "밥", Toast.LENGTH_SHORT).show()
+        })
+
+        settingviewmodel.backbtn.observe(this, {
+            intentMain()
+        })
+    }
+
+    fun intentMain(){
+        var intent = Intent(this, MainActivity::class.java)
+        intent.putExtra("이동", "이동")
+        startActivity(intent)
+    }
+
+    fun darkON(){
+        binding.darkSwitch.isChecked = true
+        darkmodechagend = "ON"
+        binding.settingMainLayout.setBackgroundColor(Color.parseColor("#272626"))
+        binding.settingMenu.setTextColor(Color.parseColor("#FB9909"))
+        binding.noteBackground.setTextColor(Color.WHITE)
+        binding.dataBackup.setTextColor(Color.WHITE)
+        binding.diaryLock.setTextColor(Color.WHITE)
+        binding.darkmode.setTextColor(Color.WHITE)
+        binding.shortcut.setTextColor(Color.WHITE)
+        binding.usedTag.setTextColor(Color.WHITE)
+        binding.diaryInstruction.setTextColor(Color.WHITE)
+        binding.diaryCount.setTextColor(Color.WHITE)
+        binding.backArrow.setImageResource(R.drawable.darkmode_backarrow)
+
+        binding.image1.setImageResource(R.drawable.darkmode_arrowright)
+        binding.image2.setImageResource(R.drawable.darkmode_arrowright)
+        binding.image3.setImageResource(R.drawable.darkmode_arrowright)
+        binding.image4.setImageResource(R.drawable.darkmode_arrowright)
+        binding.image5.setImageResource(R.drawable.darkmode_arrowright)
+
+        binding.systemSetting.setTextColor(Color.WHITE)
+        binding.userConvinence.setTextColor(Color.WHITE)
+        binding.shortcutSetting.setTextColor(Color.WHITE)
+    }
+
+    fun darkOFF(){
+        binding.darkSwitch.isChecked = false
+        darkmodechagend = "OFF"
+        binding.settingMainLayout.setBackgroundColor(Color.parseColor("#E8E8E8"))
+        binding.settingMenu.setTextColor(Color.BLACK)
+        binding.noteBackground.setTextColor(Color.BLACK)
+        binding.dataBackup.setTextColor(Color.BLACK)
+        binding.diaryLock.setTextColor(Color.BLACK)
+        binding.darkmode.setTextColor(Color.BLACK)
+        binding.shortcut.setTextColor(Color.BLACK)
+        binding.usedTag.setTextColor(Color.BLACK)
+        binding.diaryInstruction.setTextColor(Color.BLACK)
+        binding.diaryCount.setTextColor(Color.BLACK)
+        binding.backArrow.setImageResource(R.drawable.ic_baseline_arrow_back_24)
+
+        binding.image1.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
+        binding.image2.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
+        binding.image3.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
+        binding.image4.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
+        binding.image5.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
+
+        binding.systemSetting.setTextColor(Color.BLACK)
+        binding.userConvinence.setTextColor(Color.BLACK)
+        binding.shortcutSetting.setTextColor(Color.BLACK)
     }
 }
 /*

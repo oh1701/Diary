@@ -6,6 +6,7 @@ import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.Intent.ACTION_OPEN_DOCUMENT
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.database.Cursor
 import android.graphics.*
@@ -74,9 +75,11 @@ class Roommodel:ViewModel(){
     fun getContent() = editcontent
 
     fun Checktext() = title // 확인버튼 누르면 변경, 옵저버가 변경을 파악하여 coroutine을 통해 room에게 전송
+    fun Checkcontenttext() = textcontent
 
     fun onclick(){
         title.value = edittitle.value
+        textcontent.value = editcontent.value
         Log.d("옵저브온클릭", "보내진 것은 ${title.value}")
     }
 }
@@ -136,6 +139,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
     companion object{
         lateinit var viewModel:Roommodel
         lateinit var db:RoomdiaryDB
+        lateinit var sharedPreferences:SharedPreferences
         
         var CAMERA_REQUEST = 1000 // 사진 리퀘스트 코드
         var PICTURE_REQUEST = 2000 // 갤러리 리퀘스트 코드
@@ -199,7 +203,26 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
             layout_click_intent(getId)
         }
 
+        sharedPreferences = getSharedPreferences("LOCK_PASSWORD", 0)
+        if(sharedPreferences.getString("DARK_MODE", "").toString() == "ON"){
+            binding.contentDate.setTextColor(Color.parseColor("#FB9909"))
+            binding.contentTitle.setTextColor(Color.WHITE)
+            binding.contentTitle.setHintTextColor(Color.WHITE)
+            binding.contentText.setTextColor(Color.WHITE)
+            binding.contentText.setHintTextColor(Color.WHITE)
+            binding.layout.setBackgroundColor(Color.parseColor("#272626"))
+            binding.contentView.setBackgroundColor(Color.parseColor("#FB9909"))
 
+            binding.backBtn.setImageResource(R.drawable.darkmode_cancel)
+            binding.fontChange.setImageResource(R.drawable.darkmode_textfiled)
+            binding.camera.setImageResource(R.drawable.darkmode_camera)
+            binding.picture.setImageResource(R.drawable.darkmode_gallery)
+            binding.notouch.setImageResource(R.drawable.darkmode_notouch)
+            binding.tag.setImageResource(R.drawable.darkmode_tag)
+            binding.trash.setImageResource(R.drawable.darkmode_trash)
+
+            binding.success.setTextColor(Color.WHITE)
+        }
         // 함수 불러올 공간
         observemodel()
         clickListener()
@@ -219,17 +242,21 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
             CoroutineScope(Dispatchers.Main).launch { //UI 관련은 Main에서 설정. 받아온 데이터들 넣는 작업 코루틴.
                 binding.contentTitle.apply {
+                    if(sharedPreferences.getString("DARK_MODE", "").toString() != "ON") {
+                        setTextColor(Color.parseColor(intent_room.edit_color))
+                    }
                     setText(intent_room.title)
                     typeface = inter_roomdata_stringToFont(intent_room.edit_font, context)
                     letterSpacing = intent_room.letterspacing
-                    setTextColor(Color.parseColor(intent_room.edit_color))
                 }
                 binding.contentText.apply {
+                    if(sharedPreferences.getString("DARK_MODE", "").toString() != "ON")
+                        setTextColor(Color.parseColor(intent_room.edit_color))
+
                     setText(intent_room.content)
                     typeface = inter_roomdata_stringToFont(intent_room.edit_font, context)
                     letterSpacing = intent_room.letterspacing
                     setLineSpacing(0.0f, intent_room.linespacing)
-                    setTextColor(Color.parseColor(intent_room.edit_color))
                     textSize = intent_room.edit_size
                 }
                 if (intent_room.uri_string_array.isNotEmpty()) {
@@ -237,13 +264,19 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                         Glide.with(context).load(Uri.parse(intent_room.uri_string_array[i])).into(createView())
                         uri_array.add(intent_room.uri_string_array[i]!!)
 
-                        Log.d("실행", "실행되었음.")
+                        Log.d("실행22", "실행되었음.$i")
+                        Log.d("실행22", "실행되었음1.${intent_room.uri_string_array.size}")
+                        Log.d("실행22", "실행되었음2.${Edit_array.size}")
+
                         Edit_array[i]!!.apply {
-                            setText(intent_room.edit_string_array[i])
+                            if(sharedPreferences.getString("DARK_MODE", "").toString() != "ON")
+                                setTextColor(Color.parseColor(intent_room.edit_color))
+                            if(intent_room.edit_string_array.isNotEmpty())
+                                setText(intent_room.edit_string_array[i])
+
                             typeface = inter_roomdata_stringToFont(intent_room.edit_font, context)
                             letterSpacing = intent_room.letterspacing
                             setLineSpacing(0.0F, intent_room.linespacing)
-                            setTextColor(Color.parseColor(intent_room.edit_color))
                             textSize = intent_room.edit_size
                         }
                     }
@@ -296,7 +329,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
             binding.matchPhoto.setImageResource(0)
             binding.matchPhoto.visibility = View.GONE
         }
-        else if(titletext.isNotEmpty()) {
+        else if(titletext.isNotEmpty() || contenttext.isNotEmpty()) {
             warning_dialog("백 버튼 경고")
         }
         else{
@@ -355,7 +388,6 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                         fun uri() {
                             var instream: InputStream? = contentResolver.openInputStream(dataUri!!)
                             var bitmap = BitmapFactory.decodeStream(instream)
-                            //imageView.setImageBitmap(bitmap)//이미지넣기
                             instream?.close()
                             loadBitmapFromMediaStoreBy(dataUri)?.let { saveBitmapToJpeg(it) } // 이미지 uri를 가져가서 다른 경로에 복사 저장한다.
                         }
@@ -427,7 +459,11 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
             this.gravity = left
             this.hint = "내용을 추가하세요."
             this.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            var edittx = this
+
+            if(sharedPreferences.getString("DARK_MODE", "").toString() == "ON"){
+                this.setTextColor(Color.WHITE)
+                this.setHintTextColor(Color.WHITE)
+            }
 
             this.addTextChangedListener(object:TextWatcher{ // mvvm패턴으로 적용하고 싶은데, 동적 추가한 뷰는 mvvm 추가할 줄 몰라서 이거로 만족하자.
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -469,6 +505,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                         linear_array.removeAt(i)
                         frame_array.removeAt(i)
                         button_array.removeAt(i)
+                        uri_array.removeAt(i)
 
                         image_array.removeAt(i)
                         Edit_array.removeAt(i)
@@ -604,6 +641,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                             val intent = Intent(context, MainActivity::class.java)
                             intent.putExtra("이동", "이동")
                             startActivity(intent)
+                            trash_checkd("꺼짐")
                         }
                     }
                 }
@@ -614,6 +652,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                     val intent = Intent(context, MainActivity::class.java)
                     intent.putExtra("이동", "이동")
                     startActivity(intent)
+                    trash_checkd("꺼짐")
                 }
 
                 var lp = WindowManager.LayoutParams()
@@ -631,11 +670,11 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
         viewModel.Checktext().observe(this, {
             Log.d("확인", "값은 ${viewModel.Checktext().value}")
 
-            if (viewModel.Checktext().value != null) {
+            if (viewModel.Checktext().value != null || viewModel.Checkcontenttext().value != null) {
                 Log.d("확인", "글자 바뀜")
 
-                if(Edit_array.isNotEmpty()){
-                    for(i in Edit_array.indices){
+                if (Edit_array.isNotEmpty()) {
+                    for (i in Edit_array.indices) {
                         Edit_strarray.add(Edit_array[i]!!.text.toString())
                     }
                 }
@@ -649,10 +688,11 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                         val intent = Intent(context, MainActivity::class.java)
                         intent.putExtra("이동", "이동")
                         startActivity(intent)
+                        trash_checkd("꺼짐")
                     }
                 }
             } else {
-                Toast.makeText(this, "제목을 입력해주세요.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "제목이나 내용을 입력해주세요.", Toast.LENGTH_SHORT).show()
             }
         })
 
@@ -794,6 +834,9 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
             tag_changed *= -1 // 태그 체인지드가 1일경우 tag넣는 공간 사라지게 만들기.
 
             if (tag_changed == 1) { // 태그 버튼이 꺼짐
+                if(sharedPreferences.getString("DARK_MODE", "").toString() == "ON")
+                    binding.tag.setImageResource(R.drawable.darkmode_tag)
+
                 binding.tagline.visibility = View.GONE
                 binding.tag.setBackgroundResource(R.drawable.btn_select)
 
@@ -806,6 +849,9 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                 binding.bottomLinear.visibility = View.VISIBLE
                 binding.tagline.visibility = View.GONE
             } else { // 태그 버튼이 켜짐
+                if(sharedPreferences.getString("DARK_MODE", "").toString() == "ON")
+                    binding.tag.setImageResource(R.drawable.ic_baseline_tag_24)
+
                 binding.tagline.visibility = View.VISIBLE
                 binding.bottomLinear.visibility = View.GONE // 태그, 쓰레기통 버튼 켜짐. 및 나머지 리니어 GONE
 
@@ -1106,30 +1152,58 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
         binding.backBtn.setOnClickListener { //X버튼 누를시
             if (viewModel.getEdi().value != null || viewModel.getContent().value != null) {
-                AlertDialog.Builder(this)
-                        .setTitle("내용이 존재합니다. 저장하시겠습니까?")
-                        .setPositiveButton("저장") { dialog, which ->
-                            if (Edit_array.isNotEmpty()) {
-                                for (i in Edit_array.indices) {
-                                    Edit_strarray.add(Edit_array[i]!!.text.toString())
-                                }
+                var dd = AlertDialog.Builder(this)
+                if (intent.hasExtra("이동")) {
+                    dd.setTitle("현재 내용으로 변경 하시겠습니까?")
+                    dd.setPositiveButton("변경") { dialog, which ->
+                        if (Edit_array.isNotEmpty()) {
+                            for (i in Edit_array.indices) {
+                                Edit_strarray.add(Edit_array[i]!!.text.toString())
                             }
+                        }
+                        CoroutineScope(Dispatchers.IO).launch {
                             CoroutineScope(Dispatchers.IO).launch {
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    insert_update_dao()
-                                }.join()
+                                insert_update_dao()
+                            }.join()
 
-                                CoroutineScope(Dispatchers.Main).launch {
-                                    val intent = Intent(context, MainActivity::class.java)
-                                    intent.putExtra("이동", "이동")
-                                    startActivity(intent)
-                                }
+                            CoroutineScope(Dispatchers.Main).launch {
+                                val intent = Intent(context, MainActivity::class.java)
+                                intent.putExtra("이동", "이동")
+                                startActivity(intent)
+                                trash_checkd("꺼짐")
                             }
                         }
-                        .setNegativeButton("삭제") { dialog, which ->
-                            finish()
+                    }
+                    dd.setNegativeButton("안함") { dialog, which ->
+                        finish()
+                    }
+                    dd.show()
+                } else {
+                    dd.setTitle("내용이 존재합니다. 저장하시겠습니까?")
+                    dd.setPositiveButton("저장") { dialog, which ->
+                        if (Edit_array.isNotEmpty()) {
+                            for (i in Edit_array.indices) {
+                                Edit_strarray.add(Edit_array[i]!!.text.toString())
+                            }
                         }
-                        .show()
+                        CoroutineScope(Dispatchers.IO).launch {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                insert_update_dao()
+                            }.join()
+
+                            CoroutineScope(Dispatchers.Main).launch {
+                                val intent = Intent(context, MainActivity::class.java)
+                                intent.putExtra("이동", "이동")
+                                startActivity(intent)
+                                trash_checkd("꺼짐")
+                            }
+                        }
+                    }
+                    dd.setNegativeButton("삭제") { dialog, which ->
+                        finish()
+                    }
+                    dd.show()
+                }
                 //저장할건지 물어보고 저장한다고 하면 내용 작성 안하면 삭제.
             } else {
                 val intent = Intent(this, MainActivity::class.java)

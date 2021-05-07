@@ -26,6 +26,7 @@
         android:weightSum="15">
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/top_layout"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1">
@@ -231,6 +232,7 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/bottom_layout"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1">
