@@ -199,3 +199,29 @@ interface main_recycler_view{
         return imageView
     }
 }
+
+interface Recycler_shortcut_inter{
+    companion object{
+        var shortcutList:List<String>? = arrayListOf()
+        var shortcutname:String = ""
+        var shortcutmystring:String? = ""
+        var id = -1
+        var position = -1
+    }
+
+    fun shortcut_layoutclick_inter(funname:String, funmystring:String?, funshortcutlist:List<String>?, funid:Int, funposition:Int){
+        shortcutname = funname
+        shortcutmystring = funmystring
+        shortcutList = funshortcutlist
+        id = funid
+        position = funposition
+    }
+
+    fun getshortcut_inter():Triple<String, String?, List<String>?>{
+        return Triple(shortcutname, shortcutmystring, shortcutList)
+    }
+
+    fun getshortcut_id():Pair<Int, Int>{
+        return Pair(id, position)
+    }
+}

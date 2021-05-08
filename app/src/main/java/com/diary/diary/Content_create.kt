@@ -701,16 +701,36 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
         })
 
         viewModel.getContent().observe(this, {
-            if (it.contains("@내 폰트@", true)) {//적용된다. //단축키 !!!
-                Log.d("단축키", "폰트") //적용된다.
+            var shortcut = MainActivity.shortcutroom
+            if(shortcut.isNotEmpty()) {
+                for (i in shortcut.indices){
+                    if(it.contains("@${shortcut[i].shortcut}@", true)){
+                        var a = it.replace("@${shortcut[i].shortcut}@", "") //단축키 글자 삭제.
+                        Toast.makeText(this, "저장한 폰트가 불러와졌습니다.", Toast.LENGTH_SHORT).show()
 
-                var a = it.replace("@내 폰트@", "") //적용된다.
-                Toast.makeText(this, "저장한 폰트가 불러와졌습니다.", Toast.LENGTH_SHORT).show()
-                
-                binding.contentText.typeface = resources.getFont(R.font.bazzi)
-                binding.contentText.setText(a) //binding.contenttext 는 getcontent와 연결되어있음.
+                        binding.contentText.setLineSpacing(0.0f, shortcut[i].shortcutfont!!.get(0).toFloat())
+                        binding.contentText.letterSpacing = shortcut[i].shortcutfont!!.get(1).toFloat()
+                        binding.contentText.textSize = shortcut[i].shortcutfont!!.get(2).toFloat()
+                        binding.contentText.typeface = inter_roomdata_stringToFont(shortcut[i].shortcutfont!!.get(3), context)
+                        binding.contentText.setTextColor(Color.parseColor(shortcut[i].shortcutfont!!.get(4)))
 
-            } else if (it.contains("@현재 날짜@")) { //만들자
+                        binding.contentTitle.typeface = inter_roomdata_stringToFont(shortcut[i].shortcutfont!!.get(3), context)
+                        binding.contentTitle.setTextColor(Color.parseColor(shortcut[i].shortcutfont!!.get(4)))
+
+                        binding.contentDate.typeface = inter_roomdata_stringToFont(shortcut[i].shortcutfont!!.get(3), context)
+
+                        line_spacing = shortcut[i].shortcutfont!!.get(0).toFloat()
+                        letter_spacing = shortcut[i].shortcutfont!!.get(1).toFloat()
+                        text_size = shortcut[i].shortcutfont!!.get(2).toFloat()
+                        edit_font = shortcut[i].shortcutfont!!.get(3)
+                        edit_color = shortcut[i].shortcutfont!!.get(4)
+
+
+                        binding.contentText.setText(a) //binding.contenttext 는 getcontent와 연결되어있음.
+                    }
+                }
+            }
+            if (it.contains("@현재 날짜@")) { //만들자
             } else if (it.contains("@현재 시각@")) {
 
             }//만들자
@@ -1265,7 +1285,6 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
         val date_daytofweek = "$month_string.$day_string " //이거로 리사이클러뷰 날짜 속성에 넣기. 비교시 datearray의 year를 통해서 년도 구별, moth를 통해서 월 구별하기.
         val daytoweek = dayofweekfunction(dayOfWeek)
         Log.d("요일은", date_daytofweek.toString())
-
 
         var allcontent = contenttext
         for(i in editlist.indices){

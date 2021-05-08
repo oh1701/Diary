@@ -210,7 +210,6 @@ class Setting : AppCompatActivity() {
         binding.usedTag.setTextColor(Color.WHITE)
         binding.diaryInstruction.setTextColor(Color.WHITE)
         binding.diaryCount.setTextColor(Color.WHITE)
-        binding.myShortcut.setTextColor(Color.WHITE)
         binding.passwordHint.setTextColor(Color.WHITE)
         binding.backArrow.setImageResource(R.drawable.darkmode_backarrow)
 
@@ -219,12 +218,11 @@ class Setting : AppCompatActivity() {
         binding.image3.setImageResource(R.drawable.darkmode_arrowright)
         binding.image4.setImageResource(R.drawable.darkmode_arrowright)
         binding.image5.setImageResource(R.drawable.darkmode_arrowright)
-        binding.image6.setImageResource(R.drawable.darkmode_arrowright)
         binding.passwordHintImage.setImageResource(R.drawable.darkmode_arrowright)
 
-        binding.systemSetting.setTextColor(Color.WHITE)
-        binding.userConvinence.setTextColor(Color.WHITE)
-        binding.shortcutSetting.setTextColor(Color.WHITE)
+        binding.systemSetting.setTextColor(Color.parseColor("#B5B2B2"))
+        binding.userConvinence.setTextColor(Color.parseColor("#B5B2B2"))
+        binding.shortcutSetting.setTextColor(Color.parseColor("#B5B2B2"))
     }
 
     fun darkOFF(){
@@ -238,7 +236,6 @@ class Setting : AppCompatActivity() {
         binding.darkmode.setTextColor(Color.BLACK)
         binding.shortcut.setTextColor(Color.BLACK)
         binding.usedTag.setTextColor(Color.BLACK)
-        binding.myShortcut.setTextColor(Color.BLACK)
         binding.passwordHint.setTextColor(Color.BLACK)
 
         binding.diaryInstruction.setTextColor(Color.BLACK)
@@ -250,12 +247,11 @@ class Setting : AppCompatActivity() {
         binding.image3.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
         binding.image4.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
         binding.image5.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
-        binding.image6.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
         binding.passwordHintImage.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
 
-        binding.systemSetting.setTextColor(Color.BLACK)
-        binding.userConvinence.setTextColor(Color.BLACK)
-        binding.shortcutSetting.setTextColor(Color.BLACK)
+        binding.systemSetting.setTextColor(Color.parseColor("#6A6A6A"))
+        binding.userConvinence.setTextColor(Color.parseColor("#6A6A6A"))
+        binding.shortcutSetting.setTextColor(Color.parseColor("#6A6A6A"))
     }
 }
 /*

@@ -35,9 +35,6 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-// 스플래쉬 화면 -> (비밀번호 걸려있을시) 비밀번호 -> Intent main 이동 .
-
-
 @Entity
 data class Diaryroom(//id, 날짜, 제목, 내용, 태그, 이미지uri, 에딧text
         @PrimaryKey(autoGenerate = true) val id: Int,
@@ -58,18 +55,30 @@ data class Diaryroom(//id, 날짜, 제목, 내용, 태그, 이미지uri, 에딧t
         @ColumnInfo(name = "allcontent") val allcontent:String
 )
 
+//숏컷 폰트 어레이 1번 라인스페이싱
+//2번 레터 스페이싱
+//3번 텍스트사이즈
+//4번 폰트
+//5번 칼라 모두 스트링형.
+@Entity
+data class Shortcutroom(
+        @PrimaryKey(autoGenerate = true) val id: Int,
+        @ColumnInfo(name = "shortcut") val shortcut: String,
+        @ColumnInfo(name = "shortcutfont") val shortcutfont: List<String>?,
+        @ColumnInfo(name = "shortcutmystring") val shortcutmystring: String?,
+)
+
 class Imagelist {
     @TypeConverter
     fun uristringToJson(value: List<String?>?) = Gson().toJson(value)
 
     @TypeConverter
     fun jsonToUriString(value: String) = Gson().fromJson(value, Array<String?>::class.java).toList()
-
 }
 
 @Dao
 interface DiaryDao{
-    @Insert //모든 것들 추가.
+    @Insert
     suspend fun insertDao(vararg diaryroom: Diaryroom)
 
     @Update
@@ -86,10 +95,26 @@ interface DiaryDao{
 
     @Query("SELECT * FROM Diaryroom WHERE dateLong = :dateLong")
     suspend fun getAllfordateLong(dateLong: Long):Diaryroom
+
+    //여기부터는 단축키
+    @Insert
+    suspend fun insertfont(vararg shortcutroom: Shortcutroom)
+
+    @Update
+    suspend fun updatefont(vararg shortcutroom: Shortcutroom)
+
+    @Query("SELECT * FROM Shortcutroom")
+    suspend fun getshortcutAll():List<Shortcutroom>
+
+    @Query("SELECT * FROM Shortcutroom WHERE shortcut = :shortcut")
+    suspend fun getshortcut(shortcut: String):Shortcutroom
+
+    @Query("DELETE FROM Shortcutroom WHERE shortcut = :shortcut") //삭제
+    suspend fun Deleteshortcut(shortcut:String)
 }
 
 
-@Database(entities = [Diaryroom::class], version = 1)
+@Database(entities = [Diaryroom::class, Shortcutroom::class], version = 1)
 @TypeConverters(Imagelist::class)
 abstract class RoomdiaryDB:RoomDatabase(){
     abstract fun RoomDao():DiaryDao
@@ -132,6 +157,11 @@ class MainActivity : AppCompatActivity(), layout_remove {
 
         lateinit var viewModel:Recylcerviewmodel
         lateinit var room:List<Diaryroom>
+        lateinit var shortcutroom:List<Shortcutroom>
+
+        var shortcutname:String? = null
+        var shortcutfontList: List<String>? = null
+        var shortcutmystring: String? = null
 
         val cal = Calendar.getInstance() // 날짜
 
@@ -169,7 +199,6 @@ class MainActivity : AppCompatActivity(), layout_remove {
         if(calendar_month < 10)
             monthstring = "0$calendar_month"
 
-
         binding.searchDiary.setOnClickListener {
                 var intent = Intent(this, search_diary::class.java)
                 startActivity(intent)
@@ -179,12 +208,15 @@ class MainActivity : AppCompatActivity(), layout_remove {
         }
 
         viewobserve() // 여기에 놓지 않고, onresume에 하면 observe들이 중복호출된다.
-        coroutine()
+        coroutine() //기본 room 데이터들 가지고 옴. (단축키 뺀 데이터들)
         alldiary()
+
     }
 
     override fun onResume() {
         super.onResume()
+
+        getshortcut() //코루틴 통해서 단축키 가져옴. backpressed를 통해 올수도 있기에 resume에 설정.
 
         var sharedPreferences = getSharedPreferences("LOCK_PASSWORD", 0)
 
@@ -384,16 +416,22 @@ class MainActivity : AppCompatActivity(), layout_remove {
                         CoroutineScope(Dispatchers.Main).launch {
                             binding.noSearch.setText("$monthstring 월의 일기가 존재하지 않습니다.")
                             binding.noSearch.visibility = View.GONE
+                            Log.d("확인", "화아아악인")
                         }
                     }
                     else{
                         CoroutineScope(Dispatchers.Main).launch {
                             binding.noSearch.setText("$monthstring 월의 일기가 존재하지 않습니다.")
                             binding.noSearch.visibility = View.VISIBLE
+                            Log.d("확인", "화아아악인")
                         }
                     }
                 }
-
+                CoroutineScope(Dispatchers.Main).launch {
+                    binding.noSearch.setText("$monthstring 월의 일기가 존재하지 않습니다.")
+                    binding.noSearch.visibility = View.VISIBLE
+                    Log.d("확인", "화아아악인")
+                }
                 Log.d("확인", "모두 불러와짐, $d")
             }.join()
 
@@ -414,6 +452,25 @@ class MainActivity : AppCompatActivity(), layout_remove {
                 binding.allDiary.setBackgroundResource(R.drawable.btn_on)
             }
             return@setOnTouchListener false
+        }
+    }
+
+    private fun getshortcut(){
+        CoroutineScope(Dispatchers.IO).launch {
+            if(db.RoomDao().getshortcutAll().isNotEmpty()){
+                shortcutroom = db.RoomDao().getshortcutAll()
+
+                for(i in shortcutroom.indices){
+                    shortcutname = shortcutroom[i].shortcut
+                    shortcutfontList = shortcutroom[i].shortcutfont
+                    shortcutmystring = shortcutroom[i].shortcutmystring
+
+                    Log.d("shortcutname", "$shortcutname")
+                    Log.d("shortcutfontList", "$shortcutfontList")
+                    Log.d("shortcutmystring", "$shortcutmystring")
+                    Log.d("숏컷모두", shortcutroom[i].toString())
+                }
+            }
         }
     }
 
