@@ -207,6 +207,7 @@ interface Recycler_shortcut_inter{
         var shortcutmystring:String? = ""
         var id = -1
         var position = -1
+        var content:String? = ""
     }
 
     fun shortcut_layoutclick_inter(funname:String, funmystring:String?, funshortcutlist:List<String>?, funid:Int, funposition:Int){

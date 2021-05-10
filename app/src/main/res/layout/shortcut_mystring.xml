@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#D61049">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+
+            android:text="내 문자 단축키 추가하기"
+            android:textColor="@color/white"
+            android:textSize="16dp"
+            android:typeface="serif"
+            android:textStyle="bold"
+            android:gravity="center"/>
+
+    </LinearLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    <EditText
+        android:id="@+id/mystring_shortcut"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginRight="20dp"
+        android:hint="단축키로 지정할 문자를 입력하세요."
+        android:textSize="14dp"
+        android:typeface="serif"
+
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <EditText
+        android:id="@+id/mystring_content"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginRight="20dp"
+        android:hint="단축키 실행 시 나타날 내용을 입력하세요."
+        android:textSize="14dp"
+        android:typeface="serif"
+        app:layout_constraintTop_toBottomOf="@id/mystring_shortcut"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/mystring_NO"
+        android:layout_width="0dp"
+        app:layout_constraintWidth_percent="0.4"
+        android:layout_height="wrap_content"
+
+        android:background="@drawable/no_btn_radius"
+
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/mystring_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/mystring_OK"
+        android:text="취소"
+        android:textColor="@color/white"
+        android:textSize="14dp"
+        android:typeface="serif"
+        android:textStyle="bold"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/mystring_OK"
+        android:layout_width="0dp"
+        app:layout_constraintWidth_percent="0.4"
+        android:layout_height="wrap_content"
+
+        android:background="@drawable/yes_btn_radius"
+
+        android:text="저장"
+        android:textColor="@color/white"
+        android:textSize="14dp"
+        android:typeface="serif"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/mystring_content"
+        app:layout_constraintLeft_toRightOf="@id/mystring_NO"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</LinearLayout>

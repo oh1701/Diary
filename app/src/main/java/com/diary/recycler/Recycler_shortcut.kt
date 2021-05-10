@@ -43,8 +43,13 @@ class Recycler_shortcut(val font_shortcut:ArrayList<font_shrotcut>, val observet
         holder.layout.apply{
             setOnClickListener {
                 Log.d("어레이", font_shortcut[position].arrayString.toString())
-                shortcut_layoutclick_inter(font_shortcut[position].title, font_shortcut[position].string, font_shortcut[position].arrayString, font_shortcut[position].id, position)
-                observetext.setText("")
+                shortcut_layoutclick_inter(font_shortcut[position].title, font_shortcut[position].mystring, font_shortcut[position].arrayString, font_shortcut[position].id, position)
+                if (font_shortcut[position].arrayString?.isNotEmpty() == true){ //리스트 전달값이 존재하면 (폰트 리사이클러뷰 누른거면)
+                    observetext.setText("폰트")
+                }
+                else if(font_shortcut[position].mystring != null) {
+                    observetext.setText("문자")
+                }
             }
         }
 
@@ -58,4 +63,4 @@ class Recycler_shortcut(val font_shortcut:ArrayList<font_shrotcut>, val observet
     }
 }
 
-class font_shrotcut(val id:Int, val title:String, val arrayString:List<String>?, val string:String?)
+class font_shrotcut(val id:Int, val title:String, val arrayString:List<String>?, val mystring:String?)

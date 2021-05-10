@@ -1,5 +1,6 @@
 package com.diary.diary
 
+import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
 import android.content.SharedPreferences
@@ -14,6 +15,7 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -40,6 +42,7 @@ class ShortcutsViewModel:ViewModel(){
     var back = MutableLiveData<String>()
     var fontshortcut = MutableLiveData<String>()
     var recyclerobserve = MutableLiveData<String>()
+    var mystringshortcut = MutableLiveData<String>()
 
     fun backClick(){
         back.value = "CLICK"
@@ -48,6 +51,10 @@ class ShortcutsViewModel:ViewModel(){
     fun fontshortcutClick(){
         fontshortcut.value = "CLICK"
     }
+
+    fun mystringshortcutClick(){
+        mystringshortcut.value = "CLICK"
+    }
 }
 class Shortcuts : AppCompatActivity(), text_font, Recycler_shortcut_inter {
 
@@ -55,11 +62,19 @@ class Shortcuts : AppCompatActivity(), text_font, Recycler_shortcut_inter {
     lateinit var binding:ActivityShortcutsBinding
     lateinit var viewModel:ShortcutsViewModel
     private var fontrecycler:ArrayList<font_shrotcut> = arrayListOf()
+    private var mystringrecycler:ArrayList<font_shrotcut> = arrayListOf()
+
     var toast:Toast? = null
 
     lateinit var metrics: DisplayMetrics
 
-    private var font_checkd = "기본"
+    private var shortcutarray:ArrayList<String> = arrayListOf() //저장한 단축키 문장과 똑같을경우 false를 주기 위함.
+
+    private var font_checkd = "기본" //리사이클러뷰 눌러서 다이얼로그 켰는지 확인용
+    private var mystring_checkd = "기본"//리사이클러뷰 눌러서 다이얼로그 켰는지 확인용
+
+    private var mystring_editcontent = ""
+
     private var text_color = "#000000"
     private var shortcut_fontarray:ArrayList<String> = arrayListOf()
     
@@ -115,13 +130,25 @@ class Shortcuts : AppCompatActivity(), text_font, Recycler_shortcut_inter {
         binding.fontShortcutList.setHasFixedSize(true)
         binding.fontShortcutList.adapter = Recycler_shortcut(fontrecycler, binding.recyclerObserve)
 
+        binding.mystringShortcutList.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        binding.mystringShortcutList.setHasFixedSize(true)
+        binding.mystringShortcutList.adapter = Recycler_shortcut(mystringrecycler, binding.recyclerObserve)
+
         CoroutineScope(Dispatchers.Main).launch {
             fontshortcut_room = db.RoomDao().getshortcutAll()
             if(fontshortcut_room.isNotEmpty()){
                 for(i in fontshortcut_room.indices){
-                    fontrecycler.add(font_shrotcut(fontshortcut_room[i].id, fontshortcut_room[i].shortcut, fontshortcut_room[i].shortcutfont, fontshortcut_room[i].shortcutmystring))
+                    shortcutarray.add(fontshortcut_room[i].shortcut)
+
+                    if(fontshortcut_room[i].shortcutfont?.isNotEmpty() == true) // 폰트가 비어있지 않을시.
+                        fontrecycler.add(font_shrotcut(fontshortcut_room[i].id, fontshortcut_room[i].shortcut, fontshortcut_room[i].shortcutfont, fontshortcut_room[i].shortcutmystring))
+                    else if(fontshortcut_room[i].shortcutmystring != null) //폰트가 널이고 마이스트링이 존재할시. 서로 다른 리사이클러뷰에 추가하기.
+                        mystringrecycler.add(font_shrotcut(fontshortcut_room[i].id, fontshortcut_room[i].shortcut, fontshortcut_room[i].shortcutfont, fontshortcut_room[i].shortcutmystring))
+                    else
+                        continue
                 }
                 binding.fontShortcutList.adapter?.notifyDataSetChanged()
+                binding.mystringShortcutList.adapter?.notifyDataSetChanged()
             }
         }
 
@@ -133,7 +160,7 @@ class Shortcuts : AppCompatActivity(), text_font, Recycler_shortcut_inter {
             onBackPressed()
         })
 
-        viewModel.fontshortcut.observe(this, {
+        viewModel.fontshortcut.observe(this, { //폰트 단축키 추가 옵저브
 
             line_spacing = 1.0f // 라인간격 확인용
             letter_spacing = 0.0f // 자간 확인용
@@ -144,28 +171,136 @@ class Shortcuts : AppCompatActivity(), text_font, Recycler_shortcut_inter {
             font_dialog()
         })
 
-        viewModel.recyclerobserve.observe(this, {
-            font_checkd = "폰트"
-            gettitle = getshortcut_inter().first
-            var mystring = getshortcut_inter().second
-            var font_List = getshortcut_inter().third
+        viewModel.mystringshortcut.observe(this, { //내 문자 단축기 추가 옵저브
+            mystring_dialog()
+        })
 
-            line_spacing = font_List!!.get(0).toFloat() // 라인간격 확인용
-            letter_spacing = font_List.get(1).toFloat() // 자간 확인용
-            text_size = font_List.get(2).toFloat() // 사이즈 확인용
-            edit_font = font_List.get(3)
-            text_color = font_List.get(4)
-            id = getshortcut_id().first
-            position = getshortcut_id().second
+        viewModel.recyclerobserve.observe(this, { // 리사이클러뷰 어댑터 클릭 확인용.
+            if(it == "폰트") {
+                font_checkd = "폰트"
+                gettitle = getshortcut_inter().first
+                var font_List = getshortcut_inter().third
 
-            color_btn_array = arrayOfNulls<Button>(6) // 버튼 저장용
-            color_array = arrayOfNulls<String>(6) //색상 저장용 다 바꾸기*/
-            //여기서는 레이아웃 클릭시 observe 되는거니까, editfont와 같은것들을 해당 레이아웃의 걸로 바꿔주기.
-            //font_checkd 가 폰트면 update, 아니면 insert하기.
-            font_dialog()
+                line_spacing = font_List!!.get(0).toFloat() // 라인간격 확인용
+                letter_spacing = font_List.get(1).toFloat() // 자간 확인용
+                text_size = font_List.get(2).toFloat() // 사이즈 확인용
+                edit_font = font_List.get(3)
+                text_color = font_List.get(4)
+                id = getshortcut_id().first
+                position = getshortcut_id().second
+
+                color_btn_array = arrayOfNulls<Button>(6) // 버튼 저장용
+                color_array = arrayOfNulls<String>(6) //색상 저장용 다 바꾸기*/
+                //여기서는 레이아웃 클릭시 observe 되는거니까, editfont와 같은것들을 해당 레이아웃의 걸로 바꿔주기.
+                //font_checkd 가 폰트면 update, 아니면 insert하기.
+                font_dialog()
+            }
+            else if(it == "문자"){
+                mystring_checkd = "문자"
+                gettitle = getshortcut_inter().first
+                mystring_editcontent = getshortcut_inter().second!!
+                id = getshortcut_id().first
+                position = getshortcut_id().second
+
+                mystring_dialog()
+            }
         })
     }
 
+    fun mystring_dialog(){
+        val mystringview = LayoutInflater.from(context).inflate(R.layout.shortcut_mystring, null)
+
+        var trasharray = arrayListOf<String>()
+
+        val mystringShortcut = mystringview.findViewById<EditText>(R.id.mystring_shortcut)
+        val mystringContent = mystringview.findViewById<EditText>(R.id.mystring_content)
+        val mystringOK = mystringview.findViewById<Button>(R.id.mystring_OK)
+        val mystringNO = mystringview.findViewById<Button>(R.id.mystring_NO)
+
+        var mystringDialog = Dialog(context)
+        mystringDialog.setContentView(mystringview)
+        mystringDialog.window!!.attributes.apply { //다이얼로그 크기 지정
+            width = metrics.widthPixels * 9 / 10
+            height = ViewGroup.LayoutParams.WRAP_CONTENT
+        }
+
+        if(mystring_checkd == "문자") {
+            mystringShortcut.setText(gettitle)
+            mystringContent.setText(mystring_editcontent)
+        }
+
+        mystringOK.setOnClickListener { // 적용버튼 눌렀을 경우
+            if(shortcutarray.isNotEmpty()){
+                for(i in shortcutarray.indices){
+                    if(mystringShortcut.text.toString() == shortcutarray[i]){
+                        Toast.makeText(this, "등록된 단축키가 존재합니다.", Toast.LENGTH_SHORT).show()
+                        break
+                    }
+                    else if(i == shortcutarray.size - 1){
+                        if (mystringShortcut.length() > 0 && mystringContent.length() > 0) {
+                            if(mystring_checkd == "기본") {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        db.RoomDao().insertshortcut(Shortcutroom(0, mystringShortcut.text.toString(), trasharray, mystringShortcut.text.toString()))
+                                        shortcutarray.add(mystringShortcut.text.toString())
+                                    }.join()
+
+                                    CoroutineScope(Dispatchers.Main).launch {
+                                        var dd = db.RoomDao().getshortcut(mystringShortcut.text.toString())
+                                        mystringrecycler.add(font_shrotcut(dd.id, dd.shortcut, dd.shortcutfont, dd.shortcutmystring))
+                                        binding.mystringShortcutList.adapter?.notifyDataSetChanged()
+
+                                        mystringDialog.dismiss()
+                                    }
+                                }
+                            }
+                            else{
+                                //업데이트 시키기.
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        db.RoomDao().updateshortcut(Shortcutroom(id, mystringShortcut.text.toString(), trasharray, mystringShortcut.text.toString()))
+                                    }.join()
+
+                                    CoroutineScope(Dispatchers.Main).launch {
+                                        var dd = db.RoomDao().getshortcut(mystringShortcut.text.toString())
+                                        mystringrecycler[position] = font_shrotcut(dd.id, dd.shortcut, dd.shortcutfont, dd.shortcutmystring)
+                                        binding.mystringShortcutList.adapter?.notifyDataSetChanged()
+
+
+                                        if(shortcutarray.isNotEmpty()) {
+                                            for (i in shortcutarray.indices) {
+                                                if (gettitle == shortcutarray[i]) {
+                                                    shortcutarray[i] = dd.shortcut
+                                                }
+                                            }
+                                        }
+
+                                        mystringDialog.dismiss()
+                                    }
+                                }
+                            }
+                        } else {
+                            if(toast != null){
+                                toast!!.cancel()
+                                toast = Toast.makeText(this, "입력하지 않는 내용이 존재합니다.", Toast.LENGTH_SHORT)
+                            }
+                            else{
+                                toast = Toast.makeText(this, "입력하지 않는 내용이 존재합니다.", Toast.LENGTH_SHORT)
+                            }
+                            toast!!.show()
+                        }
+                    }
+                }
+            }
+        }
+
+        mystringNO.setOnClickListener {
+            mystringDialog.dismiss()
+        }
+
+        mystring_checkd = "기본"
+        mystringDialog.show()
+    }
     fun font_dialog(){
         var color: String? = null
         val fontview = LayoutInflater.from(this).inflate(R.layout.font_dialog, null)
@@ -339,61 +474,78 @@ class Shortcuts : AppCompatActivity(), text_font, Recycler_shortcut_inter {
         }
 
         font_positive.setOnClickListener { // 적용버튼 클릭시
-            if(preview.text.toString().isNotEmpty()) {
-                letter_spacing = local_letter_spacing
-                line_spacing = local_line_spacing
-                text_size = local_text_size //임시 저장한 변수들 전역변수에 넣어주기.
-                edit_font = inter_roomdata_fontToString(preview.typeface, this)
+            if(shortcutarray.isNotEmpty()) {
+                for (i in shortcutarray.indices) {
+                    if (preview.text.toString() == shortcutarray[i]) {
+                        Toast.makeText(this, "등록된 단축키가 존재합니다.", Toast.LENGTH_SHORT).show()
+                        break
+                    } else if (i == shortcutarray.size - 1) {
+                        if (preview.text.toString().isNotEmpty()) {
+                            letter_spacing = local_letter_spacing
+                            line_spacing = local_line_spacing
+                            text_size = local_text_size //임시 저장한 변수들 전역변수에 넣어주기.
+                            edit_font = inter_roomdata_fontToString(preview.typeface, this)
 
-                CoroutineScope(Dispatchers.IO).launch {
-                    shortcut_fontarray.add(local_line_spacing.toString())
-                    shortcut_fontarray.add(local_letter_spacing.toString())
-                    shortcut_fontarray.add(local_text_size.toString())
-                    shortcut_fontarray.add(inter_roomdata_fontToString(preview.typeface, context))
-                    shortcut_fontarray.add(text_color)
+                            CoroutineScope(Dispatchers.IO).launch {
+                                shortcut_fontarray.add(local_line_spacing.toString())
+                                shortcut_fontarray.add(local_letter_spacing.toString())
+                                shortcut_fontarray.add(local_text_size.toString())
+                                shortcut_fontarray.add(inter_roomdata_fontToString(preview.typeface, context))
+                                shortcut_fontarray.add(text_color)
 
-                    if(font_checkd != "폰트") {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            db.RoomDao().insertfont(Shortcutroom(0, preview.text.toString(), shortcut_fontarray.toList(), null))
-                        }.join()
+                                if (font_checkd != "폰트") { // 리사이클러뷰를 누른 것이 아닌, 추가키를 눌렀을 경우.
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        db.RoomDao().insertshortcut(Shortcutroom(0, preview.text.toString(), shortcut_fontarray.toList(), null))
+                                        shortcutarray.add(preview.text.toString())
+                                    }.join()
 
-                        CoroutineScope(Dispatchers.Main).launch {
-                            var dd = db.RoomDao().getshortcut(preview.text.toString())
-                            fontrecycler.add(font_shrotcut(dd.id, dd.shortcut, dd.shortcutfont, dd.shortcutmystring))
-                            binding.fontShortcutList.adapter?.notifyDataSetChanged()
+                                    CoroutineScope(Dispatchers.Main).launch {
+                                        var dd = db.RoomDao().getshortcut(preview.text.toString())
+                                        fontrecycler.add(font_shrotcut(dd.id, dd.shortcut, dd.shortcutfont, dd.shortcutmystring))
+                                        binding.fontShortcutList.adapter?.notifyDataSetChanged()
+
+                                        font_dialog.dismiss()
+                                    }
+                                } else {
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        db.RoomDao().updateshortcut(Shortcutroom(id, preview.text.toString(), shortcut_fontarray.toList(), null))
+                                    }.join()
+
+                                    CoroutineScope(Dispatchers.Main).launch {
+                                        var dd = db.RoomDao().getshortcut(preview.text.toString())
+                                        fontrecycler[position] = font_shrotcut(dd.id, dd.shortcut, dd.shortcutfont, dd.shortcutmystring)
+                                        binding.fontShortcutList.adapter?.notifyDataSetChanged()
+
+                                        if(shortcutarray.isNotEmpty()) {
+                                            for (i in shortcutarray.indices) {
+                                                if (gettitle == shortcutarray[i]) {
+                                                    shortcutarray[i] = dd.shortcut
+                                                }
+                                            }
+                                        }
+
+                                        font_dialog.dismiss()
+                                    }
+                                }
+                            }
+
+                            shortcut_fontarray.removeAll(shortcut_fontarray)
+                            Log.d("타입은", shortcut_fontarray.toString())
+                            Log.d("타입은", inter_roomdata_fontToString(preview.typeface, this))
+
+                            font_checkd = "기본"
+                            font_dialog.dismiss()
+                        } else {
+                            if (toast != null) {
+                                toast!!.cancel()
+                                toast = Toast.makeText(this, "단축키로 지정할 문자를 입력해주세요.", Toast.LENGTH_SHORT)
+                            } else {
+                                toast = Toast.makeText(this, "단축키로 지정할 문자를 입력해주세요.", Toast.LENGTH_SHORT)
+                            }
+                            toast!!.show()
                         }
                     }
-                    else{
-                        CoroutineScope(Dispatchers.IO).launch {
-                            db.RoomDao().updatefont(Shortcutroom(id, preview.text.toString(), shortcut_fontarray.toList(), null))
-                        }.join()
-
-                        CoroutineScope(Dispatchers.Main).launch {
-                            var dd = db.RoomDao().getshortcut(preview.text.toString())
-
-                            fontrecycler[position] = font_shrotcut(dd.id, dd.shortcut, dd.shortcutfont, dd.shortcutmystring)
-                            binding.fontShortcutList.adapter?.notifyDataSetChanged()
-                        }
-
-                        font_checkd = ""
-                    }
                 }
-
-                shortcut_fontarray.removeAll(shortcut_fontarray)
-                Log.d("타입은", shortcut_fontarray.toString())
-                Log.d("타입은", inter_roomdata_fontToString(preview.typeface, this))
-
-                font_dialog.dismiss()
-            }
-            else{
-                if(toast != null) {
-                    toast!!.cancel()
-                    toast = Toast.makeText(this, "단축키로 지정할 문자를 입력해주세요.", Toast.LENGTH_SHORT)
-                }
-                else{
-                    toast = Toast.makeText(this, "단축키로 지정할 문자를 입력해주세요.", Toast.LENGTH_SHORT)
-                }
-                toast!!.show()
             }
 
             if (color != null) {

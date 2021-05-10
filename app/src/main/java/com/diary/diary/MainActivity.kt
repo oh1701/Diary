@@ -65,7 +65,7 @@ data class Shortcutroom(
         @PrimaryKey(autoGenerate = true) val id: Int,
         @ColumnInfo(name = "shortcut") val shortcut: String,
         @ColumnInfo(name = "shortcutfont") val shortcutfont: List<String>?,
-        @ColumnInfo(name = "shortcutmystring") val shortcutmystring: String?,
+        @ColumnInfo(name = "shortcutmystring") val shortcutmystring: String?
 )
 
 class Imagelist {
@@ -98,10 +98,10 @@ interface DiaryDao{
 
     //여기부터는 단축키
     @Insert
-    suspend fun insertfont(vararg shortcutroom: Shortcutroom)
+    suspend fun insertshortcut(vararg shortcutroom: Shortcutroom)
 
     @Update
-    suspend fun updatefont(vararg shortcutroom: Shortcutroom)
+    suspend fun updateshortcut(vararg shortcutroom: Shortcutroom)
 
     @Query("SELECT * FROM Shortcutroom")
     suspend fun getshortcutAll():List<Shortcutroom>
@@ -172,6 +172,7 @@ class MainActivity : AppCompatActivity(), layout_remove {
         var year_save = 0
         var month_save = 0
         var day_save = 0
+        var day_change = 0
         var search_calendar_min:Long = 1
         var search_calendar_max:Long = 1
 
@@ -248,7 +249,7 @@ class MainActivity : AppCompatActivity(), layout_remove {
             } else {
                 year_save
             }
-            val month: Int = if(month_save == 0){
+            val month: Int = if(month_save == 0 && day_change == 0){
                 today.get(Calendar.MONTH)
             }
             else{
@@ -267,6 +268,7 @@ class MainActivity : AppCompatActivity(), layout_remove {
                     year_save = year
                     month_save = month
                     day_save = dayOfMonth
+                    day_change = 1
 
                     calendar_year = year
                     calendar_month = month + 1
@@ -427,10 +429,12 @@ class MainActivity : AppCompatActivity(), layout_remove {
                         }
                     }
                 }
-                CoroutineScope(Dispatchers.Main).launch {
-                    binding.noSearch.setText("$monthstring 월의 일기가 존재하지 않습니다.")
-                    binding.noSearch.visibility = View.VISIBLE
-                    Log.d("확인", "화아아악인")
+                else {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        binding.noSearch.setText("$monthstring 월의 일기가 존재하지 않습니다.")
+                        binding.noSearch.visibility = View.VISIBLE
+                        Log.d("확인", "화아아악인")
+                    }
                 }
                 Log.d("확인", "모두 불러와짐, $d")
             }.join()

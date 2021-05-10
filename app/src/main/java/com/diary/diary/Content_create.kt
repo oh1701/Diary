@@ -706,24 +706,46 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                 for (i in shortcut.indices){
                     if(it.contains("@${shortcut[i].shortcut}@", true)){
                         var a = it.replace("@${shortcut[i].shortcut}@", "") //단축키 글자 삭제.
-                        Toast.makeText(this, "저장한 폰트가 불러와졌습니다.", Toast.LENGTH_SHORT).show()
+                        if(shortcut[i].shortcutfont?.isNotEmpty() == true) {
+                            if(toast != null) {
+                                toast!!.cancel()
+                                toast = Toast.makeText(this, "저장한 폰트가 적용되었습니다.", Toast.LENGTH_SHORT)
+                            }
+                            else{
+                                toast = Toast.makeText(this, "저장한 폰트가 적용되었습니다.", Toast.LENGTH_SHORT)
+                            }
+                            toast!!.show()
 
-                        binding.contentText.setLineSpacing(0.0f, shortcut[i].shortcutfont!!.get(0).toFloat())
-                        binding.contentText.letterSpacing = shortcut[i].shortcutfont!!.get(1).toFloat()
-                        binding.contentText.textSize = shortcut[i].shortcutfont!!.get(2).toFloat()
-                        binding.contentText.typeface = inter_roomdata_stringToFont(shortcut[i].shortcutfont!!.get(3), context)
-                        binding.contentText.setTextColor(Color.parseColor(shortcut[i].shortcutfont!!.get(4)))
+                            binding.contentText.setLineSpacing(0.0f, shortcut[i].shortcutfont!!.get(0).toFloat())
+                            binding.contentText.letterSpacing = shortcut[i].shortcutfont!!.get(1).toFloat()
+                            binding.contentText.textSize = shortcut[i].shortcutfont!!.get(2).toFloat()
+                            binding.contentText.typeface = inter_roomdata_stringToFont(shortcut[i].shortcutfont!!.get(3), context)
+                            binding.contentText.setTextColor(Color.parseColor(shortcut[i].shortcutfont!!.get(4)))
 
-                        binding.contentTitle.typeface = inter_roomdata_stringToFont(shortcut[i].shortcutfont!!.get(3), context)
-                        binding.contentTitle.setTextColor(Color.parseColor(shortcut[i].shortcutfont!!.get(4)))
+                            binding.contentTitle.typeface = inter_roomdata_stringToFont(shortcut[i].shortcutfont!!.get(3), context)
+                            binding.contentTitle.setTextColor(Color.parseColor(shortcut[i].shortcutfont!!.get(4)))
 
-                        binding.contentDate.typeface = inter_roomdata_stringToFont(shortcut[i].shortcutfont!!.get(3), context)
+                            binding.contentDate.typeface = inter_roomdata_stringToFont(shortcut[i].shortcutfont!!.get(3), context)
 
-                        line_spacing = shortcut[i].shortcutfont!!.get(0).toFloat()
-                        letter_spacing = shortcut[i].shortcutfont!!.get(1).toFloat()
-                        text_size = shortcut[i].shortcutfont!!.get(2).toFloat()
-                        edit_font = shortcut[i].shortcutfont!!.get(3)
-                        edit_color = shortcut[i].shortcutfont!!.get(4)
+                            line_spacing = shortcut[i].shortcutfont!!.get(0).toFloat()
+                            letter_spacing = shortcut[i].shortcutfont!!.get(1).toFloat()
+                            text_size = shortcut[i].shortcutfont!!.get(2).toFloat()
+                            edit_font = shortcut[i].shortcutfont!!.get(3)
+                            edit_color = shortcut[i].shortcutfont!!.get(4)
+                        }
+                        else if(shortcut[i].shortcutmystring != null){
+                            if(toast != null) {
+                                toast!!.cancel()
+                                toast = Toast.makeText(this, "저장한 문장을 불러왔습니다.", Toast.LENGTH_SHORT)
+                            }
+                            else{
+                                toast = Toast.makeText(this, "저장한 문장을 불러왔습니다.", Toast.LENGTH_SHORT)
+                            }
+                            toast!!.show()
+                        }
+                        else{
+                            Toast.makeText(this, "저장한 폰트가 불러와졌습니다.", Toast.LENGTH_SHORT).show()
+                        }
 
 
                         binding.contentText.setText(a) //binding.contenttext 는 getcontent와 연결되어있음.
