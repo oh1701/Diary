@@ -225,6 +225,7 @@ class MainActivity : AppCompatActivity(), layout_remove {
             binding.maintitle.setTextColor(Color.parseColor("#FB9909"))
             binding.maintitleLayout.setBackgroundColor(Color.parseColor("#272626"))
             binding.mainTopLayout.setBackgroundColor(Color.parseColor("#272626"))
+            binding.noSearch.setTextColor(Color.WHITE)
             darkmodesetting("다크모드")
             binding.mainRecylerview.adapter?.notifyDataSetChanged()
         }
@@ -232,6 +233,7 @@ class MainActivity : AppCompatActivity(), layout_remove {
             binding.maintitle.setTextColor(Color.WHITE)
             binding.maintitleLayout.setBackgroundColor(Color.parseColor("#F5201F1F"))
             binding.mainTopLayout.setBackgroundColor(Color.parseColor("#E8E8E8"))
+            binding.noSearch.setTextColor(Color.BLACK)
             darkmodesetting("기본")
             binding.mainRecylerview.adapter?.notifyDataSetChanged()
         }
@@ -474,6 +476,10 @@ class MainActivity : AppCompatActivity(), layout_remove {
                     Log.d("shortcutmystring", "$shortcutmystring")
                     Log.d("숏컷모두", shortcutroom[i].toString())
                 }
+            }
+            else{
+                db.RoomDao().insertshortcut(Shortcutroom(0, "현재 날짜", arrayListOf(), null))
+                db.RoomDao().insertshortcut(Shortcutroom(0, "현재 시간", arrayListOf(), null))
             }
         }
     }

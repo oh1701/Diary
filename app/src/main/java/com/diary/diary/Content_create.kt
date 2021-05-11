@@ -92,6 +92,7 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
     var toast: Toast? = null
     var tag_room_array:ArrayList<String> = arrayListOf()
 
+    private lateinit var shortcut:List<Shortcutroom>
     private var uri_array:ArrayList<String> = arrayListOf() // Uri주소를 uri.parse 통해 스트링으로 받아와 roop 전달.
 
     private var image_array:ArrayList<ImageView?> = arrayListOf() //이미지 저장 및 전달용 리스트
@@ -179,6 +180,13 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                 "RoomDB"
         )
                 .build()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            if(db.RoomDao().getshortcutAll().isNotEmpty()){
+                shortcut = db.RoomDao().getshortcutAll()
+            }
+        }
+
         tag_array = arrayListOf()
         binding.FlexRecycler.layoutManager = FlexboxLayoutManager(
                 this,
@@ -465,16 +473,94 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                 this.setHintTextColor(Color.WHITE)
             }
 
-            this.addTextChangedListener(object:TextWatcher{ // mvvm패턴으로 적용하고 싶은데, 동적 추가한 뷰는 mvvm 추가할 줄 몰라서 이거로 만족하자.
+            this.addTextChangedListener(object : TextWatcher { // mvvm패턴으로 적용하고 싶은데, 동적 추가한 뷰는 mvvm 추가할 줄 몰라서 이거로 만족하자.
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
                 }
 
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                    //binding.createtext.setText(s.toString())
-                   /* if(s.toString().contains("@내 폰트@", true)){ //
-                        edittx.setText(s.toString().replace("@내 폰트@", ""))
-                        edittx.clearFocus()
-                    }*/
+                    var watcherString = s.toString()
+
+                    if (shortcut.isNotEmpty()) {
+                        for (i in shortcut.indices) {
+                            if (watcherString.contains("@${shortcut[i].shortcut}@", true)) {
+                                if (shortcut[i].shortcutfont?.isNotEmpty() == true) { // 폰트 단축키가 존재할시.
+                                    if (toast != null) {
+                                        toast!!.cancel()
+                                        toast = Toast.makeText(context, "저장한 폰트가 적용되었습니다.", Toast.LENGTH_SHORT)
+                                    } else {
+                                        toast = Toast.makeText(context, "저장한 폰트가 적용되었습니다.", Toast.LENGTH_SHORT)
+                                    }
+                                    toast!!.show()
+
+                                    binding.contentText.setLineSpacing(0.0f, shortcut[i].shortcutfont!!.get(0).toFloat())
+                                    binding.contentText.letterSpacing = shortcut[i].shortcutfont!!.get(1).toFloat()
+                                    binding.contentText.textSize = shortcut[i].shortcutfont!!.get(2).toFloat()
+                                    binding.contentText.typeface = inter_roomdata_stringToFont(shortcut[i].shortcutfont!!.get(3), context)
+                                    binding.contentText.setTextColor(Color.parseColor(shortcut[i].shortcutfont!!.get(4)))
+
+                                    binding.contentTitle.typeface = inter_roomdata_stringToFont(shortcut[i].shortcutfont!!.get(3), context)
+                                    binding.contentTitle.setTextColor(Color.parseColor(shortcut[i].shortcutfont!!.get(4)))
+
+                                    binding.contentDate.typeface = inter_roomdata_stringToFont(shortcut[i].shortcutfont!!.get(3), context)
+
+                                    line_spacing = shortcut[i].shortcutfont!!.get(0).toFloat()
+                                    letter_spacing = shortcut[i].shortcutfont!!.get(1).toFloat()
+                                    text_size = shortcut[i].shortcutfont!!.get(2).toFloat()
+                                    edit_font = shortcut[i].shortcutfont!!.get(3)
+                                    edit_color = shortcut[i].shortcutfont!!.get(4)
+
+                                    for (j in Edit_array.indices) {
+                                        Edit_array[j]?.setLineSpacing(0.0f, shortcut[i].shortcutfont!!.get(0).toFloat())
+                                        Edit_array[j]?.letterSpacing = shortcut[i].shortcutfont!!.get(1).toFloat()
+                                        Edit_array[j]?.textSize = shortcut[i].shortcutfont!!.get(2).toFloat()
+                                        Edit_array[j]?.typeface = inter_roomdata_stringToFont(shortcut[i].shortcutfont!!.get(3), context)
+                                        Edit_array[j]?.setTextColor(Color.parseColor(shortcut[i].shortcutfont!!.get(4)))
+                                        Edit_array[j]?.typeface = inter_roomdata_stringToFont(shortcut[i].shortcutfont!!.get(3), context)
+                                    }
+
+                                    var a = watcherString.replace("@${shortcut[i].shortcut}@", "") //단축키 글자 삭제.
+                                    this@apply.setText(a) //binding.contenttext 는 getcontent와 연결되어있음.
+                                    break
+
+                                } else if (shortcut[i].shortcutmystring != null) { //폰트 단축키 말고 내 문장 단축키가 존재할시.
+                                    if (toast != null) {
+                                        toast!!.cancel()
+                                        toast = Toast.makeText(context, "저장한 문장을 불러왔습니다.", Toast.LENGTH_SHORT)
+                                    } else {
+                                        toast = Toast.makeText(context, "저장한 문장을 불러왔습니다.", Toast.LENGTH_SHORT)
+                                    }
+                                    toast!!.show()
+
+                                    var a = watcherString.replace("@${shortcut[i].shortcut}@", "${shortcut[i].shortcutmystring}")
+                                    this@apply.setText(a) //해당 내용을 입력한 부분에 저장한 텍스트 붙여넣기.
+                                    break
+                                }
+                                else if (shortcut[i].shortcut == "현재 날짜"){
+                                    val cal = Calendar.getInstance()
+
+                                    var year = cal.get(Calendar.YEAR)
+                                    var month = cal.get(Calendar.MONTH) + 1
+                                    var day = cal.get(Calendar.DATE)
+                                    
+                                    var a = watcherString.replace("@${shortcut[i].shortcut}@", "${year}년 ${month}월 ${day}일") //단축키 글자 삭제.
+                                    this@apply.setText(a)
+                                    Toast.makeText(context, "현재 날짜 가져옴", Toast.LENGTH_SHORT).show()
+
+                                    break
+                                }
+                                else if (shortcut[i].shortcut == "현재 시간"){
+                                    var now = System.currentTimeMillis()
+                                    var mdate = Date(now)
+                                    var getTime= SimpleDateFormat("HH:mm").format(mdate)
+
+                                    var a = watcherString.replace("@${shortcut[i].shortcut}@", "$getTime") //단축키 글자 삭제.
+                                    this@apply.setText(a)
+                                    Toast.makeText(context, "현재 시간 가져옴", Toast.LENGTH_SHORT).show()
+                                    break
+                                }
+                            }
+                        }
+                    }
                 }
 
                 override fun afterTextChanged(s: Editable?) {
@@ -671,8 +757,6 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
             Log.d("확인", "값은 ${viewModel.Checktext().value}")
 
             if (viewModel.Checktext().value != null || viewModel.Checkcontenttext().value != null) {
-                Log.d("확인", "글자 바뀜")
-
                 if (Edit_array.isNotEmpty()) {
                     for (i in Edit_array.indices) {
                         Edit_strarray.add(Edit_array[i]!!.text.toString())
@@ -701,12 +785,10 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
         })
 
         viewModel.getContent().observe(this, {
-            var shortcut = MainActivity.shortcutroom
             if(shortcut.isNotEmpty()) {
                 for (i in shortcut.indices){
                     if(it.contains("@${shortcut[i].shortcut}@", true)){
-                        var a = it.replace("@${shortcut[i].shortcut}@", "") //단축키 글자 삭제.
-                        if(shortcut[i].shortcutfont?.isNotEmpty() == true) {
+                        if(shortcut[i].shortcutfont?.isNotEmpty() == true) { // 폰트 단축키가 존재할시.
                             if(toast != null) {
                                 toast!!.cancel()
                                 toast = Toast.makeText(this, "저장한 폰트가 적용되었습니다.", Toast.LENGTH_SHORT)
@@ -732,8 +814,14 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                             text_size = shortcut[i].shortcutfont!!.get(2).toFloat()
                             edit_font = shortcut[i].shortcutfont!!.get(3)
                             edit_color = shortcut[i].shortcutfont!!.get(4)
+
+                            var a = it.replace("@${shortcut[i].shortcut}@", "") //단축키 글자 삭제.
+                            binding.contentText.setText(a) //binding.contenttext 는 getcontent와 연결되어있음.
+
+                            break
                         }
-                        else if(shortcut[i].shortcutmystring != null){
+
+                        else if(shortcut[i].shortcutmystring != null){ //폰트 단축키 말고 내 문장 단축키가 존재할시.
                             if(toast != null) {
                                 toast!!.cancel()
                                 toast = Toast.makeText(this, "저장한 문장을 불러왔습니다.", Toast.LENGTH_SHORT)
@@ -742,20 +830,38 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                                 toast = Toast.makeText(this, "저장한 문장을 불러왔습니다.", Toast.LENGTH_SHORT)
                             }
                             toast!!.show()
-                        }
-                        else{
-                            Toast.makeText(this, "저장한 폰트가 불러와졌습니다.", Toast.LENGTH_SHORT).show()
-                        }
 
+                            var a = it.replace("@${shortcut[i].shortcut}@", "${shortcut[i].shortcutmystring}")
+                            binding.contentText.setText(a) //해당 내용을 입력한 부분에 저장한 텍스트 붙여넣기.
 
-                        binding.contentText.setText(a) //binding.contenttext 는 getcontent와 연결되어있음.
+                            break
+                        }
+                        else if (shortcut[i].shortcut == "현재 날짜"){
+                            val cal = Calendar.getInstance()
+
+                            var year = cal.get(Calendar.YEAR)
+                            var month = cal.get(Calendar.MONTH) + 1
+                            var day = cal.get(Calendar.DATE)
+
+                            var a = it.replace("@${shortcut[i].shortcut}@", "${year}년 ${month}월 ${day}일") //단축키 글자 삭제.
+                            binding.contentText.setText(a)
+                            Toast.makeText(context, "현재 날짜 가져옴", Toast.LENGTH_SHORT).show()
+
+                            break
+                        }
+                        else if (shortcut[i].shortcut == "현재 시간"){
+                            var now = System.currentTimeMillis()
+                            var mdate = Date(now)
+                            var getTime= SimpleDateFormat("HH:mm").format(mdate)
+
+                            var a = it.replace("@${shortcut[i].shortcut}@", "$getTime") //단축키 글자 삭제.
+                            binding.contentText.setText(a)
+                            Toast.makeText(context, "현재 시간 가져옴", Toast.LENGTH_SHORT).show()
+                            break
+                        }
                     }
                 }
             }
-            if (it.contains("@현재 날짜@")) { //만들자
-            } else if (it.contains("@현재 시각@")) {
-
-            }//만들자
 
             contenttext = it //contenttext는 Dao에 넣는용도.
         })

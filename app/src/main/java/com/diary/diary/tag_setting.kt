@@ -9,7 +9,12 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.room.CoroutinesRoom
+import androidx.room.Room
 import com.diary.diary.databinding.ActivityTagSettingBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class tag_setting : AppCompatActivity() {
     lateinit var binding:ActivityTagSettingBinding
@@ -20,19 +25,44 @@ class tag_setting : AppCompatActivity() {
         binding = ActivityTagSettingBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        var dd = intent.getStringArrayListExtra("태그 설정")
-        if(!dd.isNullOrEmpty()) {
-            for (i in dd.indices){
-                Log.d("태그는", dd[i].toString())
-                tag_array.add(taglist(dd[i].toString()))
+        var dd = arrayListOf<String>()
+        var bb = 1
+
+        var db = Room.databaseBuilder(
+                applicationContext, RoomdiaryDB::class.java, "RoomDB"
+        )
+                .build()
+        CoroutineScope(Dispatchers.IO).launch {
+            var room = db.RoomDao().getAll()
+
+            CoroutineScope(Dispatchers.IO).launch {
+                for (i in room.indices) {
+                    loop@for (j in room[i].taglist.indices) {
+                        for(z in dd.indices){
+                            if(room[i].taglist[j] == dd[z]) {
+                                bb++
+                                continue@loop
+                            }
+                        }
+                        dd.add(taglist(room[i].taglist[j]).toString())
+                        tag_array.add(taglist(room[i].taglist[j]))
+                    }
+                }
+            }
+
+            Log.d("비비비비", bb.toString())
+
+            CoroutineScope(Dispatchers.Main).launch {
+                binding.tagSize.setText("현재까지 작성한 태그의 갯수 : ${dd?.size}")
+                binding.tagSettingRecycler.layoutManager = LinearLayoutManager(applicationContext, LinearLayoutManager.VERTICAL, false)
+                binding.tagSettingRecycler.setHasFixedSize(true)
+                binding.tagSettingRecycler.adapter = tagRecycler(tag_array)
             }
         }
 
 
-        binding.tagSize.setText("현재까지 작성한 태그의 갯수 : ${dd?.size}")
-        binding.tagSettingRecycler.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        binding.tagSettingRecycler.setHasFixedSize(true)
-        binding.tagSettingRecycler.adapter = tagRecycler(tag_array)
+
+
     }
 }
 

@@ -57,6 +57,10 @@ class SettingViewmodel: ViewModel(){
     fun shortcutsClick(){
         shortcuts.value = "CLICK"
     }
+
+    fun usedtagClick(){
+        usedtag.value = "CLICK"
+    }
 }
 class Setting : AppCompatActivity() {
     lateinit var binding:ActivitySettingBinding
@@ -188,6 +192,10 @@ class Setting : AppCompatActivity() {
 
         settingviewmodel.shortcuts.observe(this, {
             startActivity(Intent(this, Shortcuts::class.java))
+        })
+
+        settingviewmodel.usedtag.observe(this, {
+            startActivity(Intent(this, tag_setting::class.java))
         })
     }
 

@@ -110,15 +110,22 @@ class Shortcuts : AppCompatActivity(), text_font, Recycler_shortcut_inter {
         metrics = resources.displayMetrics
         context = this
 
+        binding.basicShortcut1.setText("@현재 날짜@")
+        binding.basicShortcut2.setText("@현재 시간@")
+
         when(Setting.darkmodechagend){
             "ON" -> {
                 binding.shortcutMainlayout.setBackgroundColor(Color.parseColor("#272626"))
                 binding.myShortcutMenu.setTextColor(Color.parseColor("#FB9909"))
                 binding.textfontShortcut.setTextColor(Color.parseColor("#B5B2B2"))
                 binding.mystringShortcuts.setTextColor(Color.parseColor("#B5B2B2"))
+                binding.basicShortcut.setTextColor(Color.parseColor("#B5B2B2"))
 
                 binding.textfontShortcutAdd.setTextColor(Color.WHITE)
                 binding.mystringShortcutsAdd.setTextColor(Color.WHITE)
+
+                binding.basicShortcut1.setTextColor(Color.WHITE)
+                binding.basicShortcut2.setTextColor(Color.WHITE)
 
                 binding.backArrow.setImageResource(R.drawable.darkmode_backarrow)
                 binding.image1.setImageResource(R.drawable.darkmode_arrowright)
@@ -283,10 +290,10 @@ class Shortcuts : AppCompatActivity(), text_font, Recycler_shortcut_inter {
                         } else {
                             if(toast != null){
                                 toast!!.cancel()
-                                toast = Toast.makeText(this, "입력하지 않는 내용이 존재합니다.", Toast.LENGTH_SHORT)
+                                toast = Toast.makeText(this, "입력하지 않은 내용이 존재합니다.", Toast.LENGTH_SHORT)
                             }
                             else{
-                                toast = Toast.makeText(this, "입력하지 않는 내용이 존재합니다.", Toast.LENGTH_SHORT)
+                                toast = Toast.makeText(this, "입력하지 않은 내용이 존재합니다.", Toast.LENGTH_SHORT)
                             }
                             toast!!.show()
                         }
@@ -298,7 +305,7 @@ class Shortcuts : AppCompatActivity(), text_font, Recycler_shortcut_inter {
                     if(mystring_checkd == "기본") {
                         CoroutineScope(Dispatchers.IO).launch {
                             CoroutineScope(Dispatchers.IO).launch {
-                                db.RoomDao().insertshortcut(Shortcutroom(0, mystringShortcut.text.toString(), trasharray, mystringShortcut.text.toString()))
+                                db.RoomDao().insertshortcut(Shortcutroom(0, mystringShortcut.text.toString(), trasharray, mystringContent.text.toString()))
                                 shortcutarray.add(mystringShortcut.text.toString())
                             }.join()
 
@@ -313,7 +320,7 @@ class Shortcuts : AppCompatActivity(), text_font, Recycler_shortcut_inter {
                         //업데이트 시키기.
                         CoroutineScope(Dispatchers.IO).launch {
                             CoroutineScope(Dispatchers.IO).launch {
-                                db.RoomDao().updateshortcut(Shortcutroom(id, mystringShortcut.text.toString(), trasharray, mystringShortcut.text.toString()))
+                                db.RoomDao().updateshortcut(Shortcutroom(id, mystringShortcut.text.toString(), trasharray, mystringContent.text.toString()))
                             }.join()
 
                             CoroutineScope(Dispatchers.Main).launch {
