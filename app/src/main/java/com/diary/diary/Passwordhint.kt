@@ -1,6 +1,7 @@
 package com.diary.diary
 
 import android.content.SharedPreferences
+import android.graphics.Color
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
@@ -31,6 +32,14 @@ class Passwordhint:AppCompatActivity() {
 
         preferences = getSharedPreferences("LOCK_PASSWORD", 0)
 
+        when(Setting.darkmodechagend){
+            "ON" -> {
+                binding.passwordHintMainlayout.setBackgroundColor(Color.parseColor("#272626"))
+                binding.textHint.setTextColor(Color.parseColor("#FB9909"))
+                binding.passwordHintEdit.setTextColor(Color.parseColor("#B5B2B2"))
+                binding.passwordHintEdit.setHintTextColor(Color.parseColor("#B5B2B2"))
+            }
+        }
         observe()
     }
 

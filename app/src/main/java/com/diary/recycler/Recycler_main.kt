@@ -124,6 +124,8 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, v
                         Log.d("제목은 :", holder.title.text.toString())
                         var intent = Intent(context, Content_create::class.java)
                         intent.putExtra("이동", diary_list[position].id)
+                        intent.putExtra("이동날짜", diary_list[position].dateLong)
+                        intent.putExtra("이동날짜요일", diary_list[position].daytoweek)
                         context.startActivity(intent)
                     } else {
                         if(darkmode() == "다크모드") { //다크모드일시
@@ -200,6 +202,8 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, v
                 setOnClickListener {
                     var intent = Intent(context, Content_create::class.java)
                     intent.putExtra("이동", diary_list[position].id)
+                    intent.putExtra("이동날짜", diary_list[position].dateLong)
+                    intent.putExtra("이동날짜요일", diary_list[position].daytoweek)
                     context.startActivity(intent)
                 }
             }

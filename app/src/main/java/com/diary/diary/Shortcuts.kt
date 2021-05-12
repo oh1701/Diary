@@ -156,6 +156,7 @@ class Shortcuts : AppCompatActivity(), text_font, Recycler_shortcut_inter {
                 }
                 binding.fontShortcutList.adapter?.notifyDataSetChanged()
                 binding.mystringShortcutList.adapter?.notifyDataSetChanged()
+                Setting.short_size = fontshortcut_room.size
             }
         }
 

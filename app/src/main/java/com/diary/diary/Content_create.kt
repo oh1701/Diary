@@ -130,11 +130,11 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
     var year = cal.get(Calendar.YEAR)
     var month = cal.get(Calendar.MONTH) + 1
     var day = cal.get(Calendar.DATE)
-    val dayOfWeek = cal.get(Calendar.DAY_OF_WEEK)
+    var dayOfWeek = cal.get(Calendar.DAY_OF_WEEK)
 
-    val hour = cal.get(Calendar.HOUR_OF_DAY)
-    val minute = cal.get(Calendar.MINUTE)
-    val second = cal.get(Calendar.SECOND)
+    var hour = cal.get(Calendar.HOUR_OF_DAY)
+    var minute = cal.get(Calendar.MINUTE)
+    var second = cal.get(Calendar.SECOND)
 
 
     companion object{
@@ -207,8 +207,28 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
 
         if(intent.hasExtra("이동")){
             var getId = intent.getIntExtra("이동", 0)
-            Log.d("확인", getId.toString())
+            Log.d("아이디확인", getId.toString())
             layout_click_intent(getId)
+
+            var getDate = intent.getLongExtra("이동날짜", 0)
+            Log.d("날짜확인", getDate.toString())
+
+            year = getDate.toString().substring(0,4).toInt()
+            month = getDate.toString().substring(4,6).toInt()
+            day = getDate.toString().substring(6,8).toInt()
+            hour = getDate.toString().substring(8,10).toInt()
+            minute = getDate.toString().substring(10,12).toInt()
+            second = getDate.toString().substring(12).toInt()
+            binding.contentDate.setText("${year}년, ${month}월 ${day}일")
+            Log.d("날짜용", "$year")
+            Log.d("날짜용", "$month")
+            Log.d("날짜용", "$day")
+            Log.d("날짜용", "$hour")
+            Log.d("날짜용", "$minute")
+            Log.d("날짜용", "$second")//20210511225236
+
+            var getDayofWeek = intent.getStringExtra("이동날짜요일")
+            dayOfWeek = dayofweekInt(getDayofWeek!!)
         }
 
         sharedPreferences = getSharedPreferences("LOCK_PASSWORD", 0)
@@ -1020,12 +1040,18 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                             binding.tagline.visibility = View.GONE
                             binding.bottomLinear.visibility = View.VISIBLE // 태그, 쓰레기통 버튼 꺼짐. 및 나머지 리니어 VISIBLE
 
+                            if(sharedPreferences.getString("DARK_MODE", "").toString() == "ON")
+                                binding.tag.setImageResource(R.drawable.darkmode_tag)
+
                             binding.tag.setBackgroundResource(R.drawable.btn_select)
                             binding.etn.text = null // null 값으로 설정
                         } else {
+                            if(sharedPreferences.getString("DARK_MODE", "").toString() == "ON")
+                                binding.tag.setImageResource(R.drawable.darkmode_tag)
+
+                            binding.tag.setBackgroundResource(R.drawable.btn_select)
                             binding.bottomLinear.visibility = View.VISIBLE
                             binding.tagline.visibility = View.GONE// 태그 및 나머지 리니어 visible
-                            binding.tag.setBackgroundResource(R.drawable.btn_select)
                         }
 
                         tag_changed = 1
@@ -1360,10 +1386,9 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
         } //x 버튼 적용 끝
         
         binding.contentDate.setOnClickListener {
-            val today = GregorianCalendar()
-            val year: Int = today.get(Calendar.YEAR)
-            val month: Int = today.get(Calendar.MONTH)
-            val date: Int = today.get(Calendar.DATE)
+            val year: Int = year
+            val month: Int = month - 1
+            val date: Int = day
 
             val dlg = DatePickerDialog(this, object : DatePickerDialog.OnDateSetListener {
                 override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
@@ -1372,6 +1397,14 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
                     this@Content_create.year = year
                     this@Content_create.month = month + 1
                     this@Content_create.day = dayOfMonth
+
+                    var dayOfweek = "${year}0${month + 1}$dayOfMonth"
+                    var dateFormat = SimpleDateFormat("yyyyMMdd")
+                    var date = dateFormat.parse(dayOfweek)
+                    var calendar = Calendar.getInstance()
+                    calendar.time = date
+
+                    dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
                 }
             }, year, month, date)
             dlg.show()
@@ -1437,13 +1470,27 @@ class Content_create : AppCompatActivity(), text_font, Inter_recycler_remove { /
     fun dayofweekfunction(week:Int):String{
         var d= ""
         when(week){
-            1 -> d ="일"
+            1 ->  d ="일"
             2 ->  d ="월"
             3 ->  d ="화"
             4 ->  d ="수"
             5 ->  d ="목"
             6 ->  d ="금"
             7 ->  d ="토"
+        }
+        return d
+    }
+
+    fun dayofweekInt(week:String):Int{
+        var d= 0
+        when(week){
+            "일" -> d = 1
+            "월" -> d = 2
+            "화"-> d = 3
+            "수"-> d = 4
+            "목"-> d = 5
+            "금"-> d = 6
+            "토"-> d = 7
         }
         return d
     }

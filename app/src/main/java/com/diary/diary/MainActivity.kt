@@ -15,6 +15,7 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
 import androidx.databinding.BindingAdapter
 import androidx.databinding.DataBindingUtil
@@ -33,6 +34,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.*
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.system.exitProcess
 
 
 @Entity
@@ -211,13 +213,14 @@ class MainActivity : AppCompatActivity(), layout_remove {
         viewobserve() // 여기에 놓지 않고, onresume에 하면 observe들이 중복호출된다.
         coroutine() //기본 room 데이터들 가지고 옴. (단축키 뺀 데이터들)
         alldiary()
-
     }
 
     override fun onResume() {
         super.onResume()
+        binding.allDiary.setImageResource(R.drawable.ic_baseline_create_24)
 
         getshortcut() //코루틴 통해서 단축키 가져옴. backpressed를 통해 올수도 있기에 resume에 설정.
+
 
         var sharedPreferences = getSharedPreferences("LOCK_PASSWORD", 0)
 
@@ -476,8 +479,9 @@ class MainActivity : AppCompatActivity(), layout_remove {
                     Log.d("shortcutmystring", "$shortcutmystring")
                     Log.d("숏컷모두", shortcutroom[i].toString())
                 }
+                Setting.short_size = shortcutroom.size
             }
-            else{
+            else{ // 초기화 된 상태 (처음 실행했을 시에)
                 db.RoomDao().insertshortcut(Shortcutroom(0, "현재 날짜", arrayListOf(), null))
                 db.RoomDao().insertshortcut(Shortcutroom(0, "현재 시간", arrayListOf(), null))
             }
@@ -490,11 +494,9 @@ class MainActivity : AppCompatActivity(), layout_remove {
             layout_remove_position_check(1024)
             binding.allDiary.setImageResource(R.drawable.ic_baseline_create_24)
         }
-        else if(intent.hasExtra("이동") || intent.hasExtra("비밀번호ON")) { // content_create, 비밀번호 상태에서 메인으로 넘어왔을때, 그 상황으로 안돌아가기 위함임. 다이얼로그로 종료버튼 만들기.
-            Toast.makeText(this, "종료되었음", Toast.LENGTH_SHORT).show()
-        }
-        else{
-            super.onBackPressed()
+        else{ // 다이얼로그로 종료버튼 만들기.
+            ActivityCompat.finishAffinity(this)
+            exitProcess(0)
         }
     }
 

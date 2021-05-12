@@ -82,6 +82,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="20dp"
                     android:layout_marginRight="20dp"
+                    android:background="@drawable/layout_click"
                     android:onClick="@{() -> setting.datadriveClick()}"
                     android:padding="12dp">
 
@@ -114,7 +115,7 @@
                     android:id="@+id/password_change_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/layout_gray_top"
+                    android:background="@drawable/layout_click"
                     android:layout_marginLeft="20dp"
                     android:layout_marginRight="20dp"
 
@@ -150,7 +151,7 @@
                     android:id="@+id/password_hint_input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/layout_gray_top"
+                    android:background="@drawable/layout_click"
                     android:layout_marginLeft="20dp"
                     android:layout_marginRight="20dp"
 
@@ -274,10 +275,12 @@
             android:layout_height="wrap_content"
             android:background="@drawable/layout_gray"
             android:orientation="vertical">
+
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/shortcut_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@drawable/layout_click"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp"
 
@@ -309,17 +312,38 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@drawable/layout_gray_top"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp"
-                android:padding="12dp"
-                android:visibility="gone">
-            <androidx.recyclerview.widget.RecyclerView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-            </LinearLayout>
+                android:padding="12dp">
+
+                <TextView
+                    android:id="@+id/shortcut_size"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="현재 $개의 단축키가 존재합니다."
+                    android:textColor="@color/black"
+                    android:textSize="14dp"
+                    android:typeface="serif"
+
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="30dp"
+                    android:src="@drawable/ic_baseline_keyboard_arrow_right_24"
+
+                    android:visibility="invisible"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
         </LinearLayout>
 
             <TextView
@@ -347,6 +371,7 @@
                     android:layout_marginLeft="20dp"
                     android:layout_marginRight="20dp"
                     android:onClick="@{() -> setting.usedtagClick()}"
+                    android:background="@drawable/layout_click"
                     android:padding="12dp">
 
                     <TextView
@@ -380,7 +405,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="20dp"
                     android:layout_marginRight="20dp"
-                    android:background="@drawable/layout_gray_top"
+                    android:background="@drawable/layout_click"
+                    android:onClick="@{() -> setting.diary_instructionClick()}"
                     android:padding="12dp">
 
                     <TextView

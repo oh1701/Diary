@@ -51,6 +51,10 @@ class Recycler_shortcut(val font_shortcut:ArrayList<font_shrotcut>, val observet
                     observetext.setText("문자")
                 }
             }
+            when(Setting.darkmodechagend){
+                "ON" -> setBackgroundResource(R.drawable.layout_click_dark)
+                "OFF" -> setBackgroundResource(R.drawable.layout_click)
+            }
         }
 
         Log.d("어레이", font_shortcut[position].arrayString.toString())

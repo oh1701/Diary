@@ -14,6 +14,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.diary.diary.Setting.Companion.diarylock
 import com.diary.diary.databinding.ActivityPasswordBinding
 
 class password : AppCompatActivity() {
@@ -247,7 +248,13 @@ class password : AppCompatActivity() {
                 binding.passwordCheck.setText("비밀번호를 다시 입력해주세요.")
                 binding.passwordCheck.setTextColor(Color.parseColor("#0E4181"))
             } else {
-                Toast.makeText(this, "비밀번호 변경 완료", Toast.LENGTH_SHORT).show()
+                if(intent.hasExtra("비밀번호 설정")) {
+                    Toast.makeText(this, "비밀번호 설정 완료", Toast.LENGTH_SHORT).show()
+                    diarylock = "ON"
+                }
+                else
+                    Toast.makeText(this, "비밀번호 변경 완료", Toast.LENGTH_SHORT).show()
+                
                 val editor = sharedPreferences.edit()
                 editor.putString("PASSWORD", password) //비밀번호 설정함
                 editor.putString("LOCK_CHECK", "ON") //LOCK ON으로 변경함.
@@ -255,7 +262,6 @@ class password : AppCompatActivity() {
 
                 Log.d("패스워드확인", sharedPreferences.getString("PASSWORD", "").toString())
                 finish()
-                //비밀번호를 저장시키고. 잃어버렸을 경우를 대비한 힌트 다이얼로그 생성하기.
             }
         }
     }

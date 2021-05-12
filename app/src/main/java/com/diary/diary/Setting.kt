@@ -16,7 +16,11 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.room.Room
 import com.diary.diary.databinding.ActivitySettingBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class SettingViewmodel: ViewModel(){
     var darkmode = MutableLiveData<String>()
@@ -61,6 +65,10 @@ class SettingViewmodel: ViewModel(){
     fun usedtagClick(){
         usedtag.value = "CLICK"
     }
+
+    fun diary_instructionClick(){
+        diary_instruction.value = "CLICK"
+    }
 }
 class Setting : AppCompatActivity() {
     lateinit var binding:ActivitySettingBinding
@@ -71,6 +79,7 @@ class Setting : AppCompatActivity() {
     companion object{
         var darkmodechagend = "OFF"
         var diarylock = "OFF"
+        var short_size = 0
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,6 +95,13 @@ class Setting : AppCompatActivity() {
         if(MainActivity.roomcheck)
             binding.diaryCount.setText("현재까지 작성한 일기는 ${MainActivity.room.size}개 입니다.")
 
+        observe()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        binding.shortcutSize.text = "현재 ${short_size}개의 단축키가 존재합니다."
 
         if(sharedPreferences.getString("LOCK_CHECK", "").toString().isNotEmpty())
             diarylock = sharedPreferences.getString("LOCK_CHECK", "").toString()
@@ -106,11 +122,11 @@ class Setting : AppCompatActivity() {
             "ON" -> binding.lockSwitch.isChecked = true
             "OFF" -> binding.lockSwitch.isChecked = false
         }
-        observe()
     }
 
     override fun onBackPressed() {
-        intentMain()
+        super.onBackPressed()
+        //intentMain()
     }
 
     fun observe() {
@@ -147,11 +163,15 @@ class Setting : AppCompatActivity() {
                         var intent = Intent(this, password::class.java)
                         intent.putExtra("비밀번호 설정", "비밀번호 설정")
                         startActivity(intent)
-                    } else { //비밀번호 설정되어있으면.
+                        binding.lockSwitch.isChecked = false
+                        Log.d("실행므1", "실행11")
+                    }
+                    else { //비밀번호 설정되어있으면.
                         diarylock = "ON"
                         editor.putString("LOCK_CHECK", "ON")
                         editor.apply()
                         binding.lockSwitch.isChecked = true
+                        Log.d("실행므2", "실행22")
                     }
                     //비밀번호 설정 되어있는지 확인, 안되어있으면 설정하고 ON으로 넘어가기.
                 }
@@ -170,7 +190,8 @@ class Setting : AppCompatActivity() {
         })
 
         settingviewmodel.backbtn.observe(this, {
-            intentMain()
+            onBackPressed()
+            //intentMain()
         })
         
         settingviewmodel.passwordchange.observe(this, {
@@ -199,16 +220,17 @@ class Setting : AppCompatActivity() {
         })
     }
 
-    fun intentMain(){
+    /*fun intentMain(){
         var intent = Intent(this, MainActivity::class.java)
         intent.putExtra("이동", "이동")
         startActivity(intent)
-    }
+    }*/
 
     fun darkON(){
         binding.darkSwitch.isChecked = true
         darkmodechagend = "ON"
-        binding.settingMainLayout.setBackgroundColor(Color.parseColor("#272626"))
+        
+        //글자
         binding.settingMenu.setTextColor(Color.parseColor("#FB9909"))
         binding.passwordChange.setTextColor(Color.WHITE)
         binding.dataBackup.setTextColor(Color.WHITE)
@@ -219,15 +241,27 @@ class Setting : AppCompatActivity() {
         binding.diaryInstruction.setTextColor(Color.WHITE)
         binding.diaryCount.setTextColor(Color.WHITE)
         binding.passwordHint.setTextColor(Color.WHITE)
-        binding.backArrow.setImageResource(R.drawable.darkmode_backarrow)
+        binding.shortcutSize.setTextColor(Color.WHITE)
+        
+        //레이아웃
+        binding.settingMainLayout.setBackgroundColor(Color.parseColor("#272626"))
+        binding.dataBackupLayout.setBackgroundResource(R.drawable.layout_click_dark)
+        binding.passwordChangeLayout.setBackgroundResource(R.drawable.layout_click_dark)
+        binding.passwordHintInput.setBackgroundResource(R.drawable.layout_click_dark)
+        binding.shortcutLayout.setBackgroundResource(R.drawable.layout_click_dark)
+        binding.usedTagLayout.setBackgroundResource(R.drawable.layout_click_dark)
+        binding.diaryInstructionLayout.setBackgroundResource(R.drawable.layout_click_dark)
 
+        //이미지
         binding.image1.setImageResource(R.drawable.darkmode_arrowright)
         binding.image2.setImageResource(R.drawable.darkmode_arrowright)
         binding.image3.setImageResource(R.drawable.darkmode_arrowright)
         binding.image4.setImageResource(R.drawable.darkmode_arrowright)
         binding.image5.setImageResource(R.drawable.darkmode_arrowright)
         binding.passwordHintImage.setImageResource(R.drawable.darkmode_arrowright)
+        binding.backArrow.setImageResource(R.drawable.darkmode_backarrow)
 
+        //보조 메뉴 글자
         binding.systemSetting.setTextColor(Color.parseColor("#B5B2B2"))
         binding.userConvinence.setTextColor(Color.parseColor("#B5B2B2"))
         binding.shortcutSetting.setTextColor(Color.parseColor("#B5B2B2"))
@@ -236,7 +270,8 @@ class Setting : AppCompatActivity() {
     fun darkOFF(){
         binding.darkSwitch.isChecked = false
         darkmodechagend = "OFF"
-        binding.settingMainLayout.setBackgroundColor(Color.parseColor("#E8E8E8"))
+        
+        //글자
         binding.settingMenu.setTextColor(Color.BLACK)
         binding.passwordChange.setTextColor(Color.BLACK)
         binding.dataBackup.setTextColor(Color.BLACK)
@@ -245,18 +280,29 @@ class Setting : AppCompatActivity() {
         binding.shortcut.setTextColor(Color.BLACK)
         binding.usedTag.setTextColor(Color.BLACK)
         binding.passwordHint.setTextColor(Color.BLACK)
-
         binding.diaryInstruction.setTextColor(Color.BLACK)
         binding.diaryCount.setTextColor(Color.BLACK)
-        binding.backArrow.setImageResource(R.drawable.ic_baseline_arrow_back_24)
+        binding.shortcutSize.setTextColor(Color.BLACK)
 
+        //레이아웃
+        binding.settingMainLayout.setBackgroundColor(Color.parseColor("#E8E8E8"))
+        binding.dataBackupLayout.setBackgroundResource(R.drawable.layout_click)
+        binding.passwordChangeLayout.setBackgroundResource(R.drawable.layout_click)
+        binding.passwordHintInput.setBackgroundResource(R.drawable.layout_click)
+        binding.shortcutLayout.setBackgroundResource(R.drawable.layout_click)
+        binding.usedTagLayout.setBackgroundResource(R.drawable.layout_click)
+        binding.diaryInstructionLayout.setBackgroundResource(R.drawable.layout_click)
+        
+        //사진
         binding.image1.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
         binding.image2.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
         binding.image3.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
         binding.image4.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
         binding.image5.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
         binding.passwordHintImage.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
+        binding.backArrow.setImageResource(R.drawable.ic_baseline_arrow_back_24)
 
+        //보조 메뉴 글자
         binding.systemSetting.setTextColor(Color.parseColor("#6A6A6A"))
         binding.userConvinence.setTextColor(Color.parseColor("#6A6A6A"))
         binding.shortcutSetting.setTextColor(Color.parseColor("#6A6A6A"))

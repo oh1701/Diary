@@ -145,6 +145,7 @@ class search_diary : AppCompatActivity(), layout_remove {
             }
 
             override fun afterTextChanged(s: Editable?) {
+                Log.d("확인", "확인이여열")
             }
         })
 
@@ -154,9 +155,15 @@ class search_diary : AppCompatActivity(), layout_remove {
     }
 
     override fun onBackPressed() {
-        var intent = Intent(this, MainActivity::class.java)
-        intent.putExtra("이동", "이동")
-        startActivity(intent)
+        super.onBackPressed()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if(intent.hasExtra("태그이동")){ //ontextchanged 이용하기 위해 onresume에 설정.
+            binding.searchEdit.setText("#${intent.getStringExtra("태그이동")}")
+        }
     }
 
     private fun Any.startsWith(string:String):Boolean{
