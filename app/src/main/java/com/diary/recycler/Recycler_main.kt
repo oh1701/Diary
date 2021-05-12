@@ -107,11 +107,17 @@ class Recycler_main(val diary_list: ArrayList<list>, val shadowText: EditText, v
         }
 
         holder.layout.apply {
-            if(darkmode() == "다크모드" && tag == null)
-                holder.layout.setBackgroundResource(R.drawable.darkmode_layout)
-            else
-                holder.layout.setBackgroundResource(R.drawable.layout_background)
+            if(darkmode() == "다크모드") {
+                if (tag_get(position) == null || tag == null)
+                    holder.layout.setBackgroundResource(R.drawable.darkmode_layout)
+                else if (tag_get(position) == "클릭")
+                    holder.layout.setBackgroundResource(R.drawable.layout_background)
+            }
 
+            /*if(darkmode() == "다크모드" && tag_get(position) == null || tag == null)
+                holder.layout.setBackgroundResource(R.drawable.darkmode_layout)
+            else if(darkmode() == "다크모드" && tag_get(position) == "클릭")
+                holder.layout.setBackgroundResource(R.drawable.layout_background)*/
 
             if(check == "main") { //사용하는 것이 main부분이면
                 setOnClickListener {

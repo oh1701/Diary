@@ -150,12 +150,22 @@ class search_diary : AppCompatActivity(), layout_remove {
         })
 
         viewModel.back.observe(this, {
-            onBackPressed()
+            if(intent.hasExtra("태그이동"))
+                onBackPressed()
+            else{
+                var intent = Intent(this, MainActivity::class.java)
+                startActivity(intent)
+            }
         })
     }
 
     override fun onBackPressed() {
-        super.onBackPressed()
+        if(intent.hasExtra("태그이동"))
+            super.onBackPressed()
+        else{
+            var intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     override fun onResume() {

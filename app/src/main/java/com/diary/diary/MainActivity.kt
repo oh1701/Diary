@@ -196,13 +196,14 @@ class MainActivity : AppCompatActivity(), layout_remove {
         metrics = resources.displayMetrics
 
         var two_year = calendar_year.toString().substring(2)
-        binding.mainRecylerview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         binding.maintitle.setText("${two_year}년 ${calendar_month}월의 추억")
 
         db = Room.databaseBuilder(
                 applicationContext, RoomdiaryDB::class.java, "RoomDB"
         )
                 .build()
+
+        binding.mainRecylerview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
 
         if(calendar_month < 10)
             monthstring = "0$calendar_month"
@@ -223,9 +224,7 @@ class MainActivity : AppCompatActivity(), layout_remove {
     override fun onResume() {
         super.onResume()
         binding.allDiary.setImageResource(R.drawable.ic_baseline_create_24)
-
-        getshortcut() //코루틴 통해서 단축키 가져옴. backpressed를 통해 올수도 있기에 resume에 설정.
-
+        getshortcut() //코루틴 통해서 단축키 가져옴.
 
         var sharedPreferences = getSharedPreferences("LOCK_PASSWORD", 0)
 
@@ -354,10 +353,9 @@ class MainActivity : AppCompatActivity(), layout_remove {
                             diarylist.removeAt(remove_layout_checkInt[i]) // remove_layout_checkInt는 아이템 롱클릭시 받아와지는 포지션값.
                             binding.mainRecylerview.adapter?.notifyItemRemoved(remove_layout_checkInt[i])
                             binding.mainRecylerview.adapter?.notifyItemRangeChanged(remove_layout_checkInt[i], diarylist.size)
+                            binding.mainRecylerview.adapter?.notifyDataSetChanged()
                             Log.d("사이즈삭제파일은", remove_layout_checkInt[i].toString())
                         }
-
-                        binding.mainRecylerview.adapter?.notifyDataSetChanged()
 
                         CoroutineScope(Dispatchers.IO).launch {
                             for (i in date_layout_checkLong.indices) {
@@ -365,20 +363,21 @@ class MainActivity : AppCompatActivity(), layout_remove {
                                 Log.d("없애는데이터", date_layout_checkLong[i].toString())
                                 db.RoomDao().DeletedateDao(date_layout_checkLong[i])
                             }
-                            layout_remove_position_check(1024)
-                            Log.d("실행됨", "실행")
-                            diary_btn_change = 0
                         }
 
+                        layout_remove_position_check(1024)
+                        diary_btn_change = 0
+                        binding.mainRecylerview.adapter?.notifyDataSetChanged()
                         binding.allDiary.setImageResource(R.drawable.ic_baseline_create_24)
+                        dialog.dismiss()
                     }
                 }
                 permission_negative_btn.setOnClickListener {
-                    binding.mainRecylerview.adapter?.notifyDataSetChanged()
                     layout_remove_position_check(1024)
                     Log.d("실행됨", "실행")
                     diary_btn_change = 0
                     binding.allDiary.setImageResource(R.drawable.ic_baseline_create_24)
+                    binding.mainRecylerview.adapter?.notifyDataSetChanged()
                     dialog.dismiss()
                 }
 
