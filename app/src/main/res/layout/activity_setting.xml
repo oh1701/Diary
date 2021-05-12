@@ -400,40 +400,6 @@
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/diary_instruction_layout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="20dp"
-                    android:layout_marginRight="20dp"
-                    android:background="@drawable/layout_click"
-                    android:onClick="@{() -> setting.diary_instructionClick()}"
-                    android:padding="12dp">
-
-                    <TextView
-                        android:id="@+id/diary_instruction"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="원데이 다이어리 사용 설명서"
-                        android:textColor="@color/black"
-                        android:textSize="14dp"
-                        android:typeface="serif"
-
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent"/>
-
-                    <ImageView
-                        android:id="@+id/image5"
-                        android:layout_width="wrap_content"
-                        android:layout_height="30dp"
-                        android:src="@drawable/ic_baseline_keyboard_arrow_right_24"
-
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"/>
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
-                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="20dp"

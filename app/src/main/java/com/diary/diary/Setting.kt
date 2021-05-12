@@ -220,12 +220,6 @@ class Setting : AppCompatActivity() {
         })
     }
 
-    /*fun intentMain(){
-        var intent = Intent(this, MainActivity::class.java)
-        intent.putExtra("이동", "이동")
-        startActivity(intent)
-    }*/
-
     fun darkON(){
         binding.darkSwitch.isChecked = true
         darkmodechagend = "ON"
@@ -238,7 +232,7 @@ class Setting : AppCompatActivity() {
         binding.darkmode.setTextColor(Color.WHITE)
         binding.shortcut.setTextColor(Color.WHITE)
         binding.usedTag.setTextColor(Color.WHITE)
-        binding.diaryInstruction.setTextColor(Color.WHITE)
+        //binding.diaryInstruction.setTextColor(Color.WHITE)
         binding.diaryCount.setTextColor(Color.WHITE)
         binding.passwordHint.setTextColor(Color.WHITE)
         binding.shortcutSize.setTextColor(Color.WHITE)
@@ -250,14 +244,14 @@ class Setting : AppCompatActivity() {
         binding.passwordHintInput.setBackgroundResource(R.drawable.layout_click_dark)
         binding.shortcutLayout.setBackgroundResource(R.drawable.layout_click_dark)
         binding.usedTagLayout.setBackgroundResource(R.drawable.layout_click_dark)
-        binding.diaryInstructionLayout.setBackgroundResource(R.drawable.layout_click_dark)
+        //binding.diaryInstructionLayout.setBackgroundResource(R.drawable.layout_click_dark)
 
         //이미지
         binding.image1.setImageResource(R.drawable.darkmode_arrowright)
         binding.image2.setImageResource(R.drawable.darkmode_arrowright)
         binding.image3.setImageResource(R.drawable.darkmode_arrowright)
         binding.image4.setImageResource(R.drawable.darkmode_arrowright)
-        binding.image5.setImageResource(R.drawable.darkmode_arrowright)
+        //binding.image5.setImageResource(R.drawable.darkmode_arrowright)
         binding.passwordHintImage.setImageResource(R.drawable.darkmode_arrowright)
         binding.backArrow.setImageResource(R.drawable.darkmode_backarrow)
 
@@ -280,7 +274,7 @@ class Setting : AppCompatActivity() {
         binding.shortcut.setTextColor(Color.BLACK)
         binding.usedTag.setTextColor(Color.BLACK)
         binding.passwordHint.setTextColor(Color.BLACK)
-        binding.diaryInstruction.setTextColor(Color.BLACK)
+        //binding.diaryInstruction.setTextColor(Color.BLACK)
         binding.diaryCount.setTextColor(Color.BLACK)
         binding.shortcutSize.setTextColor(Color.BLACK)
 
@@ -291,14 +285,14 @@ class Setting : AppCompatActivity() {
         binding.passwordHintInput.setBackgroundResource(R.drawable.layout_click)
         binding.shortcutLayout.setBackgroundResource(R.drawable.layout_click)
         binding.usedTagLayout.setBackgroundResource(R.drawable.layout_click)
-        binding.diaryInstructionLayout.setBackgroundResource(R.drawable.layout_click)
+        //binding.diaryInstructionLayout.setBackgroundResource(R.drawable.layout_click)
         
         //사진
         binding.image1.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
         binding.image2.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
         binding.image3.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
         binding.image4.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
-        binding.image5.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
+        //binding.image5.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
         binding.passwordHintImage.setImageResource(R.drawable.ic_baseline_keyboard_arrow_right_24)
         binding.backArrow.setImageResource(R.drawable.ic_baseline_arrow_back_24)
 

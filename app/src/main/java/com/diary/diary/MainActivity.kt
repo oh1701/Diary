@@ -8,10 +8,12 @@ import android.content.Intent
 import android.graphics.*
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
+import android.view.WindowManager
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -146,6 +148,7 @@ class Recylcerviewmodel:ViewModel(){
 class MainActivity : AppCompatActivity(), layout_remove {
     lateinit var binding: ActivityMainBinding
     lateinit var db: RoomdiaryDB
+    lateinit var metrics: DisplayMetrics
 
     var datearray:ArrayList<Long> = arrayListOf() // 날짜 저장용
     var diarylist: ArrayList<list> = arrayListOf() //이미지도 추가하기.
@@ -189,6 +192,8 @@ class MainActivity : AppCompatActivity(), layout_remove {
         binding.lifecycleOwner = this
         viewModel = ViewModelProvider(this).get(Recylcerviewmodel::class.java)
         binding.recylcerviewmodel = viewModel
+
+        metrics = resources.displayMetrics
 
         var two_year = calendar_year.toString().substring(2)
         binding.mainRecylerview.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
@@ -308,49 +313,81 @@ class MainActivity : AppCompatActivity(), layout_remove {
                 startActivity(intent)
                 removeAll()
             } else {// 여기에 다이얼로그로 삭제 하냐는 질문 만들고 if else로 나눠서 layout_remove ~~ 연결시키기.
-                if (layout_remove().first != null) { //내용물이 가장 큰것이 마지막 배열로 가게 정렬
-                    remove_layout_checkInt = layout_remove().first!!  //인터페이스에서 return ArrayList<Int> 입니다.
-                    for (i in 0 until remove_layout_checkInt.size) { // 포지션값의 크기에 따라 작은것 -> 큰것순으로 정렬하는 코드
-                        var imsi = 0
-                        for (j in i until remove_layout_checkInt.size) {
-                            if (remove_layout_checkInt[i] > remove_layout_checkInt[j]) {
-                                imsi = remove_layout_checkInt[j]
-                                remove_layout_checkInt[j] = remove_layout_checkInt[i]
-                                remove_layout_checkInt[i] = imsi
-                                Log.d("사이즈정렬중 i", remove_layout_checkInt[i].toString())
-                                Log.d("사이즈정렬중 j", remove_layout_checkInt[j].toString())
+                val permission_view: View = LayoutInflater.from(this).inflate(R.layout.activity_permission_intent, null)// 커스텀 다이얼로그 생성하기. 권한은 저장공간, 카메라
+
+                val dialog = Dialog(this)
+                dialog.setContentView(permission_view)
+
+                val permission_positive_btn =
+                        permission_view.findViewById<Button>(R.id.warning_positive)
+                val permission_negative_btn =
+                        permission_view.findViewById<Button>(R.id.warning_negative)
+                val text = permission_view.findViewById<TextView>(R.id.warnig_text)
+
+                text.text = "정말 삭제하시겠습니까?\n삭제시 복구는 불가능합니다."
+                permission_positive_btn.text = "삭제"
+                permission_negative_btn.text = "취소"
+
+                permission_positive_btn.setOnClickListener {
+                    if (layout_remove().first != null) { //내용물이 가장 큰것이 마지막 배열로 가게 정렬
+                        remove_layout_checkInt = layout_remove().first!!  //인터페이스에서 return ArrayList<Int> 입니다.
+                        for (i in 0 until remove_layout_checkInt.size) { // 포지션값의 크기에 따라 작은것 -> 큰것순으로 정렬하는 코드
+                            var imsi = 0
+                            for (j in i until remove_layout_checkInt.size) {
+                                if (remove_layout_checkInt[i] > remove_layout_checkInt[j]) {
+                                    imsi = remove_layout_checkInt[j]
+                                    remove_layout_checkInt[j] = remove_layout_checkInt[i]
+                                    remove_layout_checkInt[i] = imsi
+                                    Log.d("사이즈정렬중 i", remove_layout_checkInt[i].toString())
+                                    Log.d("사이즈정렬중 j", remove_layout_checkInt[j].toString())
+                                }
                             }
+                            Log.d("사이즈정렬후", remove_layout_checkInt.toString())
                         }
-                        Log.d("사이즈정렬후", remove_layout_checkInt.toString())
-                    }
 
-                    if (layout_remove().second!!.isNotEmpty()) {
-                        date_layout_checkLong = layout_remove().second!!
-                        Log.d("데이터갯수11", date_layout_checkLong.toString())
-                    }
-
-                    for (i in remove_layout_checkInt.size - 1 downTo 0) { // downto로 안하면 작은것부터 삭제 후 큰것삭제하는데, 작은것이 삭제되었을경우 사이즈가 줄어들어 큰 숫자가 안들어가지는 상황이 있어. 오류가 발생함.
-                        diarylist.removeAt(remove_layout_checkInt[i]) // remove_layout_checkInt는 아이템 롱클릭시 받아와지는 포지션값.
-                        binding.mainRecylerview.adapter?.notifyItemRemoved(remove_layout_checkInt[i])
-                        binding.mainRecylerview.adapter?.notifyItemRangeChanged(remove_layout_checkInt[i], diarylist.size)
-                        Log.d("사이즈삭제파일은", remove_layout_checkInt[i].toString())
-                    }
-
-                    binding.mainRecylerview.adapter?.notifyDataSetChanged()
-
-                    CoroutineScope(Dispatchers.IO).launch {
-                        for (i in date_layout_checkLong.indices) {
-                            Log.d("데이터갯수22", date_layout_checkLong.toString())
-                            Log.d("없애는데이터", date_layout_checkLong[i].toString())
-                            db.RoomDao().DeletedateDao(date_layout_checkLong[i])
+                        if (layout_remove().second!!.isNotEmpty()) {
+                            date_layout_checkLong = layout_remove().second!!
+                            Log.d("데이터갯수11", date_layout_checkLong.toString())
                         }
-                        layout_remove_position_check(1024)
-                        Log.d("실행됨", "실행")
-                        diary_btn_change = 0
-                    }
 
-                    binding.allDiary.setImageResource(R.drawable.ic_baseline_create_24)
+                        for (i in remove_layout_checkInt.size - 1 downTo 0) { // downto로 안하면 작은것부터 삭제 후 큰것삭제하는데, 작은것이 삭제되었을경우 사이즈가 줄어들어 큰 숫자가 안들어가지는 상황이 있어. 오류가 발생함.
+                            diarylist.removeAt(remove_layout_checkInt[i]) // remove_layout_checkInt는 아이템 롱클릭시 받아와지는 포지션값.
+                            binding.mainRecylerview.adapter?.notifyItemRemoved(remove_layout_checkInt[i])
+                            binding.mainRecylerview.adapter?.notifyItemRangeChanged(remove_layout_checkInt[i], diarylist.size)
+                            Log.d("사이즈삭제파일은", remove_layout_checkInt[i].toString())
+                        }
+
+                        binding.mainRecylerview.adapter?.notifyDataSetChanged()
+
+                        CoroutineScope(Dispatchers.IO).launch {
+                            for (i in date_layout_checkLong.indices) {
+                                Log.d("데이터갯수22", date_layout_checkLong.toString())
+                                Log.d("없애는데이터", date_layout_checkLong[i].toString())
+                                db.RoomDao().DeletedateDao(date_layout_checkLong[i])
+                            }
+                            layout_remove_position_check(1024)
+                            Log.d("실행됨", "실행")
+                            diary_btn_change = 0
+                        }
+
+                        binding.allDiary.setImageResource(R.drawable.ic_baseline_create_24)
+                    }
                 }
+                permission_negative_btn.setOnClickListener {
+                    binding.mainRecylerview.adapter?.notifyDataSetChanged()
+                    layout_remove_position_check(1024)
+                    Log.d("실행됨", "실행")
+                    diary_btn_change = 0
+                    binding.allDiary.setImageResource(R.drawable.ic_baseline_create_24)
+                    dialog.dismiss()
+                }
+
+                var lp = WindowManager.LayoutParams()
+                lp.copyFrom(dialog.window!!.attributes)
+                lp.width = metrics.widthPixels * 7 / 10 //레이아웃 params 에 width, height 넣어주기.
+                lp.height = metrics.heightPixels * 4 / 10
+                dialog.show()
+                dialog.window!!.attributes = lp
             }
         })
     }
