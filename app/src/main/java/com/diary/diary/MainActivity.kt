@@ -10,10 +10,7 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.View
-import android.view.WindowManager
+import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -21,9 +18,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
 import androidx.databinding.BindingAdapter
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.*
@@ -32,7 +27,12 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.diary.diary.databinding.ActivityMainBinding
 import com.diary.recycler.Recycler_main
 import com.diary.recycler.list
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.MobileAds
 import com.google.gson.Gson
+import com.kakao.adfit.ads.AdListener
+import com.kakao.adfit.ads.ba.BannerAdView
 import kotlinx.coroutines.*
 import java.util.*
 import kotlin.collections.ArrayList
@@ -186,14 +186,17 @@ class MainActivity : AppCompatActivity(), layout_remove {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        Log.d("사이클", "크리에잇")
-
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.lifecycleOwner = this
         viewModel = ViewModelProvider(this).get(Recylcerviewmodel::class.java)
         binding.recylcerviewmodel = viewModel
 
         metrics = resources.displayMetrics
+
+        MobileAds.initialize(this) {}
+        var mAdView = binding.adview1
+        val adRequest = AdRequest.Builder().build()
+        mAdView.loadAd(adRequest)
 
         var two_year = calendar_year.toString().substring(2)
         binding.maintitle.setText("${two_year}년 ${calendar_month}월의 추억")
@@ -217,7 +220,7 @@ class MainActivity : AppCompatActivity(), layout_remove {
         }
 
         viewobserve() // 여기에 놓지 않고, onresume에 하면 observe들이 중복호출된다.
-        coroutine() //기본 room 데이터들 가지고 옴. (단축키 뺀 데이터들)
+        coroutine() //기본 room 데이터들 가지고 옴. (단축키 뺀 데이터들) onresume에 넣으면 중복추가.
         alldiary()
     }
 
@@ -225,6 +228,10 @@ class MainActivity : AppCompatActivity(), layout_remove {
         super.onResume()
         binding.allDiary.setImageResource(R.drawable.ic_baseline_create_24)
         getshortcut() //코루틴 통해서 단축키 가져옴.
+
+        binding.mainRecylerview.setHasFixedSize(true)
+        binding.mainRecylerview.adapter = Recycler_main(diarylist, binding.shadowText, "main")
+        binding.mainRecylerview.adapter?.notifyDataSetChanged()
 
         var sharedPreferences = getSharedPreferences("LOCK_PASSWORD", 0)
 
@@ -530,9 +537,70 @@ class MainActivity : AppCompatActivity(), layout_remove {
             layout_remove_position_check(1024)
             binding.allDiary.setImageResource(R.drawable.ic_baseline_create_24)
         }
-        else{ // 다이얼로그로 종료버튼 만들기.
-            ActivityCompat.finishAffinity(this)
-            exitProcess(0)
+        else{
+            val view = LayoutInflater.from(this).inflate(R.layout.close_app, null)
+            val dialog = Dialog(this)
+            dialog.setContentView(view)
+
+            val adfit = view.findViewById<BannerAdView>(R.id.kakao_View)
+            val noadfit_image = view.findViewById<ImageView>(R.id.kakao_View_nodownload_image)
+            val positive = view.findViewById<Button>(R.id.positive)
+            val negative = view.findViewById<Button>(R.id.negative)
+
+            positive.setOnClickListener {
+                ActivityCompat.finishAffinity(this)
+                exitProcess(0)
+            }
+            negative.setOnClickListener {
+                dialog.dismiss()
+            }
+
+            adfit.setClientId("DAN-S0VcxwmVbtlWnXb9")  // 할당 받은 광고단위 ID 설정
+            adfit.setAdListener(object : AdListener {  // optional :: 광고 수신 리스너 설정
+
+                override fun onAdLoaded() {
+                    // 배너 광고 노출 완료 시 호출
+                }
+
+                override fun onAdFailed(errorCode: Int) {
+                    adfit.visibility = View.GONE
+                    noadfit_image.visibility = View.VISIBLE
+                    // 배너 광고 노출 실패 시 호출
+                }
+
+                override fun onAdClicked() {
+                    // 배너 광고 클릭 시 호출
+                }
+
+            })
+
+// activity 또는 fragment의 lifecycle에 따라 호출
+            lifecycle.addObserver(object : LifecycleObserver {
+
+                @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+                fun onResume() {
+                    adfit.resume()
+                }
+
+                @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+                fun onPause() {
+                    adfit.pause()
+                }
+
+                @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+                fun onDestroy() {
+                    adfit.destroy()
+                }
+            })
+            adfit.loadAd()
+
+            var lp = WindowManager.LayoutParams()
+            lp.copyFrom(dialog.window!!.attributes)
+            lp.width = metrics.widthPixels * 8 / 10 //레이아웃 params 에 width, height 넣어주기.
+            lp.height = metrics.heightPixels * 6 / 10
+            dialog.window!!.attributes = lp
+
+            dialog.show()
         }
     }
 

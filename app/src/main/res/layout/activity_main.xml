@@ -42,6 +42,8 @@
                 android:layout_marginStart="10dp"
 
                 android:onClick="@{() -> Recylcerviewmodel.settingClick()}"
+                android:src="@drawable/ic_baseline_settings_24"
+                android:background="@android:color/transparent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -84,10 +86,20 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="20dp"
+        android:layout_weight="9.3">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/recycler_addmob_top_layout"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginTop="20dp"
-            android:layout_weight="8.3">
+
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/addmob_layout">
 
             <FrameLayout
                 android:layout_width="0dp"
@@ -118,14 +130,38 @@
                     android:layout_height="60sp"
                     android:layout_gravity="bottom|end"
                     android:background="@drawable/btn_on"
+                    android:layout_marginBottom="30dp"
 
                     android:onClick="@{() -> Recylcerviewmodel.alldiaryClick()}"
                     android:src="@drawable/ic_baseline_create_24" />
 
             </FrameLayout>
-
         </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <LinearLayout
+                android:id="@+id/addmob_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
 
-    </LinearLayout>
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/recycler_addmob_top_layout"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <com.google.android.gms.ads.AdView
+                    android:id="@+id/adview1"
+                    xmlns:ads="http://schemas.android.com/apk/res-auto"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    ads:adSize="SMART_BANNER"
+                    ads:adUnitId="ca-app-pub-8417791108068506/5617669244"/>
+
+                <!-- 애드몹 못불러올시 gone하기.-->
+
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </LinearLayout>
+
 </layout>

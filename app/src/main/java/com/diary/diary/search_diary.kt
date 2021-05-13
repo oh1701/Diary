@@ -26,6 +26,8 @@ import com.diary.recycler.tagline
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayoutManager
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.MobileAds
 
 
 class SearchViewModel:ViewModel(){
@@ -55,6 +57,12 @@ class search_diary : AppCompatActivity(), layout_remove {
         binding.lifecycleOwner = this
         binding.search = viewModel
         sharedPreferences = getSharedPreferences("LOCK_PASSWORD", 0)
+
+
+        MobileAds.initialize(this) {}
+        var mAdView = binding.adview2
+        val adRequest = AdRequest.Builder().build()
+        mAdView.loadAd(adRequest)
 
         if(sharedPreferences.getString("DARK_MODE", "").toString() == "ON"){ // 뒤로가기로 설정창에서 다크모드 같은것 설정 후 나왔을 경우 대비.
             binding.searchAllLayout.setBackgroundColor(Color.parseColor("#272626"))
@@ -150,22 +158,8 @@ class search_diary : AppCompatActivity(), layout_remove {
         })
 
         viewModel.back.observe(this, {
-            if(intent.hasExtra("태그이동"))
-                onBackPressed()
-            else{
-                var intent = Intent(this, MainActivity::class.java)
-                startActivity(intent)
-            }
+            onBackPressed()
         })
-    }
-
-    override fun onBackPressed() {
-        if(intent.hasExtra("태그이동"))
-            super.onBackPressed()
-        else{
-            var intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
-        }
     }
 
     override fun onResume() {

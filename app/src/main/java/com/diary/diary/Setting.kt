@@ -124,10 +124,6 @@ class Setting : AppCompatActivity() {
         }
     }
 
-    override fun onBackPressed() {
-        intentMain()
-    }
-
     fun observe() {
         val editor = sharedPreferences.edit()
 
@@ -189,7 +185,8 @@ class Setting : AppCompatActivity() {
         })
 
         settingviewmodel.backbtn.observe(this, {
-            intentMain()
+            onBackPressed()
+            //intentMain()
         })
         
         settingviewmodel.passwordchange.observe(this, {
@@ -218,9 +215,6 @@ class Setting : AppCompatActivity() {
         })
     }
 
-    fun intentMain(){
-        startActivity(Intent(this, MainActivity::class.java))
-    }
     fun darkON(){
         binding.darkSwitch.isChecked = true
         darkmodechagend = "ON"

@@ -58,13 +58,6 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-
-// @내 폰트@, @모든 사진 삭제@, @시간@, @날짜@, @기념일@, @ << 와 같은 단축키 설정. observe 통해서 edit들을 확인하고, 만약 저 글자들이 포함되는 순간, 이벤트 발생. 이후 글자 삭제.
-// 위의 것들은 기본 단축키. 사용자가 설정하는 것에 따라 추가 단축키를 만들고 그것을 실행하면 사용자가 설정했던 문자가 나오도록 설정하기.
-
-// 현재 observe 부문에서 단축키 만드는중. 나중에 설정에서 단축키 설정하고 room으로 가져오기. room으로 가져온 단축키는 array로 설정해서 for문 돌리고 contain으로 비교, replace로 없애기
-// 모든 종료 이벤트 시 interface의 string을 꺼짐으로 설정해주기. <<< 안해도 되는듯
-
 class Roommodel:ViewModel(){
     private val edittitle = MutableLiveData<String>()
     private val editcontent = MutableLiveData<String>()
