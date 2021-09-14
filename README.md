@@ -10,4 +10,16 @@
 
 ### < 메인 화면 >
 
-<img src = "https://user-images.githubusercontent.com/74566094/133261686-174b1ec4-6be8-43b0-ba0a-44a87ce213b0.png" width = "50%|height= 30"/>
+<img src = "https://user-images.githubusercontent.com/74566094/133261750-bd12c2e8-552e-4954-b102-d7a938da6b19.png" width = "30%|height= 10"/>
+
+### < 카메라 촬영 화면 >
+
+<img src = "https://user-images.githubusercontent.com/74566094/133261931-c4c5e32e-3683-4a35-8589-823f31dbcfeb.png" width = "30%|height= 10"/>
+
+### < 폰트 및 색상 지원 >
+
+<img src = "https://user-images.githubusercontent.com/74566094/133261812-b67684f1-bcee-481f-906d-f13e65d14c4e.png" width = "30%|height= 10"/>
+
+
+
+
