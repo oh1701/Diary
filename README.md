@@ -20,6 +20,18 @@
 
 <img src = "https://user-images.githubusercontent.com/74566094/133261812-b67684f1-bcee-481f-906d-f13e65d14c4e.png" width = "30%|height= 10"/>
 
+### < 검색 기능 지원 (태그 및 제목, 내용) >
 
+<img src = "https://user-images.githubusercontent.com/74566094/133548235-1c5baa34-1acc-46c8-b159-8616e3bf8008.png" width = "30%|height= 10"/>
 
+### < 잠금 기능 지원 >
 
+<img src = "https://user-images.githubusercontent.com/74566094/133548280-93bef7f4-b670-4d0c-91ac-bec8a4d4ef83.png" width = "30%|height= 10"/>
+
+### < 다크 모드 >
+
+<img src = "https://user-images.githubusercontent.com/74566094/133548300-f48ae08b-2cac-41a0-908f-e066303848ae.png" width = "30%|height= 10"/>
+
+### < 단축키 설정 >
+
+<img src = "https://user-images.githubusercontent.com/74566094/133548317-41d259e2-0405-40a8-ad78-d32695c57d4a.png" width = "30%|height= 10"/>
